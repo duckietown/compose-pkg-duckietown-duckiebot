@@ -1,0 +1,13 @@
+{
+    "name" : "AIDO - Duckiebot",
+    "description" : "Provides functionalities for monitoring AIDO Duckiebots",
+    "core" : {
+        "namespace" : "aido_duckiebot",
+        "file" : "AIDODuckiebot.php",
+        "class" : "AIDODuckiebot"
+    },
+    "dependencies" : {
+        "system-packages" : [],
+        "packages" : []
+    }
+}
