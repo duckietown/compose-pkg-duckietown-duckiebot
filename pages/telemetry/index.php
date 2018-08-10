@@ -17,9 +17,6 @@ $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
 
-// get name of the current duckiebot
-$duckiebotName = $GLOBALS['_duckietown_duckiebot_veh'];
-
 // read mission details
 $db = new Database( 'aido_duckiebot', 'mission' );
 $res = $db->read($mission_name);
