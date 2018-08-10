@@ -1,0 +1,72 @@
+{
+	"_data": {
+		"blocks": [
+			{
+				"shape": {
+					"rows": 2,
+					"cols": 2
+				},
+				"renderer": "DuckietownMsgs_Twist2DStamped",
+				"title": "Speed - Linear",
+				"subtitle": "\/maxliubot\/car_cmd_switch_node\/cmd",
+				"args": {
+					"topic": "\/maxliubot\/car_cmd_switch_node\/cmd",
+					"fps": 5,
+					"field": "v",
+					"unit": "m\/s",
+					"max_value": 0.4,
+					"allow_negative": false
+				}
+			},
+			{
+				"shape": {
+					"rows": 2,
+					"cols": 4
+				},
+				"renderer": "DuckietownMsgs_WheelsCmdStamped",
+				"title": "Motor speed",
+				"subtitle": "\/maxliubot\/wheels_driver_node\/wheels_cmd_executed",
+				"args": {
+					"topic": "\/maxliubot\/wheels_driver_node\/wheels_cmd_executed",
+					"fps": 5,
+					"max_value": 0.4
+				}
+			},
+			{
+				"shape": {
+					"rows": 2,
+					"cols": 2
+				},
+				"renderer": "DuckietownMsgs_Twist2DStamped",
+				"title": "Speed - Angular",
+				"subtitle": "\/maxliubot\/car_cmd_switch_node\/cmd",
+				"args": {
+					"topic": "\/maxliubot\/car_cmd_switch_node\/cmd",
+					"fps": 5,
+					"field": "omega",
+					"unit": "rad\/s",
+					"max_value": 8,
+					"allow_negative": true
+				}
+			},
+			{
+				"shape": {
+					"rows": 4,
+					"cols": 8
+				},
+				"renderer": "SensorMsgs_CompressedImage",
+				"title": "Camera",
+				"subtitle": "\/maxliubot\/camera_node\/image\/compressed",
+				"args": {
+					"topic": "\/maxliubot\/camera_node\/image\/compressed",
+					"fps": 5,
+					"style": "cover",
+					"position": "center center",
+					"background-color": "white"
+				}
+			}
+		]
+	},
+	"_metadata": [
+	]
+}

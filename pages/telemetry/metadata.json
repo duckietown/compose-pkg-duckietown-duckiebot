@@ -1,0 +1,22 @@
+{
+    "name" : "Telemetry",
+    "package" : "aido_duckiebot",
+    "menu_entry" : {
+        "order" : 1,
+        "icon" : {
+            "class" : "fa",
+            "name" : "dashboard"
+        },
+        "responsive" : {
+            "priority" : -10
+        },
+        "exclude_roles" : []
+    },
+    "child_pages" : [],
+    "access_level" : [
+        "administrator",
+        "supervisor",
+        "user",
+        "guest"
+    ]
+}
