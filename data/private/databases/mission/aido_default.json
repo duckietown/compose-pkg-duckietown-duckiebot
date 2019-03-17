@@ -56,9 +56,9 @@
 				},
 				"renderer": "SensorMsgs_CompressedImage",
 				"title": "Camera",
-				"subtitle": "\/camera_node\/image\/compressed",
+				"subtitle": "\/duckiebot\/camera_node\/image\/compressed",
 				"args": {
-					"topic": "\/camera_node\/image\/compressed",
+					"topic": "\/duckiebot\/camera_node\/image\/compressed",
 					"fps": 5,
 					"style": "cover",
 					"position": "center center",

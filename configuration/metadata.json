@@ -1,3 +1,16 @@
 {
-    "configuration_content" : {}
+    "configuration_content" : {
+        "rosbridge_host" : {
+            "title" : "ROSBridge Hostname",
+            "type" : "text",
+            "default" : null,
+            "details" : "Hostname of the ROS Bridge socket"
+        },
+        "rosbridge_port" : {
+            "title" : "ROSBridge Port",
+            "type" : "numeric",
+            "default" : 9001,
+            "details" : "Port of the ROS Bridge socket"
+        }
+    }
 }
