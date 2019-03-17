@@ -17,7 +17,11 @@ $grid_width = 966; // do not use 970px to accomodate for differences between bro
 $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
+
+
+// TODO: there must be a better way for doing this
 $duckiebot_name = Core::getSetting('navbar_title', 'core', 'n.a.');
+
 
 // read mission details
 $db = new Database( 'aido_duckiebot', 'mission' );
@@ -70,19 +74,34 @@ $mission_control = new MissionControl(
       <td colspan="4" style="border-bottom:1px solid #ddd">
         <h2>
           Mission Control
+
+          <span style="float: right; font-size: 12pt">Take over&nbsp;
+            <input type="checkbox"
+                data-toggle="toggle"
+                data-onstyle="primary"
+                data-offstyle="warning"
+                data-class="fast"
+                data-size="small"
+                name="duckiebot_driving_mode_toggle"
+                id="duckiebot_driving_mode_toggle">
+           </span>
         </h2>
       </td>
     </tr>
     <tr>
-      <td class="text-left" style="width:33%; padding-top:10px">
+      <td class="text-left" style="width:20%; padding-top:10px">
         <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
         <strong><?php echo $duckiebot_name ?></strong>
       </td>
-      <td class="text-center" style="width:33%; padding-top:10px">
+      <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
         <strong>TODO</strong>
       </td>
-      <td class="text-right" style="width:33%; padding-top:10px">
+      <td class="text-center" style="width:30%; padding-top:10px">
+        <i class="fa fa-toggle-on" aria-hidden="true"></i> Mode:
+        <strong id="duckiebot_driving_mode_status">Autonomous</strong>
+      </td>
+      <td class="text-right" style="width:20%; padding-top:10px">
         <span id="duckiebot_bridge_status">
           <i class="fa fa-spinner fa-pulse"></i> Connecting...
         </span>
@@ -108,6 +127,7 @@ $mission_control = new MissionControl(
 
   <script type="text/javascript">
   $( document ).ready(function() {
+    window.mission_control_Mode = 'autonomous';
     window.mission_control_page_blocks_data = {};
     // Connect to ROS
     window.ros = new ROSLIB.Ros({
@@ -127,6 +147,23 @@ $mission_control = new MissionControl(
       $('#duckiebot_bridge_status').html('<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>');
     });
   });
+
+
+  $('#duckiebot_driving_mode_toggle').change(function(){
+    if ($(this).prop('checked')){
+      // change the page background
+      $('body').css('background-image', 'linear-gradient(to top, #F7F7F6, #FFC800, #F7F7F6)');
+      $('#duckiebot_driving_mode_status').html('Manual');
+      window.mission_control_Mode = 'manual';
+    }else{
+      $('body').css('background-image', 'none');
+      $('#duckiebot_driving_mode_status').html('Autonomous');
+      window.mission_control_Mode = 'autonomous';
+    }
+  });
   </script>
 
+  <?php
+  include_once "components/take_over.php";
+  ?>
 </div>
