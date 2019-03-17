@@ -8,9 +8,9 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Linear",
-				"subtitle": "\/car_cmd_switch_node\/cmd",
+				"subtitle": "forward_kinematics_node\/velocity",
 				"args": {
-					"topic": "\/car_cmd_switch_node\/cmd",
+					"topic": "forward_kinematics_node\/velocity",
 					"fps": 5,
 					"field": "v",
 					"unit": "m\/s",
@@ -27,7 +27,7 @@
 				"title": "Motor speed",
 				"subtitle": "\/wheels_driver_node\/wheels_cmd_executed",
 				"args": {
-					"topic": "\/wheels_driver_node\/wheels_cmd_executed",
+					"topic": "wheels_driver_node\/wheels_cmd_executed",
 					"fps": 5,
 					"max_value": 0.4
 				}
@@ -39,9 +39,9 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Angular",
-				"subtitle": "\/car_cmd_switch_node\/cmd",
+				"subtitle": "\/forward_kinematics_node\/velocity",
 				"args": {
-					"topic": "\/car_cmd_switch_node\/cmd",
+					"topic": "forward_kinematics_node\/velocity",
 					"fps": 5,
 					"field": "omega",
 					"unit": "rad\/s",
@@ -56,9 +56,9 @@
 				},
 				"renderer": "SensorMsgs_CompressedImage",
 				"title": "Camera",
-				"subtitle": "\/duckiebot\/camera_node\/image\/compressed",
+				"subtitle": "\/camera_node\/image\/compressed",
 				"args": {
-					"topic": "\/duckiebot\/camera_node\/image\/compressed",
+					"topic": "camera_node\/image\/compressed",
 					"fps": 5,
 					"style": "cover",
 					"position": "center center",

@@ -17,6 +17,7 @@ $grid_width = 966; // do not use 970px to accomodate for differences between bro
 $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
+$duckiebot_name = Core::getSetting('navbar_title', 'core', 'n.a.');
 
 // read mission details
 $db = new Database( 'aido_duckiebot', 'mission' );
@@ -25,6 +26,17 @@ if( !$res['success'] ){
   Core::throwError( $res['data'] );
 }
 $mission_control_grid = $res['data'];
+
+// append name of the duckiebot to each topic
+for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
+  if( array_key_exists('topic', $mission_control_grid['blocks'][$i]['args']) ){
+    $mission_control_grid['blocks'][$i]['args']['topic'] = sprintf(
+      '/%s/%s',
+      $duckiebot_name,
+      $mission_control_grid['blocks'][$i]['args']['topic']
+    );
+  }
+}
 
 // define allowed block sizes
 $sizes = [
@@ -64,7 +76,7 @@ $mission_control = new MissionControl(
     <tr>
       <td class="text-left" style="width:33%; padding-top:10px">
         <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
-        <strong><?php echo Core::getSetting('navbar_title', 'core', 'n.a.') ?></strong>
+        <strong><?php echo $duckiebot_name ?></strong>
       </td>
       <td class="text-center" style="width:33%; padding-top:10px">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
