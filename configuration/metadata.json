@@ -5,18 +5,6 @@
             "type" : "text",
             "default" : null,
             "details" : "Name of the duckiebot"
-        },
-        "rosbridge_host" : {
-            "title" : "ROSBridge Hostname",
-            "type" : "text",
-            "default" : null,
-            "details" : "Hostname of the ROS Bridge socket"
-        },
-        "rosbridge_port" : {
-            "title" : "ROSBridge Port",
-            "type" : "text",
-            "default" : 9001,
-            "details" : "Port of the ROS Bridge socket"
         }
     }
 }

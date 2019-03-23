@@ -19,6 +19,17 @@ $block_gutter = 10;
 $block_border_thickness = 1;
 $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
 
+// get WebSocket hostname (defaults to HTTP_HOST if not set)
+$ws_hostname = Core::getSetting('rosbridge_host', 'ros');
+if(strlen($ws_hostname) < 2){
+  $ws_hostname = $_SERVER['HTTP_HOST'];
+}
+// compile the Websocket URL
+$ws_url = sprintf(
+  "ws://%s:%d",
+  $ws_hostname,
+  Core::getSetting('rosbridge_port', 'ros')
+);
 
 // read mission details
 $db = new Database( 'duckietown_duckiebot', 'mission' );
@@ -108,24 +119,13 @@ $mission_control = new MissionControl(
 
   <?php
   $mission_control->create();
-
-  // get WebSocket hostname (default to HTTP_HOST if not set)
-  $ws_hostname = Core::getSetting('rosbridge_host', 'duckietown_duckiebot');
-  if(strlen($ws_hostname) < 2){
-    $ws_hostname = $_SERVER['HTTP_HOST'];
-  }
-  // compile the Websocket URL
-  $ws_url = sprintf(
-    "ws://%s:%d",
-    $ws_hostname,
-    Core::getSetting('rosbridge_port', 'duckietown_duckiebot')
-  );
   ?>
 
   <script type="text/javascript">
   $( document ).ready(function() {
     window.mission_control_Mode = 'autonomous';
     window.mission_control_page_blocks_data = {};
+    
     // Connect to ROS
     window.ros = new ROSLIB.Ros({
       url : "<?php echo $ws_url ?>"
