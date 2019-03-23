@@ -5,7 +5,7 @@
 # @Last modified by:   afdaniele
 
 
-namespace system\packages\aido_duckiebot;
+namespace system\packages\duckietown_duckiebot;
 
 use \system\classes\Core;
 use \system\classes\Utils;
@@ -13,9 +13,9 @@ use \system\classes\Database;
 use \system\classes\Configuration;
 
 /**
-*   Module for managing AIDO duckiebots
+*   Module for managing Duckiebots
 */
-class AIDODuckiebot{
+class Duckiebot{
 
 	private static $initialized = false;
 
@@ -83,5 +83,5 @@ class AIDODuckiebot{
 
 	// YOUR PRIVATE METHODS HERE
 
-}//AIDODuckiebot
+}//Duckiebot
 ?>

@@ -1,5 +1,11 @@
 {
     "configuration_content" : {
+        "duckiebot_name" : {
+            "title" : "Duckiebot name",
+            "type" : "text",
+            "default" : null,
+            "details" : "Name of the duckiebot"
+        },
         "rosbridge_host" : {
             "title" : "ROSBridge Hostname",
             "type" : "text",
@@ -8,7 +14,7 @@
         },
         "rosbridge_port" : {
             "title" : "ROSBridge Port",
-            "type" : "numeric",
+            "type" : "text",
             "default" : 9001,
             "details" : "Port of the ROS Bridge socket"
         }

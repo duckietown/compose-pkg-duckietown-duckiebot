@@ -10,21 +10,18 @@ use \system\classes\Database;
 <script src="<?php echo Core::getJSscriptURL('roslibjs.min.js', 'ros'); ?>"></script>
 
 <?php
-$mission_name = 'aido_default';
+$mission_name = 'duckiebot_default';
 
 // define parameters for the mission control grid
 $grid_width = 966; // do not use 970px to accomodate for differences between browsers
 $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
-
-
-// TODO: there must be a better way for doing this
-$duckiebot_name = Core::getSetting('navbar_title', 'core', 'n.a.');
+$duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
 
 
 // read mission details
-$db = new Database( 'aido_duckiebot', 'mission' );
+$db = new Database( 'duckietown_duckiebot', 'mission' );
 $res = $db->read($mission_name);
 if( !$res['success'] ){
   Core::throwError( $res['data'] );
@@ -113,7 +110,7 @@ $mission_control = new MissionControl(
   $mission_control->create();
 
   // get WebSocket hostname (default to HTTP_HOST if not set)
-  $ws_hostname = Core::getSetting('rosbridge_host', 'aido_duckiebot');
+  $ws_hostname = Core::getSetting('rosbridge_host', 'duckietown_duckiebot');
   if(strlen($ws_hostname) < 2){
     $ws_hostname = $_SERVER['HTTP_HOST'];
   }
@@ -121,7 +118,7 @@ $mission_control = new MissionControl(
   $ws_url = sprintf(
     "ws://%s:%d",
     $ws_hostname,
-    Core::getSetting('rosbridge_port', 'aido_duckiebot')
+    Core::getSetting('rosbridge_port', 'duckietown_duckiebot')
   );
   ?>
 

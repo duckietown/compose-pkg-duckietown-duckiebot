@@ -1,3 +1,3 @@
-# compose-pkg-aido-duckiebot
+# compose-pkg-duckietown-duckiebot
 
-AIDO Duckiebot monitoring package for the \compose\ platform.
+Duckiebot monitoring package for the \compose\ platform.

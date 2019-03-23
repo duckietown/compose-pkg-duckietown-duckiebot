@@ -1,15 +1,15 @@
 {
-    "name" : "AIDO - Duckiebot",
-    "description" : "Provides functionalities for monitoring AIDO Duckiebots",
+    "name" : "Duckietown - Duckiebot",
+    "description" : "Provides functionalities for monitoring Duckiebots",
     "core" : {
-        "namespace" : "aido_duckiebot",
-        "file" : "AIDODuckiebot.php",
-        "class" : "AIDODuckiebot"
+        "namespace" : "duckietown_duckiebot",
+        "file" : "Duckiebot.php",
+        "class" : "Duckiebot"
     },
     "dependencies" : {
         "system-packages" : [],
         "packages" : [
-            "aido_common"
+            "duckietown"
         ]
     }
 }

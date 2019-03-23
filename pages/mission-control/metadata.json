@@ -1,6 +1,6 @@
 {
     "name" : "Mission Control",
-    "package" : "aido_duckiebot",
+    "package" : "duckietown_duckiebot",
     "menu_entry" : {
         "order" : 1,
         "icon" : {

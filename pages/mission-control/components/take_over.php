@@ -10,9 +10,7 @@ $v_gain = 0.41;
 $omega_gain = 8.3;
 $sensitivity = 0.5;
 $omega_calibration = 0.06;
-
-// TODO: there must be a better way for doing this
-$duckiebot_name = Core::getSetting('navbar_title', 'core', 'n.a.');
+$duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
 
 // apply sensitivity
 $omega_gain *= $sensitivity;
@@ -70,8 +68,8 @@ $omega_gain *= $sensitivity;
       keys = window.mission_control_Keys;
       key_map = window.mission_control_keyMap;
       // compute linear/angular speeds
-      v_gain = <? echo $v_gain ?>;
-      omega_gain = <? echo $omega_gain ?>;
+      v_gain = <?php echo $v_gain ?>;
+      omega_gain = <?php echo $omega_gain ?>;
       v_val = Math.min(key_map[keys.UP_ARROW] + key_map[keys.W], 1) - Math.min(key_map[keys.DOWN_ARROW] + key_map[keys.S], 1);
       omega_val = Math.min(key_map[keys.LEFT_ARROW] + key_map[keys.A], 1) - Math.min(key_map[keys.RIGHT_ARROW] + key_map[keys.D], 1);
       //
