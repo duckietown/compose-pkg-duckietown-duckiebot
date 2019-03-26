@@ -83,7 +83,7 @@ $omega_gain *= $sensitivity;
     }
 
     // publish command at regular rate
-    $(document).on('ROSBridge_connected', function(e){
+    $(document).on('ROSBRIDGE_CONNECTED', function(e){
       // start publishing commands to the duckiebot
       setInterval(publish_command, <?php echo intval(1000.0 / $output_commands_hz) ?>);
     });
