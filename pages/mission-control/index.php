@@ -115,21 +115,21 @@ $mission_control = new MissionControl(
 
   <script type="text/javascript">
 
-  $(document).on('ROSBRIDGE_CONNECTED', function(evt){
+  $(document).on('<?php echo ROS::$ROSBRIDGE_CONNECTED ?>', function(evt){
     console.log('Connected to websocket server.');
     $('#duckiebot_bridge_status').html(
       '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
     );
   });
 
-  $(document).on('ROSBRIDGE_ERROR', function(evt, error){
+  $(document).on('<?php echo ROS::$ROSBRIDGE_ERROR ?>', function(evt, error){
     console.log('Error connecting to websocket server: ', error);
     $('#duckiebot_bridge_status').html(
       '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
     );
   });
 
-  $(document).on('ROSBRIDGE_CLOSED', function(evt){
+  $(document).on('<?php echo ROS::$ROSBRIDGE_CLOSED ?>', function(evt){
     console.log('Connection to websocket server closed.');
     $('#duckiebot_bridge_status').html(
       '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'

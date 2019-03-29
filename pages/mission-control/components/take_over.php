@@ -2,6 +2,7 @@
 use \system\classes\Core;
 use \system\classes\Configuration;
 use \system\classes\Database;
+use \system\packages\ros\ROS;
 ?>
 
 <?php
@@ -83,7 +84,7 @@ $omega_gain *= $sensitivity;
     }
 
     // publish command at regular rate
-    $(document).on('ROSBRIDGE_CONNECTED', function(e){
+    $(document).on('<?php echo ROS::$ROSBRIDGE_CONNECTED ?>', function(e){
       // start publishing commands to the duckiebot
       setInterval(publish_command, <?php echo intval(1000.0 / $output_commands_hz) ?>);
     });
