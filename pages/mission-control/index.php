@@ -3,6 +3,7 @@ use \system\classes\Core;
 use \system\classes\Configuration;
 use \system\classes\Database;
 use \system\packages\ros\ROS;
+use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
 <script src="<?php echo Core::getJSscriptURL('jquery-ui-1.11.1.js', 'duckietown'); ?>"></script>
@@ -17,16 +18,7 @@ $grid_width = 966; // do not use 970px to accomodate for differences between bro
 $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
-$duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
-// revert to http host if no duckiebot name is set
-if(strlen($duckiebot_name) < 2){
-  $duckiebot_name = $_SERVER['HTTP_HOST'];
-  // remove port (if any) from the http host string
-  $duckiebot_name_parts = explode(':', $duckiebot_name);
-  $duckiebot_name = $duckiebot_name_parts[0];
-}
-// remove '.local' from the end of the host string (if present)
-$duckiebot_name = preg_replace('/\.local$/', '', $duckiebot_name);
+$duckiebot_name = Duckiebot::getDuckiebotName();
 
 // read mission details
 $db = new Database( 'duckietown_duckiebot', 'mission' );

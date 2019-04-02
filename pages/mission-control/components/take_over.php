@@ -3,6 +3,7 @@ use \system\classes\Core;
 use \system\classes\Configuration;
 use \system\classes\Database;
 use \system\packages\ros\ROS;
+use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
 <?php
@@ -11,7 +12,7 @@ $v_gain = 0.41;
 $omega_gain = 8.3;
 $sensitivity = 0.5;
 $omega_calibration = 0.06;
-$duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+$duckiebot_name = Duckiebot::getDuckiebotName();
 
 // apply sensitivity
 $omega_gain *= $sensitivity;
