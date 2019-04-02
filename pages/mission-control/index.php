@@ -18,6 +18,13 @@ $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
 $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+// revert to http host if no duckiebot name is set
+if(strlen($duckiebot_name) < 2){
+  $duckiebot_name = $_SERVER['HTTP_HOST'];
+  // remove port (if any) from the http host string
+  $duckiebot_name_parts = explode(':', $duckiebot_name);
+  $duckiebot_name = $duckiebot_name_parts[0];
+}
 
 // read mission details
 $db = new Database( 'duckietown_duckiebot', 'mission' );
