@@ -25,6 +25,8 @@ if(strlen($duckiebot_name) < 2){
   $duckiebot_name_parts = explode(':', $duckiebot_name);
   $duckiebot_name = $duckiebot_name_parts[0];
 }
+// remove '.local' from the end of the host string (if present)
+$duckiebot_name = preg_replace('/\.local$/', '', $duckiebot_name);
 
 // read mission details
 $db = new Database( 'duckietown_duckiebot', 'mission' );

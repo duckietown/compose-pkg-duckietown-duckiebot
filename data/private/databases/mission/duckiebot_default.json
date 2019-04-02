@@ -8,7 +8,7 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Linear",
-				"subtitle": "forward_kinematics_node\/velocity",
+				"subtitle": "\/forward_kinematics_node\/velocity",
 				"args": {
 					"topic": "forward_kinematics_node\/velocity",
 					"fps": 5,
