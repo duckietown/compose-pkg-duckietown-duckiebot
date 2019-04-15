@@ -21,7 +21,7 @@ $block_border_thickness = 1;
 $duckiebot_name = Duckiebot::getDuckiebotName();
 
 // read mission details
-$db = new Database( 'duckietown_duckiebot', 'mission' );
+$db = new Database('duckietown_duckiebot', 'mission');
 $res = $db->read($mission_name);
 if( !$res['success'] ){
   Core::throwError( $res['data'] );
@@ -92,7 +92,7 @@ $mission_control = new MissionControl(
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
-        <strong>TODO</strong>
+        <strong><?php echo $mission_name ?></strong>
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-toggle-on" aria-hidden="true"></i> Mode:
@@ -158,5 +158,7 @@ $mission_control = new MissionControl(
 
   <?php
   include_once "components/take_over.php";
+
+  new MissionControlMenu('left', 'duckietown_duckiebot', 'mission', $mission_name);
   ?>
 </div>
