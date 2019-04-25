@@ -6,41 +6,24 @@ use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
-<script src="<?php echo Core::getJSscriptURL('jquery-ui-1.11.1.js', 'duckietown'); ?>"></script>
-<script src="<?php echo Core::getJSscriptURL('packery.pkgd.min.js', 'duckietown'); ?>"></script>
-<script src="<?php echo Core::getJSscriptURL('draggabilly.pkgd.min.js', 'duckietown'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('jquery-ui-1.11.1.js'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('packery.pkgd.min.js'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('draggabilly.pkgd.min.js'); ?>"></script>
 
 <?php
-$mission_name = 'duckiebot_default';
+$mission_db = "duckietown_duckiebot_missions";
+$mission_db_package = "data";
+$mission_name = (isset($_GET['mission']) && strlen(trim($_GET['mission'])) > 0)? trim($_GET['mission']) : null;
+$duckiebot_name = Duckiebot::getDuckiebotName();
+$grid_id = "duckiebot-mission-control-grid";
+$missions_regex = "/^(?!__).*/";
 
 // define parameters for the mission control grid
 $grid_width = 966; // do not use 970px to accomodate for differences between browsers
 $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
-$duckiebot_name = Duckiebot::getDuckiebotName();
-
-// read mission details
-$db = new Database('duckietown_duckiebot', 'mission');
-$res = $db->read($mission_name);
-if( !$res['success'] ){
-  Core::throwError( $res['data'] );
-}
-$mission_control_grid = $res['data'];
-
-// append name of the duckiebot to each topic
-for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
-  if( array_key_exists('topic', $mission_control_grid['blocks'][$i]['args']) ){
-    $mission_control_grid['blocks'][$i]['args']['topic'] = sprintf(
-      '/%s/%s',
-      $duckiebot_name,
-      $mission_control_grid['blocks'][$i]['args']['topic']
-    );
-  }
-}
-
-// define allowed block sizes
-$sizes = [
+$sizes = [ // allowed block sizes
   [1,1],
   [1,2],
   [1,3],
@@ -52,15 +35,46 @@ $sizes = [
   [8,8]
 ];
 
-// create mission control grid
-$mission_control = new MissionControl(
-  "duckiebot-mission-control-grid",
-  $grid_width,
-  $resolution,
-  $block_gutter,
-  $block_border_thickness,
-  $sizes,
-  $mission_control_grid['blocks']
+// open DB of missions
+$db = new Database($mission_db_package, $mission_db, $missions_regex);
+
+// open load modal if no mission was given
+if ($db->size() > 0 && is_null($mission_name)) {
+  $mission_name = null;
+  // no mission given
+  // 1. check if there is only one available
+  if ($db->size() == 1){
+    $missions = $db->list_keys();
+    $mission_name = $missions[0];
+  }else{
+    // 2. try to open the last opened mission
+    if (isset($_SESSION['_DUCKIETOWN_DUCKIEBOT_LAST_MISSION'])) {
+      $mission = $_SESSION['_DUCKIETOWN_DUCKIEBOT_LAST_MISSION'];
+      if ($db->key_exists($mission)) {
+        $mission_name = $mission;
+      }
+    }
+    // 3. open the load modal if there is at least one mission available
+    if (is_null($mission_name)) {
+      ?>
+      <script type="text/javascript">
+      $(document).ready(function(){
+        $('#mission-control-load-modal').modal('show');
+      });
+      </script>
+      <?php
+    }
+  }
+}
+
+// create a mission control menu to the left
+new MissionControlMenu(
+  $grid_id,
+  'left',
+  $mission_db_package,
+  $mission_db,
+  $mission_name,
+  $missions_regex
 );
 ?>
 
@@ -92,7 +106,7 @@ $mission_control = new MissionControl(
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
-        <strong><?php echo $mission_name ?></strong>
+        <strong><?php echo is_null($mission_name)? '(none)' : $mission_name ?></strong>
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-toggle-on" aria-hidden="true"></i> Mode:
@@ -107,15 +121,66 @@ $mission_control = new MissionControl(
   </table>
 
   <?php
-  $mission_control->create();
+  $load_mission = true;
+  // check if the mission exists
+  if ($db->size() == 0){
+    echo sprintf('<h3 class="text-center">%s</h3></div>', "No missions available!");
+    $load_mission = false;
+  } elseif (is_null($mission_name) || !$db->key_exists($mission_name)) {
+    $message = is_null($mission_name)? "No mission loaded!" : "Mission '$mission_name' not found!";
+    echo sprintf('<h3 class="text-center">%s</h3></div>', $message);
+    $load_mission = false;
+  }
+
+  if ($load_mission) {
+    // read mission details
+    $res = $db->read($mission_name);
+    if( !$res['success'] ){
+      Core::throwError( $res['data'] );
+    }
+    $mission_control_grid = $res['data'];
+
+    // if we were able to load the mission, store it as 'last opened'
+    $_SESSION['_DUCKIETOWN_DUCKIEBOT_LAST_MISSION'] = $mission_name;
+
+    // replace `~` with the duckiebot name in the topic field
+    for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
+      if (array_key_exists('topic', $mission_control_grid['blocks'][$i]['args']) &&
+        substr($mission_control_grid['blocks'][$i]['args']['topic'], 0, 1) === "~") {
+        // replace `~` with `duckiebot_name`
+        $mission_control_grid['blocks'][$i]['args']['topic'] = str_replace(
+          '~', '/'.$duckiebot_name, $mission_control_grid['blocks'][$i]['args']['topic']
+        );
+      }
+    }
+
+    // create mission control grid
+    $mission_control = new MissionControl(
+      $grid_id,
+      $grid_width,
+      $resolution,
+      $block_gutter,
+      $block_border_thickness,
+      $sizes,
+      $mission_control_grid['blocks']
+    );
+
+    // render mission control grid
+    $mission_control->create();
+
+    // connect to ROSbridge
+    ROS::connect();
+  }
   ?>
 
-  <?php
-  ROS::connect();
-  ?>
+</div>
 
-  <script type="text/javascript">
+<?php
+include_once "components/take_over.php";
+?>
 
+
+<script type="text/javascript">
   $(document).on('<?php echo ROS::$ROSBRIDGE_CONNECTED ?>', function(evt){
     console.log('Connected to websocket server.');
     $('#duckiebot_bridge_status').html(
@@ -137,7 +202,7 @@ $mission_control = new MissionControl(
     );
   });
 
-  $( document ).ready(function() {
+  $(document).ready(function() {
     window.mission_control_Mode = 'autonomous';
     window.mission_control_page_blocks_data = {};
   });
@@ -154,11 +219,43 @@ $mission_control = new MissionControl(
       window.mission_control_Mode = 'autonomous';
     }
   });
-  </script>
 
-  <?php
-  include_once "components/take_over.php";
+  $(window).on('MISSION_CONTROL_MENU_SAVE', function(evt, mission_name, mission_json){
+    var base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db]) ?>";
+    var url = "{0}&key={1}&value={2}".format(base_url, mission_name, mission_json);
+    // send data to server
+    callAPI(
+      url,
+      true,           //successDialog
+      false,          // reload
+      function(){
+        // reload mission
+        $(window).trigger('MISSION_CONTROL_MENU_LOAD', [mission_name]);
+      },              // funct
+      false,          // silentMode
+      false,          // suppressErrors
+      undefined,      // errorFcn
+      'POST'          // transportType
+    );
+  });
 
-  new MissionControlMenu('left', 'duckietown_duckiebot', 'mission', $mission_name);
-  ?>
-</div>
+  $(window).on('MISSION_CONTROL_MENU_LOAD', function(evt, mission_name){
+    var url = "<?php echo Core::getCurrentResourceURL()?>?mission={0}".format(mission_name);
+    window.location = url;
+  });
+
+  $(window).on('MISSION_CONTROL_MENU_DELETE', function(evt, mission_name){
+    var base_url = "<?php echo Core::getAPIurl('data', 'delete', ['database' => $mission_db]) ?>";
+    var url = "{0}&key={1}".format(base_url, mission_name);
+    // send data to server
+    callAPI(
+      url,
+      true,           //successDialog
+      false,          // reload
+      function(){     // funct
+        // reload page
+        $(window).trigger('MISSION_CONTROL_MENU_LOAD', ['']);
+      }
+    );
+  });
+</script>
