@@ -10,7 +10,7 @@
 				"title": "Speed - Linear",
 				"subtitle": "\/forward_kinematics_node\/velocity",
 				"args": {
-					"topic": "forward_kinematics_node\/velocity",
+					"topic": "~/forward_kinematics_node\/velocity",
 					"fps": 5,
 					"field": "v",
 					"unit": "m\/s",
@@ -27,7 +27,7 @@
 				"title": "Motor speed",
 				"subtitle": "\/wheels_driver_node\/wheels_cmd_executed",
 				"args": {
-					"topic": "wheels_driver_node\/wheels_cmd_executed",
+					"topic": "~/wheels_driver_node\/wheels_cmd_executed",
 					"fps": 5,
 					"max_value": 0.4
 				}
@@ -41,7 +41,7 @@
 				"title": "Speed - Angular",
 				"subtitle": "\/forward_kinematics_node\/velocity",
 				"args": {
-					"topic": "forward_kinematics_node\/velocity",
+					"topic": "~/forward_kinematics_node\/velocity",
 					"fps": 5,
 					"field": "omega",
 					"unit": "rad\/s",
@@ -58,7 +58,7 @@
 				"title": "Camera",
 				"subtitle": "\/camera_node\/image\/compressed",
 				"args": {
-					"topic": "camera_node\/image\/compressed",
+					"topic": "~/camera_node\/image\/compressed",
 					"fps": 5,
 					"style": "cover",
 					"position": "center center",
