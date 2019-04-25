@@ -1,3 +1,7 @@
+## 0.1.2 (April 24, 2019)
+  - added auto-load and load-last to mission-control; added support for mission control menu
+  - removed default mission from database, moved to post_install as public database using the package data
+
 ## 0.1.1 (April 21, 2019)
   - minor
 
