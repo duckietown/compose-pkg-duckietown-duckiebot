@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DUCKIETOWN_DUCKIEBOT_PKG_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+DUCKIETOWN_DUCKIEBOT_PKG_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 PACKAGES_DIR="${DUCKIETOWN_DUCKIEBOT_PKG_DIR}/.."
 
 # Install default missions
