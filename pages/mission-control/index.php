@@ -136,14 +136,14 @@ new MissionControlMenu(
     // if we were able to load the mission, store it as 'last opened'
     $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
 
-    // replace `~` with the vehicle name in the topic field
+    // replace `~` with the vehicle name in the arg fields
     for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
-      if (array_key_exists('topic', $mission_control_grid['blocks'][$i]['args']) &&
-        substr($mission_control_grid['blocks'][$i]['args']['topic'], 0, 1) === "~") {
-        // replace `~` with `vehicle_name`
-        $mission_control_grid['blocks'][$i]['args']['topic'] = str_replace(
-          '~', '/'.$vehicle_name, $mission_control_grid['blocks'][$i]['args']['topic']
-        );
+      foreach ($mission_control_grid['blocks'][$i]['args'] as $key => $value) {
+        if (substr($value, 0, 1) === "~") {
+          // replace `~` with `vehicle_name`
+          $value = str_replace('~', '/'.$vehicle_name, $value);
+          $mission_control_grid['blocks'][$i]['args'][$key] = $value;
+        }
       }
     }
 

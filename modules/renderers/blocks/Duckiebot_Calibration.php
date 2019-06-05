@@ -4,7 +4,7 @@ use \system\classes\BlockRenderer;
 use \system\packages\ros\ROS;
 
 
-class DuckiebotCalibration extends BlockRenderer{
+class Duckiebot_Calibration extends BlockRenderer{
 
   static protected $ICON = [
     "class" => "glyphicon",
@@ -45,7 +45,7 @@ class DuckiebotCalibration extends BlockRenderer{
 
             <div class="col-md-2" style="padding-right:20px">
               <img style="height: 70px; float: right"
-                src="<?php echo Core::getImageURL('trim_calibration.png', 'vehicle') ?>">
+                src="<?php echo Core::getImageURL('trim_calibration.png', 'duckietown_duckiebot') ?>">
             </div>
             <div class="col-md-10" id="slide_container">
               <table style="width: 100%">
