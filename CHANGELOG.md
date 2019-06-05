@@ -1,3 +1,6 @@
+## 0.2.1 (June 04, 2019)
+  - fixed bug
+
 ## 0.2 (June 04, 2019)
   - added Calibration module; minor
   - minor
