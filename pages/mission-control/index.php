@@ -14,8 +14,8 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 $mission_db = "duckietown_duckiebot_missions";
 $mission_db_package = "data";
 $mission_name = (isset($_GET['mission']) && strlen(trim($_GET['mission'])) > 0)? trim($_GET['mission']) : null;
-$duckiebot_name = Duckiebot::getDuckiebotName();
-$grid_id = "duckiebot-mission-control-grid";
+$vehicle_name = Duckiebot::getDuckiebotName();
+$grid_id = "vehicle-mission-control-grid";
 $missions_regex = "/^(?!__).*/";
 
 // define parameters for the mission control grid
@@ -24,15 +24,15 @@ $resolution = 8;
 $block_gutter = 10;
 $block_border_thickness = 1;
 $sizes = [ // allowed block sizes
-  [1,1],
   [1,2],
   [1,3],
   [2,2],
   [2,4],
+  [2,8],
   [3,8],
+  [4,4],
   [4,8],
-  [6,8],
-  [8,8]
+  [6,8]
 ];
 
 // open DB of missions
@@ -48,8 +48,8 @@ if ($db->size() > 0 && is_null($mission_name)) {
     $mission_name = $missions[0];
   }else{
     // 2. try to open the last opened mission
-    if (isset($_SESSION['_DUCKIETOWN_DUCKIEBOT_LAST_MISSION'])) {
-      $mission = $_SESSION['_DUCKIETOWN_DUCKIEBOT_LAST_MISSION'];
+    if (isset($_SESSION['_VEHICLE_LAST_MISSION'])) {
+      $mission = $_SESSION['_VEHICLE_LAST_MISSION'];
       if ($db->key_exists($mission)) {
         $mission_name = $mission;
       }
@@ -86,23 +86,16 @@ new MissionControlMenu(
         <h2>
           Mission Control
 
-          <span style="float: right; font-size: 12pt">Take over&nbsp;
-            <input type="checkbox"
-                data-toggle="toggle"
-                data-onstyle="primary"
-                data-offstyle="warning"
-                data-class="fast"
-                data-size="small"
-                name="duckiebot_driving_mode_toggle"
-                id="duckiebot_driving_mode_toggle">
-           </span>
+          <?php
+          include_once "components/take_over.php";
+          ?>
         </h2>
       </td>
     </tr>
     <tr>
       <td class="text-left" style="width:20%; padding-top:10px">
         <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
-        <strong><?php echo $duckiebot_name ?></strong>
+        <strong><?php echo $vehicle_name ?></strong>
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
@@ -110,10 +103,10 @@ new MissionControlMenu(
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-toggle-on" aria-hidden="true"></i> Mode:
-        <strong id="duckiebot_driving_mode_status">Autonomous</strong>
+        <strong id="vehicle_driving_mode_status">Autonomous</strong>
       </td>
       <td class="text-right" style="width:20%; padding-top:10px">
-        <span id="duckiebot_bridge_status">
+        <span id="vehicle_bridge_status">
           <i class="fa fa-spinner fa-pulse"></i> Connecting...
         </span>
       </td>
@@ -141,15 +134,15 @@ new MissionControlMenu(
     $mission_control_grid = $res['data'];
 
     // if we were able to load the mission, store it as 'last opened'
-    $_SESSION['_DUCKIETOWN_DUCKIEBOT_LAST_MISSION'] = $mission_name;
+    $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
 
-    // replace `~` with the duckiebot name in the topic field
+    // replace `~` with the vehicle name in the topic field
     for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
       if (array_key_exists('topic', $mission_control_grid['blocks'][$i]['args']) &&
         substr($mission_control_grid['blocks'][$i]['args']['topic'], 0, 1) === "~") {
-        // replace `~` with `duckiebot_name`
+        // replace `~` with `vehicle_name`
         $mission_control_grid['blocks'][$i]['args']['topic'] = str_replace(
-          '~', '/'.$duckiebot_name, $mission_control_grid['blocks'][$i]['args']['topic']
+          '~', '/'.$vehicle_name, $mission_control_grid['blocks'][$i]['args']['topic']
         );
       }
     }
@@ -175,49 +168,31 @@ new MissionControlMenu(
 
 </div>
 
-<?php
-include_once "components/take_over.php";
-?>
-
 
 <script type="text/javascript">
   $(document).on('<?php echo ROS::$ROSBRIDGE_CONNECTED ?>', function(evt){
     console.log('Connected to websocket server.');
-    $('#duckiebot_bridge_status').html(
+    $('#vehicle_bridge_status').html(
       '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
     );
   });
 
   $(document).on('<?php echo ROS::$ROSBRIDGE_ERROR ?>', function(evt, error){
     console.log('Error connecting to websocket server: ', error);
-    $('#duckiebot_bridge_status').html(
+    $('#vehicle_bridge_status').html(
       '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
     );
   });
 
   $(document).on('<?php echo ROS::$ROSBRIDGE_CLOSED ?>', function(evt){
     console.log('Connection to websocket server closed.');
-    $('#duckiebot_bridge_status').html(
+    $('#vehicle_bridge_status').html(
       '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
     );
   });
 
   $(document).ready(function() {
-    window.mission_control_Mode = 'autonomous';
     window.mission_control_page_blocks_data = {};
-  });
-
-  $('#duckiebot_driving_mode_toggle').change(function(){
-    if ($(this).prop('checked')){
-      // change the page background
-      $('body').css('background-image', 'linear-gradient(to top, #F7F7F6, #FFC800, #F7F7F6)');
-      $('#duckiebot_driving_mode_status').html('Manual');
-      window.mission_control_Mode = 'manual';
-    }else{
-      $('body').css('background-image', 'none');
-      $('#duckiebot_driving_mode_status').html('Autonomous');
-      window.mission_control_Mode = 'autonomous';
-    }
   });
 
   $(window).on('MISSION_CONTROL_MENU_SAVE', function(evt, mission_name, mission_json){

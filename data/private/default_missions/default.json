@@ -8,9 +8,9 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Linear",
-				"subtitle": "\/forward_kinematics_node\/velocity",
+				"subtitle": "\/car_interface\/car_cmd",
 				"args": {
-					"topic": "~/forward_kinematics_node\/velocity",
+					"topic": "~/car_interface\/car_cmd",
 					"fps": 5,
 					"field": "v",
 					"unit": "m\/s",
@@ -39,9 +39,9 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Angular",
-				"subtitle": "\/forward_kinematics_node\/velocity",
+				"subtitle": "\/car_interface\/car_cmd",
 				"args": {
-					"topic": "~/forward_kinematics_node\/velocity",
+					"topic": "~/car_interface\/car_cmd",
 					"fps": 5,
 					"field": "omega",
 					"unit": "rad\/s",
@@ -59,7 +59,7 @@
 				"subtitle": "\/camera_node\/image\/compressed",
 				"args": {
 					"topic": "~/camera_node\/image\/compressed",
-					"fps": 5,
+					"fps": 10,
 					"style": "cover",
 					"position": "center center",
 					"background-color": "white"
