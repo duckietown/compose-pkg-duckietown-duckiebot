@@ -1,3 +1,6 @@
+## 0.2.1 (September 23, 2019)
+  - fixed take over
+
 ## 0.2 (June 04, 2019)
   - added Calibration module; minor
   - minor
