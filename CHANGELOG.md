@@ -1,3 +1,9 @@
+## 0.2.2 (September 23, 2019)
+  - Bump version to 0.2.1.
+  - fixed take over
+  - Bump version to 0.2.1.
+  - fixed bug
+
 ## 0.2.1 (September 23, 2019)
   - fixed take over
 
