@@ -1,6 +1,21 @@
 {
 	"_data": {
 		"blocks": [
+      {
+				"shape": {
+					"rows": "2",
+					"cols": "8"
+				},
+				"renderer": "Duckiebot_Calibration",
+				"title": "Calibration",
+				"subtitle": "Calibrate your vehicle",
+				"args": {
+					"service": "~\/car_interface\/set_trim",
+					"trim_param": "~\/car_interface\/trim",
+					"topic": "~\/car_interface\/car_cmd",
+					"background_color": "#fff"
+				}
+			},
 			{
 				"shape": {
 					"rows": 2,
@@ -47,22 +62,6 @@
 					"unit": "rad\/s",
 					"max_value": 8,
 					"allow_negative": true
-				}
-			},
-			{
-				"shape": {
-					"rows": 4,
-					"cols": 8
-				},
-				"renderer": "SensorMsgs_CompressedImage",
-				"title": "Camera",
-				"subtitle": "\/camera_node\/image\/compressed",
-				"args": {
-					"topic": "~/camera_node\/image\/compressed",
-					"fps": 10,
-					"style": "cover",
-					"position": "center center",
-					"background-color": "white"
 				}
 			}
 		]
