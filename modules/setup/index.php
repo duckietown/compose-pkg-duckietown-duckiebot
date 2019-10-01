@@ -117,7 +117,7 @@ if(
 
   function _successFcn(result, status, xhr) {
     if (result.status == "error") return;
-    if (result.status == "ready" && result.progress['0'].progress == 100) {
+    if (result.status == "ready" && result.progress['0'].progress >= 100) {
       clearInterval(LOADER_INTERVAL);
       $('#step-form ._label').css('display', 'none');
       $('#step-form .loader-progress-row').css('display', 'none');
