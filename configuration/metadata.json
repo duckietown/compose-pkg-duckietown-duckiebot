@@ -11,6 +11,18 @@
             "type" : "text",
             "default" : "/robot",
             "details" : "Path to robot root"
+        },
+        "device_loader_host" : {
+            "title" : "Device Loader Host",
+            "type" : "text",
+            "default" : null,
+            "details" : "IP or Hostname of the machine running the device loader"
+        },
+        "device_loader_port" : {
+            "title" : "Device Loader Port",
+            "type" : "text",
+            "default" : 8081,
+            "details" : "Port the device loader module is listening on"
         }
     }
 }
