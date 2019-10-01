@@ -1,3 +1,7 @@
+## 0.2.5 (October 01, 2019)
+  - added setup module
+  - added device-loader configurable parameters
+
 ## 0.2.4 (September 23, 2019)
 
 
