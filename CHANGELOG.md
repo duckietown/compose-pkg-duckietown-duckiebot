@@ -1,3 +1,6 @@
+## 0.2.7 (October 04, 2019)
+  - improved setup module
+
 ## 0.2.6 (October 01, 2019)
   - minor
 
