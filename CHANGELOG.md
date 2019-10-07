@@ -1,3 +1,6 @@
+## 0.2.8 (October 07, 2019)
+  - bug fixes
+
 ## 0.2.7 (October 04, 2019)
   - improved setup module
 
