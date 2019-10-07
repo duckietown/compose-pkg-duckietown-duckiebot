@@ -139,7 +139,7 @@ if(
       &nbsp;
       Next
     </button>
-    <button type="button" class="btn btn-default _progress" id="skip-step-button" style="float: right; margin-right: 10px">
+    <button type="button" class="btn btn-default _placeholder _progress" id="skip-step-button" style="float: right; margin-right: 10px">
       <span class="fa fa-fast-forward" aria-hidden="true"></span>
       &nbsp;
       Skip
@@ -214,10 +214,10 @@ if(
   }
 
   function _errorFcn(errorThrown) {
-    $('#step-form ._placeholder').css('display', 'inherit');
     for (var lvl = 0; lvl < <?php echo $MAX_LEVEL ?>; lvl++) {
       $('#step-form ._progress').css('display', 'none');
     }
+    $('#step-form ._placeholder').css('display', 'inherit');
   }
 
   function _percentage_to_color(percentage, low, high) {
