@@ -154,7 +154,7 @@ if(
   $loader_hostname = Core::getSetting('device_loader_host', 'duckietown_duckiebot');
   $loader_port = Core::getSetting('device_loader_port', 'duckietown_duckiebot');
   if(strlen($loader_hostname) < 2){
-    $loader_hostname = $_SERVER['HTTP_HOST'];
+    $loader_hostname = strstr($_SERVER['HTTP_HOST'], ':', true);
   }
   ?>
 

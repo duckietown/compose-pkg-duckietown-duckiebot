@@ -77,7 +77,7 @@ class Duckiebot{
     $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
     // revert to http host if no vehicle name is set
     if(strlen($duckiebot_name) < 2){
-      $duckiebot_name = $_SERVER['HTTP_HOST'];
+      $duckiebot_name = strstr($_SERVER['HTTP_HOST'], ':', true);
       // remove port (if any) from the http host string
       $duckiebot_name_parts = explode(':', $duckiebot_name);
       $duckiebot_name = $duckiebot_name_parts[0];
