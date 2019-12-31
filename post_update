@@ -2,6 +2,7 @@
 
 DUCKIETOWN_DUCKIEBOT_PKG_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 PACKAGES_DIR="${DUCKIETOWN_DUCKIEBOT_PKG_DIR}/.."
+SYSTEM_DIR="${DUCKIETOWN_DUCKIEBOT_PKG_DIR}/../.."
 
 # Install default missions
 # - check if the data package is installed
@@ -12,7 +13,7 @@ if [ ! -d "${DATA_PKG_DIR}" ]; then
 fi
 
 # - create destination database (if not present)
-DB_DIR="${DATA_PKG_DIR}/data/private/databases/duckietown_duckiebot_missions"
+DB_DIR="${SYSTEM_DIR}/user-data/packages/data/databases/duckietown_duckiebot_missions"
 mkdir -p $DB_DIR
 
 # - install missions
