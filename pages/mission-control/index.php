@@ -76,6 +76,42 @@ new MissionControlMenu(
   $mission_name,
   $missions_regex
 );
+
+
+$load_mission = true;
+// check if the mission exists
+if ($db->size() == 0){
+  echo sprintf('<h3 class="text-center">%s</h3></div>', "No missions available!");
+  $load_mission = false;
+} elseif (is_null($mission_name) || !$db->key_exists($mission_name)) {
+  $message = is_null($mission_name)? "No mission loaded!" : "Mission '$mission_name' not found!";
+  echo sprintf('<h3 class="text-center">%s</h3></div>', $message);
+  $load_mission = false;
+}
+$mission_control_grid = [];
+if ($load_mission) {
+  // read mission details
+  $res = $db->read($mission_name);
+  if( !$res['success'] ){
+    Core::throwError($res['data']);
+  }
+  $mission_control_grid = $res['data'];
+  // if we were able to load the mission, store it as 'last opened'
+  $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
+}
+
+$is_multi_robot_mission = false;
+$robots = [];
+for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
+  $args = $mission_control_grid['blocks'][$i]['args'];
+  $ros_hostname = null;
+  if (array_key_exists('ros_hostname', $args)) {
+    $ros_hostname = $args['ros_hostname'];
+  }
+  $ros_hostname = ROS::sanitize_hostname($ros_hostname);
+  array_push($robots, $ros_hostname);
+}
+$is_multi_robot_mission = count(array_unique($robots)) > 1;
 ?>
 
 <div style="width:100%; margin:auto">
@@ -93,9 +129,14 @@ new MissionControlMenu(
       </td>
     </tr>
     <tr>
+      <?php
+      $_vehicle = ($is_multi_robot_mission)? 'Multi-robots' : $vehicle_name;
+      $_bridge_status = ($is_multi_robot_mission)?
+        '<i class="fa fa-square"></i> Multi-bridge' : '<i class="fa fa-spinner fa-pulse"></i> Connecting...';
+      ?>
       <td class="text-left" style="width:20%; padding-top:10px">
         <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
-        <strong><?php echo $vehicle_name ?></strong>
+        <strong><?php echo $_vehicle ?></strong>
       </td>
       <td class="text-center" style="width:30%; padding-top:10px">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
@@ -107,35 +148,14 @@ new MissionControlMenu(
       </td>
       <td class="text-right" style="width:20%; padding-top:10px">
         <span id="vehicle_bridge_status">
-          <i class="fa fa-spinner fa-pulse"></i> Connecting...
+          <?php echo $_bridge_status ?>
         </span>
       </td>
     </tr>
   </table>
 
   <?php
-  $load_mission = true;
-  // check if the mission exists
-  if ($db->size() == 0){
-    echo sprintf('<h3 class="text-center">%s</h3></div>', "No missions available!");
-    $load_mission = false;
-  } elseif (is_null($mission_name) || !$db->key_exists($mission_name)) {
-    $message = is_null($mission_name)? "No mission loaded!" : "Mission '$mission_name' not found!";
-    echo sprintf('<h3 class="text-center">%s</h3></div>', $message);
-    $load_mission = false;
-  }
-
   if ($load_mission) {
-    // read mission details
-    $res = $db->read($mission_name);
-    if( !$res['success'] ){
-      Core::throwError( $res['data'] );
-    }
-    $mission_control_grid = $res['data'];
-
-    // if we were able to load the mission, store it as 'last opened'
-    $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
-
     // replace `~` with the vehicle name in the arg fields
     for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
       foreach ($mission_control_grid['blocks'][$i]['args'] as $key => $value) {
@@ -160,9 +180,6 @@ new MissionControlMenu(
 
     // render mission control grid
     $mission_control->create();
-
-    // connect to ROSbridge
-    ROS::connect();
   }
   ?>
 
@@ -170,21 +187,21 @@ new MissionControlMenu(
 
 
 <script type="text/javascript">
-  $(document).on('<?php echo ROS::$ROSBRIDGE_CONNECTED ?>', function(evt){
+  $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
     console.log('Connected to websocket server.');
     $('#vehicle_bridge_status').html(
       '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
     );
   });
 
-  $(document).on('<?php echo ROS::$ROSBRIDGE_ERROR ?>', function(evt, error){
+  $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_ERROR) ?>', function(evt, error){
     console.log('Error connecting to websocket server: ', error);
     $('#vehicle_bridge_status').html(
       '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
     );
   });
 
-  $(document).on('<?php echo ROS::$ROSBRIDGE_CLOSED ?>', function(evt){
+  $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CLOSED) ?>', function(evt){
     console.log('Connection to websocket server closed.');
     $('#vehicle_bridge_status').html(
       '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
