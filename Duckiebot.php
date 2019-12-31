@@ -74,18 +74,15 @@ class Duckiebot{
   // Public functions
 
   public static function getDuckiebotName(){
-    $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
-    // revert to http host if no vehicle name is set
-    if(strlen($duckiebot_name) < 2){
-      $duckiebot_name = strstr($_SERVER['HTTP_HOST'], ':', true);
-      // remove port (if any) from the http host string
-      $duckiebot_name_parts = explode(':', $duckiebot_name);
-      $duckiebot_name = $duckiebot_name_parts[0];
-    }
+    $duckiebot_hostname = self::getDuckiebotHostname();
     // remove '.local' from the end of the host string (if present)
-    $duckiebot_name = preg_replace('/\.local$/', '', $duckiebot_name);
+    $duckiebot_name = preg_replace('/\.local$/', '', $duckiebot_hostname);
     // ---
     return $duckiebot_name;
+  }//getDuckiebotName
+
+  public static function getDuckiebotType(){
+    $duckiebot_hostname = self::getDuckiebotHostname();
   }//getDuckiebotName
 
 
@@ -94,6 +91,43 @@ class Duckiebot{
   // Private functions
 
   // YOUR PRIVATE METHODS HERE
+
+
+  public static function getDuckiebotHostname(){
+    $duckiebot_hostname = "";
+    $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+    // revert to http host if no vehicle name is set
+    if (strlen($duckiebot_name) < 2) {
+      $duckiebot_hostname = Core::getBrowserHostname();
+      // remove port (if any) from the http host string
+      $duckiebot_name_parts = explode(':', $duckiebot_hostname);
+      $duckiebot_hostname = $duckiebot_name_parts[0];
+    }else{
+      $duckiebot_hostname = sprintf('%s.local', $duckiebot_name);
+    }
+    // ---
+    return $duckiebot_hostname;
+  }//getDuckiebotHostname
+
+
+  private static function getFileFromRobot($filepath) {
+    $files_api_hostname = Core::getSetting('files_api_host', 'duckietown_duckiebot');
+    $files_api_port = Core::getSetting('files_api_port', 'duckietown_duckiebot');
+    // revert to duckiebot hostname (or eventually to http host) if no vehicle name is set
+    if (strlen($files_api_hostname) < 2) {
+      $files_api_hostname = self::getDuckiebotHostname();
+    }
+    // prepare url
+    $url = sprintf('http://%s:%s/%s', $files_api_hostname, $files_api_port, ltrim($filepath, '/'));
+    // fetch data from robot
+    if (!$data = file_get_contents($url)) {
+      $error = error_get_last();
+      Core::throwError(sprintf("HTTP request failed. Error was: %s", $error['message']));
+    } else {
+      return $data;
+    }
+  }//getFileFromRobot
+
 
 }//Duckiebot
 ?>

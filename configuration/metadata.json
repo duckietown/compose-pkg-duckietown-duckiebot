@@ -23,6 +23,18 @@
             "type" : "text",
             "default" : 8081,
             "details" : "Port the device loader module is listening on"
+        },
+        "files_api_host" : {
+            "title" : "Files API module Host",
+            "type" : "text",
+            "default" : null,
+            "details" : "IP or Hostname of the machine running the files API module"
+        },
+        "files_api_port" : {
+            "title" : "Files API module Port",
+            "type" : "text",
+            "default" : 8082,
+            "details" : "Port the files API module is listening on"
         }
     }
 }
