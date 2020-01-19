@@ -91,7 +91,7 @@ $omega_gain *= $sensitivity;
     // define the output topic
     window.mission_control_cmdVel = new ROSLIB.Topic({
       ros : window.ros,
-      name : '/<?php echo $vehicle_name ?>/car_interface/car_cmd',
+      name : '/<?php echo $vehicle_name ?>/joy_mapper_node/car_cmd',
       messageType : 'duckietown_msgs/Twist2DStamped',
       queue_size : 1
     });

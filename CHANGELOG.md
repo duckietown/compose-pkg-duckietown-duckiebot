@@ -1,5 +1,30 @@
-## 0.2.1 (June 04, 2019)
+## 0.2.8 (October 07, 2019)
+  - bug fixes
+
+## 0.2.7 (October 04, 2019)
+  - improved setup module
+
+## 0.2.6 (October 01, 2019)
+  - minor
+
+## 0.2.5 (October 01, 2019)
+  - added setup module
+  - added device-loader configurable parameters
+
+## 0.2.4 (September 23, 2019)
+
+
+## 0.2.3 (September 23, 2019)
+
+
+## 0.2.2 (September 23, 2019)
+  - Bump version to 0.2.1.
+  - fixed take over
+  - Bump version to 0.2.1.
   - fixed bug
+
+## 0.2.1 (September 23, 2019)
+  - fixed take over
 
 ## 0.2 (June 04, 2019)
   - added Calibration module; minor
