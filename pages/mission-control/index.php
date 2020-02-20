@@ -10,6 +10,12 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 <script src="<?php echo Core::getJSscriptURL('packery.pkgd.min.js'); ?>"></script>
 <script src="<?php echo Core::getJSscriptURL('draggabilly.pkgd.min.js'); ?>"></script>
 
+<style type="text/css">
+body > #page_container{
+    min-width: 100%;
+}
+</style>
+
 <?php
 $mission_db = "duckietown_duckiebot_missions";
 $mission_db_package = "data";
@@ -19,8 +25,8 @@ $grid_id = "vehicle-mission-control-grid";
 $missions_regex = "/^(?!__).*/";
 
 // define parameters for the mission control grid
-$grid_width = 966; // do not use 970px to accomodate for differences between browsers
-$resolution = 8;
+$grid_width = 2000;
+$resolution = 10;
 $block_gutter = 10;
 $block_border_thickness = 1;
 $sizes = [ // allowed block sizes
@@ -28,10 +34,13 @@ $sizes = [ // allowed block sizes
   [1,3],
   [2,2],
   [2,4],
+  [2,5],
   [2,8],
   [3,8],
   [4,4],
   [4,8],
+  [4,5],
+  [5,5],
   [6,8]
 ];
 
@@ -170,10 +179,6 @@ $is_multi_robot_mission = count(array_unique($robots)) > 1;
     // create mission control grid
     $mission_control = new MissionControl(
       $grid_id,
-      $grid_width,
-      $resolution,
-      $block_gutter,
-      $block_border_thickness,
       $sizes,
       $mission_control_grid['blocks']
     );
