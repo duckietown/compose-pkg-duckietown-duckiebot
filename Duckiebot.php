@@ -81,20 +81,11 @@ class Duckiebot{
     return $duckiebot_name;
   }//getDuckiebotName
 
-  public static function getDuckiebotType(){
-    $duckiebot_hostname = self::getDuckiebotHostname();
-  }//getDuckiebotName
-
-
-
-  // =======================================================================================================
-  // Private functions
-
-  // YOUR PRIVATE METHODS HERE
-
+  public static function getDuckiebotType($duckiebot_hostname){
+    return self::getFileFromRobot('/config/robot_type', $duckiebot_hostname);
+  }//getDuckiebotType
 
   public static function getDuckiebotHostname(){
-    $duckiebot_hostname = "";
     $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
     // revert to http host if no vehicle name is set
     if (strlen($duckiebot_name) < 2) {
@@ -110,8 +101,21 @@ class Duckiebot{
   }//getDuckiebotHostname
 
 
-  private static function getFileFromRobot($filepath) {
-    $files_api_hostname = Core::getSetting('files_api_host', 'duckietown_duckiebot');
+
+  // =======================================================================================================
+  // Private functions
+
+  // YOUR PRIVATE METHODS HERE
+
+
+
+
+
+  private static function getFileFromRobot($filepath, $duckiebot_hostname=null) {
+    $files_api_hostname = $duckiebot_hostname;
+    if (is_null($duckiebot_hostname)) {
+      $files_api_hostname = Core::getSetting('files_api_host', 'duckietown_duckiebot');
+    }
     $files_api_port = Core::getSetting('files_api_port', 'duckietown_duckiebot');
     // revert to duckiebot hostname (or eventually to http host) if no vehicle name is set
     if (strlen($files_api_hostname) < 2) {
