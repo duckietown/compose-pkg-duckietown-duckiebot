@@ -6,12 +6,6 @@
             "default" : null,
             "details" : "Name of the duckiebot"
         },
-        "docker_host_root" : {
-            "title" : "Robot root",
-            "type" : "text",
-            "default" : "/robot",
-            "details" : "Path to robot root"
-        },
         "device_loader_host" : {
             "title" : "Device Loader Host",
             "type" : "text",
