@@ -1,20 +1,15 @@
 <?php
 use \system\classes\Core;
-use \system\classes\Configuration;
 use \system\classes\Database;
 use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
+
 <script src="<?php echo Core::getJSscriptURL('jquery-ui-1.11.1.js'); ?>"></script>
 <script src="<?php echo Core::getJSscriptURL('packery.pkgd.min.js'); ?>"></script>
 <script src="<?php echo Core::getJSscriptURL('draggabilly.pkgd.min.js'); ?>"></script>
 
-<style type="text/css">
-body > #page_container{
-    min-width: 100%;
-}
-</style>
 
 <?php
 $mission_db = "duckietown_duckiebot_missions";
@@ -25,10 +20,6 @@ $grid_id = "vehicle-mission-control-grid";
 $missions_regex = "/^(?!__).*/";
 
 // define parameters for the mission control grid
-$grid_width = 2000;
-$resolution = 10;
-$block_gutter = 10;
-$block_border_thickness = 1;
 $sizes = [ // allowed block sizes
   [1,2],
   [1,3],
@@ -123,72 +114,74 @@ for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
 $is_multi_robot_mission = count(array_unique($robots)) > 1;
 ?>
 
-<div style="width:100%; margin:auto">
-
-  <table style="width:100%; margin-bottom:42px">
-    <tr>
-      <td colspan="4" style="border-bottom:1px solid #ddd">
-        <h2>
-          Mission Control
-
-          <?php
-          include_once "components/take_over.php";
-          ?>
-        </h2>
-      </td>
-    </tr>
+<table style="width: 970px; margin: auto; margin-bottom: 12px">
     <tr>
       <?php
       $_vehicle = ($is_multi_robot_mission)? 'Multi-robots' : $vehicle_name;
       $_bridge_status = ($is_multi_robot_mission)?
         '<i class="fa fa-square"></i> Multi-bridge' : '<i class="fa fa-spinner fa-pulse"></i> Connecting...';
       ?>
-      <td class="text-left" style="width:20%; padding-top:10px">
+      <td class="text-left" style="width:25%; border-right: 1px solid lightgrey">
         <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
         <strong><?php echo $_vehicle ?></strong>
       </td>
-      <td class="text-center" style="width:30%; padding-top:10px">
+      <td class="text-center" style="width:30%; border-right: 1px solid
+      lightgrey">
         <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
         <strong><?php echo is_null($mission_name)? '(none)' : $mission_name ?></strong>
       </td>
-      <td class="text-center" style="width:30%; padding-top:10px">
-        <i class="fa fa-toggle-on" aria-hidden="true"></i> Mode:
-        <strong id="vehicle_driving_mode_status">Autonomous</strong>
-      </td>
-      <td class="text-right" style="width:20%; padding-top:10px">
+      <td class="text-center" style="width:30%; border-right: 1px solid
+      lightgrey">
         <span id="vehicle_bridge_status">
           <?php echo $_bridge_status ?>
         </span>
       </td>
+      <td class="text-right" style="width:15%">
+        <?php
+        new MissionControlConfiguration(
+          $grid_id,
+          $mission_db_package,
+          $mission_db,
+          $mission_name
+        );
+        ?>
+      </td>
     </tr>
-  </table>
+</table>
 
-  <?php
-  if ($load_mission) {
+<?php
+if ($load_mission) {
     // replace `~` with the vehicle name in the arg fields
     for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
-      foreach ($mission_control_grid['blocks'][$i]['args'] as $key => $value) {
-        if (substr($value, 0, 1) === "~") {
-          // replace `~` with `vehicle_name`
-          $value = str_replace('~', '/'.$vehicle_name, $value);
-          $mission_control_grid['blocks'][$i]['args'][$key] = $value;
+        foreach ($mission_control_grid['blocks'][$i]['args'] as $key => $value) {
+            if (substr($value, 0, 1) === "~") {
+                // replace `~` with `vehicle_name`
+                $value = str_replace('~', '/' . $vehicle_name, $value);
+                $mission_control_grid['blocks'][$i]['args'][$key] = $value;
+            }
         }
-      }
     }
+
+    // load mission options
+    $opts = MissionControlConfiguration::get_options($mission_db_package, $mission_db, $mission_name);
 
     // create mission control grid
     $mission_control = new MissionControl(
-      $grid_id,
-      $sizes,
-      $mission_control_grid['blocks']
+        $grid_id,
+        $sizes,
+        $mission_control_grid['blocks']
     );
+    ?>
 
-    // render mission control grid
-    $mission_control->create();
-  }
-  ?>
-
-</div>
+    <div style="border-top: 1px solid lightgrey; border-bottom: 1px solid lightgrey; padding: 10px 0">
+        <?php
+        // render mission control grid
+        $mission_control->create($opts);
+        ?>
+    </div>
+<?php
+}
+?>
 
 
 <script type="text/javascript">
@@ -253,6 +246,25 @@ $is_multi_robot_mission = count(array_unique($robots)) > 1;
         // reload page
         $(window).trigger('MISSION_CONTROL_MENU_LOAD', ['']);
       }
+    );
+  });
+
+  $(window).on('MISSION_CONTROL_OPTIONS_SAVE', function(evt, mission_name, mission_options_json){
+    var base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db.'_opts']) ?>";
+    var url = "{0}&key={1}&value={2}".format(base_url, mission_name, mission_options_json);
+    // send data to server
+    callAPI(
+      url,
+      true,           //successDialog
+      false,          // reload
+      function(){
+        // reload mission
+        $(window).trigger('MISSION_CONTROL_MENU_LOAD', [mission_name]);
+      },              // funct
+      false,          // silentMode
+      false,          // suppressErrors
+      undefined,      // errorFcn
+      'POST'          // transportType
     );
   });
 </script>
