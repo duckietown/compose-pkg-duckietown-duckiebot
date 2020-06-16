@@ -1,3 +1,6 @@
+## 0.2.9 (June 16, 2020)
+  - added support for multi-robot missions
+
 ## 0.2.8 (October 07, 2019)
   - bug fixes
 
