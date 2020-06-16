@@ -6,17 +6,11 @@
             "default" : null,
             "details" : "Name of the duckiebot"
         },
-        "device_loader_host" : {
-            "title" : "Device Loader Host",
+        "health_api_host" : {
+            "title" : "Health API module Host",
             "type" : "text",
             "default" : null,
-            "details" : "IP or Hostname of the machine running the device loader"
-        },
-        "device_loader_port" : {
-            "title" : "Device Loader Port",
-            "type" : "text",
-            "default" : 8081,
-            "details" : "Port the device loader module is listening on"
+            "details" : "IP or Hostname of the machine running the health API module"
         },
         "files_api_host" : {
             "title" : "Files API module Host",
@@ -24,11 +18,11 @@
             "default" : null,
             "details" : "IP or Hostname of the machine running the files API module"
         },
-        "files_api_port" : {
-            "title" : "Files API module Port",
+        "ros_api_host" : {
+            "title" : "ROS API module Host",
             "type" : "text",
-            "default" : 8082,
-            "details" : "Port the files API module is listening on"
+            "default" : null,
+            "details" : "IP or Hostname of the machine running the ROS API module"
         }
     }
 }
