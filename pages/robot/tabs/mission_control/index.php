@@ -211,8 +211,8 @@ if ($load_mission) {
   });
 
   $(window).on('MISSION_CONTROL_MENU_SAVE', function(evt, mission_name, mission_json){
-    var base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db]) ?>";
-    var url = "{0}&key={1}&value={2}".format(base_url, mission_name, mission_json);
+    let base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db]) ?>";
+    let url = "{0}&key={1}".format(base_url, mission_name);
     // send data to server
     callAPI(
       url,
@@ -225,18 +225,19 @@ if ($load_mission) {
       false,          // silentMode
       false,          // suppressErrors
       undefined,      // errorFcn
-      'POST'          // transportType
+      'POST',          // transportType
+        {value: mission_json}
     );
   });
 
   $(window).on('MISSION_CONTROL_MENU_LOAD', function(evt, mission_name){
-    var url = "<?php echo Core::getCurrentResourceURL()?>?mission={0}".format(mission_name);
+    let url = "<?php echo Core::getCurrentResourceURL()?>?mission={0}".format(mission_name);
     window.location = url;
   });
 
   $(window).on('MISSION_CONTROL_MENU_DELETE', function(evt, mission_name){
-    var base_url = "<?php echo Core::getAPIurl('data', 'delete', ['database' => $mission_db]) ?>";
-    var url = "{0}&key={1}".format(base_url, mission_name);
+    let base_url = "<?php echo Core::getAPIurl('data', 'delete', ['database' => $mission_db]) ?>";
+    let url = "{0}&key={1}".format(base_url, mission_name);
     // send data to server
     callAPI(
       url,
@@ -250,8 +251,8 @@ if ($load_mission) {
   });
 
   $(window).on('MISSION_CONTROL_OPTIONS_SAVE', function(evt, mission_name, mission_options_json){
-    var base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db.'_opts']) ?>";
-    var url = "{0}&key={1}&value={2}".format(base_url, mission_name, mission_options_json);
+    let base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db.'_opts']) ?>";
+    let url = "{0}&key={1}&value={2}".format(base_url, mission_name, mission_options_json);
     // send data to server
     callAPI(
       url,

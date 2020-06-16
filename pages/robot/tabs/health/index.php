@@ -1,7 +1,7 @@
 <?php
-//TODO: use the proxy instead
-$dbot_hostname = 'watchtower20.local';
-$health_api_port = 8085;
+use \system\packages\duckietown_duckiebot\Duckiebot;
+
+$dbot_hostname = Duckiebot::getDuckiebotHostname();
 $update_hz = 1;
 ?>
 
@@ -36,6 +36,9 @@ $update_hz = 1;
 
 
 <script type="text/javascript">
+    
+    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{resource}";
+    
     let _HISTORY_HORIZON_LEN = 60;
     let _DATA_TEMPERATURE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_CPU_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
@@ -156,7 +159,7 @@ $update_hz = 1;
         );
         // keep updating the plot
         setInterval(function(){
-            let url = "http://<?php echo $dbot_hostname ?>:<?php echo $health_api_port ?>";
+            let url = api_url.format({api:"health", resource:""});
             callExternalAPI(url, 'GET', 'text', false, false, function(data){
                 data = JSON.parse(data);
                 // cut the time horizon to `_HISTORY_HORIZON_LEN` points

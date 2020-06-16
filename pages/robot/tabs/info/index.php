@@ -1,14 +1,11 @@
 <?php
 use \system\classes\Core;
+use \system\packages\duckietown_duckiebot\Duckiebot;
 
-//TODO: use the proxy instead
-$dbot_hostname = 'watchtower20.local';
-$dbot_type = 'watchtower';
-$health_api_port = 8085;
-$files_api_port = 8082;
+$dbot_hostname = Duckiebot::getDuckiebotHostname();
 $update_hz = 0.5;
 
-$image_template = Core::getImageURL('{0}.jpg', 'duckietown');
+$image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 ?>
 
 <style type="text/css">
@@ -18,7 +15,7 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
         height: auto !important;
     }
 
-    .robot-type-image-container {
+    .robot-thumbnail-container {
         height: 50%;
         width: 50%;
         position: relative;
@@ -26,15 +23,15 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
         border: 1px solid lightgrey;
     }
 
-    .robot-type-image-container:after {
+    .robot-thumbnail-container:after {
         content: "";
         display: block;
         padding-bottom: 100%;
     }
 
-    .robot-type-image-container img {
-        max-height: 70%;
-        max-width: 70%;
+    .robot-thumbnail-container img {
+        /*max-height: 70%;*/
+        /*max-width: 70%;*/
         width: auto;
         height: auto;
         position: absolute;
@@ -56,10 +53,8 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
 
 
 <div class="row">
-    <div class="col-md-6 robot-type-image-container text-center">
-        <img
-            src="<?php echo Core::getImageURL('loading_blue.gif') ?>"
-            alt="">
+    <div class="col-md-6 robot-thumbnail-container text-center">
+        <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="">
     </div>
     <div class="col-md-6 robot-info-container">
         <h4>General</h4>
@@ -69,13 +64,23 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
             <dt>Board</dt>
             <dd>Raspberry</dd>
             <dt>Model</dt>
-            <dd id="hardware">(loading)</dd>
+            <dd id="hardware">
+                <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height: 20px">
+            </dd>
         </dl>
         <dl class="dl-horizontal col-md-6">
             <dt>Type</dt>
-            <dd><?php echo ucfirst($dbot_type) ?></dd>
+            <dd id="robot_type">
+                <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height: 20px">
+            </dd>
+            <dt>Model</dt>
+            <dd id="robot_configuration">
+                <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height: 20px">
+            </dd>
             <dt>Memory</dt>
-            <dd id="ram">(loading)</dd>
+            <dd id="ram">
+                <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height: 20px">
+            </dd>
         </dl>
     </div>
 
@@ -175,6 +180,8 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
 
 
 <script type="text/javascript">
+    
+    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{resource}";
 
     function _robot_info_create_plot(canvas_id, labels, colors, tooltip_cb){
         let chart_config = {
@@ -221,7 +228,7 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
     }
 
     function update_charts(temperature_chart, disk_chart, cpu_chart, ram_chart){
-        let url = "http://<?php echo $dbot_hostname ?>:<?php echo $health_api_port ?>";
+        let url = api_url.format({api:"health", resource:""});
         callExternalAPI(url, 'GET', 'text', false, false, function(data){
             data = JSON.parse(data);
             // update temperature
@@ -261,15 +268,24 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
 
     $(document).ready(function () {
         // get robot type
-        let url = "http://<?php echo $dbot_hostname ?>:<?php echo $files_api_port
-            ?>/config/robot_type";
+        let url = api_url.format({api:"files", resource:"config/robot_type"});
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
             let robot_type = 'unknown';
             try {
                 robot_type = data.split('\n')[0].trim();
             } catch (e) {}
+            $('.robot-info-container #robot_type').html(robot_type.capitalize());
+        }, true, true);
+        // get robot configuration
+        url = api_url.format({api:"files", resource:"config/robot_configuration"});
+        callExternalAPI(url, 'GET', 'text', false, false, function(data) {
+            let robot_configuration = 'unknown';
+            try {
+                robot_configuration = data.split('\n')[0].trim();
+            } catch (e) {}
             let template = '<?php echo $image_template ?>';
-            $('.robot-type-image-container img').attr('src', template.format(robot_type));
+            $('.robot-thumbnail-container img').attr('src', template.format(robot_configuration));
+            $('.robot-info-container #robot_configuration').html(robot_configuration.capitalize());
         }, true, true);
         // create health plots
         let temperature_chart = _robot_info_create_plot(
@@ -277,10 +293,12 @@ $image_template = Core::getImageURL('{0}.jpg', 'duckietown');
             ['Cold', 'Hot'],
             [window.chartColors.blue, window.chartColors.red],
             function(t, d) {
-                if (t.index === 1)
-                    return d.datasets[t.datasetIndex].data[t.index].toFixed(1) + ' ' + '\'C';
+                let msg = d.datasets[t.datasetIndex].data[t.index].toFixed(1) + ' \'C';
+                if (t.index === 0)
+                    msg += ' before meltdown!';
                 else
-                    return ' ';
+                    msg = 'Temperature: ' + msg;
+                return msg;
             }
         );
         let disk_chart = _robot_info_create_plot(
