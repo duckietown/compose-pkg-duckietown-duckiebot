@@ -11,6 +11,11 @@ $update_hz = 1;
 
 
 <br/>
+<h4>CPU Frequency</h4>
+<canvas id="_robot_fcpu_canvas" style="width:100%; height:240px"></canvas>
+
+
+<br/>
 <h4>CPU Usage</h4>
 <canvas id="_robot_pcpu_canvas" style="width:100%; height:240px"></canvas>
 
@@ -41,6 +46,7 @@ $update_hz = 1;
     
     let _HISTORY_HORIZON_LEN = 60;
     let _DATA_TEMPERATURE = new Array(_HISTORY_HORIZON_LEN).fill(0);
+    let _DATA_CPU_FREQUENCY = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_CPU_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_RAM_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_SWAP_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
@@ -115,7 +121,15 @@ $update_hz = 1;
             'Temperature',
             'Temperature (\'C)',
             (v) => v.toFixed(1)+' \'C',
-            window.chartColors.red, 30, 80
+            window.chartColors.red, 40, 90
+        );
+        let fcpu_chart = _robot_health_create_plot(
+            "#_robot_fcpu_canvas",
+            _DATA_CPU_FREQUENCY,
+            'CPU Frequency',
+            'Clock Frequency (GHz)',
+            (v) => v.toFixed(1)+' GHz',
+            window.chartColors.green, 0, 2.0
         );
         let pcpu_chart = _robot_health_create_plot(
             "#_robot_pcpu_canvas",
@@ -147,7 +161,7 @@ $update_hz = 1;
             'CPU Voltage',
             'Voltage (V)',
             (v) => v.toFixed(1)+' V',
-            window.chartColors.green, 0.6, 1.4
+            window.chartColors.yellow, 0.6, 1.4
         );
         let ram_voltage_chart = _robot_health_create_plot(
             "#_robot_ram_voltage_canvas",
@@ -155,7 +169,7 @@ $update_hz = 1;
             'RAM Voltage',
             'Voltage (V)',
             (v) => v.toFixed(1)+' V',
-            window.chartColors.green, 0.6, 1.4
+            window.chartColors.yellow, 0.6, 1.4
         );
         // keep updating the plot
         setInterval(function(){
@@ -164,6 +178,7 @@ $update_hz = 1;
                 data = JSON.parse(data);
                 // cut the time horizon to `_HISTORY_HORIZON_LEN` points
                 temperature_chart.config.data.datasets[0].data.shift();
+                fcpu_chart.config.data.datasets[0].data.shift();
                 pcpu_chart.config.data.datasets[0].data.shift();
                 pmem_chart.config.data.datasets[0].data.shift();
                 pswap_chart.config.data.datasets[0].data.shift();
@@ -171,6 +186,7 @@ $update_hz = 1;
                 ram_voltage_chart.config.data.datasets[0].data.shift();
                 // add new Y
                 temperature_chart.config.data.datasets[0].data.push(data.temp.split('\'')[0]);
+                fcpu_chart.config.data.datasets[0].data.push(parseFloat(data.frequency) / (10 ** 9));
                 pcpu_chart.config.data.datasets[0].data.push(data.pcpu);
                 pmem_chart.config.data.datasets[0].data.push(data.mem.pmem);
                 pswap_chart.config.data.datasets[0].data.push(data.swap.pswap);
@@ -178,6 +194,7 @@ $update_hz = 1;
                 ram_voltage_chart.config.data.datasets[0].data.push(data.volts.sdram_i.split('V')[0]);
                 // refresh chart
                 temperature_chart.update();
+                fcpu_chart.update();
                 pcpu_chart.update();
                 pmem_chart.update();
                 pswap_chart.update();
