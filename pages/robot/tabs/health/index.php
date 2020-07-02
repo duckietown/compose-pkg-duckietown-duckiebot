@@ -2,7 +2,7 @@
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
-$update_hz = 1;
+$update_hz = 0.5;
 ?>
 
 <br/>
@@ -185,13 +185,13 @@ $update_hz = 1;
                 cpu_voltage_chart.config.data.datasets[0].data.shift();
                 ram_voltage_chart.config.data.datasets[0].data.shift();
                 // add new Y
-                temperature_chart.config.data.datasets[0].data.push(data.temp.split('\'')[0]);
-                fcpu_chart.config.data.datasets[0].data.push(parseFloat(data.frequency) / (10 ** 9));
+                temperature_chart.config.data.datasets[0].data.push(data.temp);
+                fcpu_chart.config.data.datasets[0].data.push(data.frequency / (10 ** 9));
                 pcpu_chart.config.data.datasets[0].data.push(data.pcpu);
                 pmem_chart.config.data.datasets[0].data.push(data.mem.pmem);
                 pswap_chart.config.data.datasets[0].data.push(data.swap.pswap);
-                cpu_voltage_chart.config.data.datasets[0].data.push(data.volts.core.split('V')[0]);
-                ram_voltage_chart.config.data.datasets[0].data.push(data.volts.sdram_i.split('V')[0]);
+                cpu_voltage_chart.config.data.datasets[0].data.push(data.volts.core);
+                ram_voltage_chart.config.data.datasets[0].data.push(data.volts.sdram_i);
                 // refresh chart
                 temperature_chart.update();
                 fcpu_chart.update();

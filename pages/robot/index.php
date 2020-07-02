@@ -7,10 +7,10 @@ $tabs = [
         'name' => 'Info',
         'icon' => 'info-circle'
     ],
-    'control' => [
-        'name' => 'Control',
-        'icon' => 'gamepad'
-    ],
+//    'control' => [
+//        'name' => 'Control',
+//        'icon' => 'gamepad'
+//    ],
     'mission_control' => [
         'name' => 'Mission Control',
         'icon' => 'dashboard'
