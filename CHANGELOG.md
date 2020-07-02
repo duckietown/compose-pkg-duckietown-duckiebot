@@ -1,3 +1,24 @@
+## 1.0.0-rc (July 02, 2020)
+  - improved tab architecture in robot page
+  - improved robot page
+  - removed code-loader setup tab
+  - added CPU frequency plot to health tab in robot page
+  - removed ports from package configuration as we move towards device-proxy
+  - improved robot page
+  - updated port-update
+  - minor
+  - added devel version of robot page
+  - removed mission control page
+  - removed docker_host_root from configuration
+  - minor
+  - Merge remote-tracking branch 'origin/master'
+  - added robot page
+  - fixed bug with port in $_SERVER['HTTP_HOST']
+  - updated path to databases to support new user-data
+  - added support for multi-robot missions
+  - Bump version to 0.2.1.
+  - fixed bug
+
 ## 0.2.8 (October 07, 2019)
   - bug fixes
 
