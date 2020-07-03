@@ -1,3 +1,6 @@
+## 1.0.0-rc2 (July 02, 2020)
+  - cleared post_update
+
 ## 1.0.0-rc (July 02, 2020)
   - improved tab architecture in robot page
   - improved robot page
