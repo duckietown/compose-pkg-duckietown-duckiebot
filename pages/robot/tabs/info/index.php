@@ -65,7 +65,6 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
 
 <div class="row">
     <div class="col-md-12 robot-info-container">
-        <h4>General</h4>
         <dl class="dl-horizontal col-md-4">
             <dt>Name</dt>
             <dd>
@@ -164,7 +163,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             </span>
         </h4>
     </div>
-    <div class="col-md-2 text-center" style="border-right: 1px solid lightgrey">
+    <div class="col-md-2 text-center" style="border-right: 1px solid grey">
         <h4>
             <span class="label label-default" id="throttling-occurred">
                 Throttling
