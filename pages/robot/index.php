@@ -33,7 +33,7 @@ $DEFAULT_TAB = 'info';
 $ACTIVE_TAB = Configuration::$ACTION ?? $DEFAULT_TAB;
 
 if (!array_key_exists($ACTIVE_TAB, $tabs)){
-    Core::redirectTo(sprintf('robot/%s', $DEFAULT_TAB));
+    Core::redirectTo(Core::getURL('robot', $DEFAULT_TAB));
 }
 ?>
 
