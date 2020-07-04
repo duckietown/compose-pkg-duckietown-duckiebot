@@ -2,8 +2,9 @@
 
 DB_PACKAGE_NAME=data
 USERDATA_DIR=${COMPOSE_USERDATA_DIR:-/var/www/html/public_html/system/user-data}
-DATABASES_DIR=${USERDATA_DIR}/databases/${DB_PACKAGE_NAME}/
+DATABASES_DIR=${USERDATA_DIR}/databases/${DB_PACKAGE_NAME}
 DUCKIETOWN_DUCKIEBOT_PKG_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 
 # Install default missions
-cp -R "${DUCKIETOWN_DUCKIEBOT_PKG_DIR}/data/private/default_missions/*" "${DATABASES_DIR}/"
+mkdir -p ${DATABASES_DIR}
+cp -R ${DUCKIETOWN_DUCKIEBOT_PKG_DIR}/data/private/default_missions/* ${DATABASES_DIR}/
