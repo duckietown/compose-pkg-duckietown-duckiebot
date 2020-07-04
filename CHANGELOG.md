@@ -1,3 +1,7 @@
+## 1.0.0-rc4 (July 04, 2020)
+  - added default mission
+  - minor
+
 ## 1.0.0-rc3 (July 04, 2020)
   - fixed bug
 
