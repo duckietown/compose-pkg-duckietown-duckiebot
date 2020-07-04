@@ -1,3 +1,6 @@
+## 1.0.0-rc3 (July 04, 2020)
+  - fixed bug
+
 ## 1.0.0-rc2 (July 02, 2020)
   - cleared post_update
 
