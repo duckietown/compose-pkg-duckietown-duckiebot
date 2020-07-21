@@ -1,14 +1,14 @@
 {
-    "name" : "Duckietown - Duckiebot",
-    "description" : "Provides functionalities for monitoring Duckiebots",
-    "core" : {
-        "namespace" : "duckietown_duckiebot",
-        "file" : "Duckiebot.php",
-        "class" : "Duckiebot"
+    "name": "Duckietown - Duckiebot",
+    "description": "Provides functionalities for monitoring Duckiebots",
+    "core": {
+        "namespace": "duckietown_duckiebot",
+        "file": "Duckiebot.php",
+        "class": "Duckiebot"
     },
-    "dependencies" : {
-        "system-packages" : [],
-        "packages" : [
+    "dependencies": {
+        "system-packages": [],
+        "packages": [
             "duckietown",
             "data"
         ]
