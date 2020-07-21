@@ -18,7 +18,7 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
 
 <style type="text/css">
     /* enlarge page container */
-    body > #page_container {
+    #page_container {
         min-width: 100%;
     }
 
@@ -391,7 +391,7 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
     // helper functions
     function agraph_ros_api(callback, group, action, selector = '', arguments = {}) {
         let hostname = "<?php echo Core::getSetting(
-            'ros_api_host', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
+            'ros_api/hostname', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
         ) ?>";
         let url = 'http://{0}/ros/{1}/{2}/{3}{4}'.format(
             hostname, group, action, selector, $.param(arguments)

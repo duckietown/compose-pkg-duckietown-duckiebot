@@ -1,0 +1,53 @@
+{
+    "type" : "object",
+    "details": "Duckietown Duckiebot package configuration",
+    "_data": {
+        "duckiebot_name" : {
+            "details" : "Name of the duckiebot",
+            "type" : "text",
+            "default" : null
+        },
+        "health_api" : {
+            "details" : "Health API module configuration",
+            "type" : "object",
+            "_data" : {
+                "hostname" : {
+                    "type" : "text",
+                    "default" : null,
+                    "details" : "IP or Hostname of the machine running the Health API module"
+                }
+            },
+            "__form__": {
+                "title": "Health API"
+            }
+        },
+        "files_api" : {
+            "details" : "Files API module configuration",
+            "type" : "object",
+            "_data" : {
+                "hostname" : {
+                    "type" : "text",
+                    "default" : null,
+                    "details" : "IP or Hostname of the machine running the Files API module"
+                }
+            },
+            "__form__": {
+                "title": "Files API"
+            }
+        },
+        "ros_api" : {
+            "details" : "ROS API module configuration",
+            "type" : "object",
+            "_data" : {
+                "hostname" : {
+                    "type" : "text",
+                    "default" : null,
+                    "details" : "IP or Hostname of the machine running the ROS API module"
+                }
+            },
+            "__form__": {
+                "title": "ROS API"
+            }
+        }
+    }
+}

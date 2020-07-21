@@ -43,36 +43,23 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 }
 </style>
 
-<table style="width:970px; margin: auto">
-    <tr style="border-bottom:1px solid #ddd">
-      <td style="width:100%">
-        <h2>Robot</h2>
-      </td>
-    </tr>
 
-    <tr>
-      <td style="height:30px"></td>
-    </tr>
+<h2 class="page-title"></h2>
 
-    <tr>
-      <td style="width:100%">
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs" id="_robot_tab_btns" role="tablist">
-            <?php
-            foreach ($tabs as $tab_id => $tab) {
-                ?>
-                <li role="presentation" class="<?php echo ($tab_id == $ACTIVE_TAB)? 'active' : '' ?>">
-                    <a href="#" data-tab="<?php echo $tab_id ?>" role="button" onclick="robot_load_tab('<?php echo $tab_id ?>')">
-                        <i class="fa fa-<?php echo $tab['icon'] ?>" aria-hidden="true"></i> <?php echo $tab['name'] ?>
-                    </a>
-                </li>
-                <?php
-            }
-            ?>
-        </ul>
-      </td>
-    </tr>
-</table>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" id="_robot_tab_btns" role="tablist">
+    <?php
+    foreach ($tabs as $tab_id => $tab) {
+        ?>
+        <li role="presentation" class="<?php echo ($tab_id == $ACTIVE_TAB)? 'active' : '' ?>">
+            <a href="#" data-tab="<?php echo $tab_id ?>" role="button" onclick="robot_load_tab('<?php echo $tab_id ?>')">
+                <i class="fa fa-<?php echo $tab['icon'] ?>" aria-hidden="true"></i> <?php echo $tab['name'] ?>
+            </a>
+        </li>
+        <?php
+    }
+    ?>
+</ul>
 
 <!-- Tab panes -->
 <div class="tab-content" id="_logs_tab_container" style="padding: 20px 0">
