@@ -1,3 +1,9 @@
+## 1.0.0-rc5 (July 21, 2020)
+  - added compatibility data to metadata.json as per compose v1.0+ requirement
+  - reformatted metadata.json
+  - preparing transition to compose v1.0
+  - fixed bug
+
 ## 1.0.0-rc4 (July 04, 2020)
   - added default mission
   - minor
