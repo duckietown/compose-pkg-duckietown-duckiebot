@@ -7,37 +7,37 @@ $update_hz = 0.5;
 
 <br/>
 <h4>Temperature</h4>
-<canvas id="_robot_temp_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_temp_canvas" style="width:100%; height:250px"></canvas>
 
 
 <br/>
 <h4>CPU Frequency</h4>
-<canvas id="_robot_fcpu_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_fcpu_canvas" style="width:100%; height:250px"></canvas>
 
 
 <br/>
 <h4>CPU Usage</h4>
-<canvas id="_robot_pcpu_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_pcpu_canvas" style="width:100%; height:250px"></canvas>
 
 
 <br/>
 <h4>RAM Usage</h4>
-<canvas id="_robot_pmem_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_pmem_canvas" style="width:100%; height:250px"></canvas>
 
 
 <br/>
 <h4>Swap Usage</h4>
-<canvas id="_robot_pswap_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_pswap_canvas" style="width:100%; height:250px"></canvas>
 
 
 <br/>
 <h4>CPU Voltage</h4>
-<canvas id="_robot_cpu_voltage_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_cpu_voltage_canvas" style="width:100%; height:250px"></canvas>
 
 
 <br/>
 <h4>RAM Voltage</h4>
-<canvas id="_robot_ram_voltage_canvas" style="width:100%; height:240px"></canvas>
+<canvas id="_robot_ram_voltage_canvas" style="width:100%; height:250px"></canvas>
 
 
 <script type="text/javascript">
@@ -121,7 +121,7 @@ $update_hz = 0.5;
             'Temperature',
             'Temperature (\'C)',
             (v) => v.toFixed(1)+' \'C',
-            window.chartColors.red, 40, 90
+            window.chartColors.red, 30, 90
         );
         let fcpu_chart = _robot_health_create_plot(
             "#_robot_fcpu_canvas",
