@@ -21,6 +21,9 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
     #page_container {
         min-width: 100%;
     }
+    ._ctheme_content {
+        padding: 0 20px;
+    }
 
     #_graph_canvas {
         width: 100%;
