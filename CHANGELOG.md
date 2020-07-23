@@ -1,3 +1,8 @@
+## 1.0.0 (July 23, 2020)
+  - architecture page now supports new theme
+  - minor
+  - minor
+
 ## 1.0.0-rc5 (July 21, 2020)
   - added compatibility data to metadata.json as per compose v1.0+ requirement
   - reformatted metadata.json
