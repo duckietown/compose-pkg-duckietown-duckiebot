@@ -60,6 +60,11 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     .robot-info-separator hr{
         margin-top: 0;
     }
+    
+    #_robot_battery_details {
+        float: right;
+        font-size: 12pt;
+    }
 </style>
 
 
@@ -106,34 +111,53 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     </div>
 
     <div class="col-md-3">
-        <h4 class="square-canvas-title">Temperature</h4>
+        <h4 class="square-canvas-title">
+            <i class="fa fa-thermometer-three-quarters" aria-hidden="true"></i>&nbsp;
+            Temperature
+        </h4>
         <canvas id="_robot_temp_canvas" class="square-canvas"></canvas>
     </div>
     <div class="col-md-3">
-        <h4 class="square-canvas-title">Disk</h4>
+        <h4 class="square-canvas-title">
+            <i class="fa fa-hdd-o" aria-hidden="true"></i>&nbsp;
+            Disk
+        </h4>
         <canvas id="_robot_disk_canvas" class="square-canvas"></canvas>
     </div>
 
     <div class="col-md-6">&nbsp;</div>
 
     <div class="col-md-3">
-        <h4 class="square-canvas-title">CPU</h4>
+        <h4 class="square-canvas-title">
+            <i class="fa fa-server" aria-hidden="true"></i>&nbsp;
+            CPU
+        </h4>
         <canvas id="_robot_pcpu_canvas" class="square-canvas"></canvas>
     </div>
     <div class="col-md-3">
-        <h4 class="square-canvas-title">RAM</h4>
+        <h4 class="square-canvas-title">
+            <i class="fa fa-microchip" aria-hidden="true"></i>&nbsp;
+            RAM
+        </h4>
         <canvas id="_robot_ram_canvas" class="square-canvas"></canvas>
     </div>
 
     <div class="col-md-6">&nbsp;</div>
 
     <div class="col-md-3">
-        <h4 class="square-canvas-title">Clock</h4>
+        <h4 class="square-canvas-title">
+            <i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;
+            Clock
+        </h4>
         <canvas id="_robot_fcpu_canvas" class="square-canvas"></canvas>
     </div>
     <div class="col-md-3">
-        <h4 class="square-canvas-title">Swap</h4>
-        <canvas id="_robot_swap_canvas" class="square-canvas"></canvas>
+        <h4 class="square-canvas-title">
+            <i class="fa fa-battery-three-quarters" aria-hidden="true"></i>&nbsp;
+            Battery
+            <span id="_robot_battery_details"></span>
+        </h4>
+        <canvas id="_robot_battery_canvas" class="square-canvas"></canvas>
     </div>
 </div>
 
@@ -194,20 +218,6 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     </div>
 </div>
 
-<!--<div class="row">-->
-<!--    <div class="col-md-2">.col-md-2</div>-->
-<!--    <div class="col-md-2">.col-md-2</div>-->
-<!--    <div class="col-md-2">.col-md-2</div>-->
-<!--    <div class="col-md-2">.col-md-2</div>-->
-<!--    <div class="col-md-2">.col-md-2</div>-->
-<!--    <div class="col-md-2">.col-md-2</div>-->
-<!--</div>-->
-
-
-
-
-
-
 
 <script type="text/javascript">
     
@@ -258,7 +268,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         return new Chart(ctx, chart_config);
     }
 
-    function update_charts(temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, swap_chart){
+    function update_charts(temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, batt_chart){
         let url = api_url.format({api:"health", resource:""});
         callExternalAPI(url, 'GET', 'text', false, false, function(data){
             data = JSON.parse(data);
@@ -285,17 +295,32 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             fcpu_chart.config.data.datasets[0].data[0] = MAX_CLOCK_FREQ - fcpu;
             fcpu_chart.config.data.datasets[0].data[1] = fcpu;
             fcpu_chart.config.options.elements.center.text = fcpu + 'GHz';
-            // update swap
-            swap_chart.config.data.datasets[0].data[0] = 100.0 - data.swap.pswap;
-            swap_chart.config.data.datasets[0].data[1] = data.swap.pswap;
-            swap_chart.config.options.elements.center.text = data.swap.pswap.toFixed(1) + '%';
+            // update battery
+            let battery_details = $('#_robot_battery_details');
+            if (data.battery.percentage !== 'ND') {
+                batt_chart.config.data.datasets[0].data[0] = 100.0 - data.battery.percentage;
+                batt_chart.config.data.datasets[0].data[1] = data.battery.percentage;
+                batt_chart.config.options.elements.center.text = data.battery.percentage.toFixed(1) + '%';
+                if (data.battery.input_voltage > 2.5 && data.battery.current > 0) {
+                    // charging
+                    battery_details.html('<i class="fa fa-plug" aria-hidden="true" title="Battery charging"></i>');
+                } else {
+                    // discharging
+                    battery_details.html(humanTime(data.battery.time_to_empty, true, 'm') + ' left');
+                }
+            } else {
+                battery_details.html("");
+                batt_chart.config.data.datasets[0].data[0] = 100;
+                batt_chart.config.data.datasets[0].data[1] = 0;
+                batt_chart.config.options.elements.center.text = '  ND  ';
+            }
             // refresh chart
             temperature_chart.update();
             disk_chart.update();
             pcpu_chart.update();
             ram_chart.update();
             fcpu_chart.update();
-            swap_chart.update();
+            batt_chart.update();
             // update hardware info
             $('.robot-info-container #hardware_board').html(data.hardware.Board);
             $('.robot-info-container #hardware_model').html(
@@ -309,7 +334,8 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             for (let [key, value] of Object.entries(data.throttled_humans)) {
                 $('.robot-health-bits-container #'+key).removeClass('label-default ' +
                     'label-warning label-success');
-                $('.robot-health-bits-container #'+key).addClass(value? 'label-warning' : 'label-success');
+                $('.robot-health-bits-container #'+key).addClass(
+                    value? (key.endsWith('-occurred')? 'label-warning' : 'label-danger') : 'label-success');
             }
         }, true, true);
     }
@@ -377,19 +403,19 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             (t, d) => d.labels[t.index] + ': ' +
                 d.datasets[t.datasetIndex].data[t.index]+'GHz'
         );
-        let swap_chart = _robot_info_create_plot(
-            "#_robot_swap_canvas",
-            ['Free', 'Used'],
-            [window.chartColors.grey, window.chartColors.red],
+        let batt_chart = _robot_info_create_plot(
+            "#_robot_battery_canvas",
+            ['Empty', 'Full'],
+            [window.chartColors.red, window.chartColors.green],
             (t, d) => d.labels[t.index] + ': ' +
                 d.datasets[t.datasetIndex].data[t.index].toFixed(1)+'%'
         );
         // keep updating the plot
-        update_charts(temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, swap_chart);
+        update_charts(temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, batt_chart);
         setInterval(
             update_charts,
             <?php echo 1000 / $update_hz ?>,
-            temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, swap_chart
+            temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, batt_chart
         );
     });
 
