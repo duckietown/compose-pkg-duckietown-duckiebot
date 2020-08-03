@@ -1,3 +1,8 @@
+## 1.0.1 (August 03, 2020)
+  - robot page: added software tab
+  - increased minimum version of compose to v1.0.2
+  - robot/info: replaced Swap usage with Battery status chart
+
 ## 1.0.0 (July 23, 2020)
   - architecture page now supports new theme
   - minor
