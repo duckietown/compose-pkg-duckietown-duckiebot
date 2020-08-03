@@ -23,6 +23,10 @@ $tabs = [
         'name' => 'Architecture',
         'icon' => 'sitemap'
     ],
+    'software' => [
+        'name' => 'Software',
+        'icon' => 'code-fork'
+    ],
     'files' => [
         'name' => 'Files',
         'icon' => 'folder-open'
@@ -53,7 +57,7 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
         ?>
         <li role="presentation" class="<?php echo ($tab_id == $ACTIVE_TAB)? 'active' : '' ?>">
             <a href="#" data-tab="<?php echo $tab_id ?>" role="button" onclick="robot_load_tab('<?php echo $tab_id ?>')">
-                <i class="fa fa-<?php echo $tab['icon'] ?>" aria-hidden="true"></i> <?php echo $tab['name'] ?>
+                <i class="fa fa-<?php echo $tab['icon'] ?>" aria-hidden="true"></i>&nbsp; <?php echo $tab['name'] ?>
             </a>
         </li>
         <?php
