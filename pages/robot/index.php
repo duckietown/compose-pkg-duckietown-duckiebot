@@ -66,7 +66,7 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 </ul>
 
 <!-- Tab panes -->
-<div class="tab-content" id="_logs_tab_container" style="padding: 20px 0">
+<div class="tab-content" id="_logs_tab_container" style="padding: 20px 0 0 0">
     <div role="tabpanel" class="tab-pane active">
     <?php
         include sprintf('%s/tabs/%s/index.php', __DIR__, $ACTIVE_TAB);
