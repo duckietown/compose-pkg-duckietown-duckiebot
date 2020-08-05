@@ -1,3 +1,7 @@
+## 1.0.2 (August 05, 2020)
+  - improved robot/files tab
+  - minor
+
 ## 1.0.1 (August 03, 2020)
   - robot page: added software tab
   - increased minimum version of compose to v1.0.2
