@@ -1,3 +1,6 @@
+## 1.0.3 (August 11, 2020)
+  - added favicon
+
 ## 1.0.2 (August 05, 2020)
   - improved robot/files tab
   - minor
