@@ -1,3 +1,7 @@
+## 1.0.4 (September 24, 2020)
+  - added page `desktop`
+  - page:robot/software: now using code api v1.1+
+
 ## 1.0.3 (August 11, 2020)
   - added favicon
 
