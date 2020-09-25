@@ -203,16 +203,18 @@ $update_hz = 1.0;
                 pbar.css('width', '100%'.format(status.progress));
                 pbar.addClass('progress-bar-success');
                 pbar.html('Updated!');
+                // TODO: need to update the button here
             } else if (status.status === 'ERROR') {
                 pbar.css('width', '100%'.format(status.progress));
                 pbar.addClass('progess-bar-danger');
+                // TODO: need to update the button here
             }
         }
     }
     
     function update_module(name, force=false) {
         // compile command url
-        let url = api_url('update', [name + '?force={0}'.format(force? '1' : '0')]);
+        let url = api_url('module/update', [name + '?force={0}'.format(force? '1' : '0')]);
         callExternalAPI(url, 'GET', 'json', false, false, function(res){
             if (res.status === 'need-force') {
                 let aux_msg = "Use the button <b>Force Update</b> from the dropdown to force the update.";
@@ -230,8 +232,7 @@ $update_hz = 1.0;
     
     function _keep_updating() {
         if (window.ROBOT_SOFTWARE_MODULES_UPDATER === null) {
-            console.log('Launching updater...');
-            let url = api_url('status');
+            let url = api_url('modules/status');
             window.ROBOT_SOFTWARE_MODULES_UPDATER = setInterval(function(){
                 callExternalAPI(url, 'GET', 'json', false, false, _update, true, true);
             }, 1000 * (1 / <?php echo $update_hz ?>));
@@ -290,7 +291,7 @@ $update_hz = 1.0;
                 case 'UPDATING':
                     btn_label = 'Updating';
                     btn_style = 'default';
-                    btn_icon = 'circle-o-notch fa-spin fa-3x fa-fw';
+                    btn_icon = 'circle-o-notch fa-spin fa-fw';
                     btn_html = 'disabled="disabled"';
                     status_desc = 'Updating...';
                     break;
@@ -330,7 +331,7 @@ $update_hz = 1.0;
         window.ROBOT_SOFTWARE_MODULES_INFO = data.data;
         render_modules_placeholders();
         // get modules status
-        let url = api_url('status');
+        let url = api_url('modules/status');
         callExternalAPI(
             url, 'GET', 'json', false, false,
             render_modules, true, false, _on_code_api_error
@@ -345,7 +346,7 @@ $update_hz = 1.0;
     }
     
     $(document).ready(function(){
-        let url = api_url('info');
+        let url = api_url('modules/info');
         callExternalAPI(
             url, 'GET', 'json', false, false,
             _on_modules_list_success, true, false, _on_code_api_error
