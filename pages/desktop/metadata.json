@@ -1,0 +1,20 @@
+{
+    "name" : "Desktop",
+    "package" : "duckietown",
+    "menu_entry" : {
+        "order" : 1,
+        "icon" : {
+            "class" : "fa",
+            "name" : "desktop"
+        },
+        "responsive" : {
+            "priority" : -10
+        },
+        "exclude_roles" : []
+    },
+    "child_pages" : [],
+    "access_level" : [
+      "administrator",
+      "supervisor"
+    ]
+}
