@@ -1,0 +1,36 @@
+{
+    "details": "Provides the tools for managing robots settings",
+    "actions": {
+        "set": {
+            "details": "Sets the robot's settings",
+            "access_level": [
+                "user",
+                "superviror",
+                "administrator"
+            ],
+            "authentication": [
+                "web"
+            ],
+            "parameters": {
+                "mandatory": {},
+                "optional": {
+                    "allow_push_logs_data": {
+                        "type": "boolean",
+                        "details": "Upload robot data logs to the Duckietown database of logs"
+                    },
+                    "allow_push_stats_data": {
+                        "type": "boolean",
+                        "details": "Automatically send usage statistics and crash reports to Duckietown"
+                    },
+                    "allow_push_config_data": {
+                        "type": "boolean",
+                        "details": "Automatically backup robot's configuration to the Duckietown Cloud Storage Service (DCSS)"
+                    }
+                }
+            },
+            "return": {
+                "values": {}
+            }
+        }
+    }
+}
