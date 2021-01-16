@@ -14,17 +14,117 @@
             "parameters": {
                 "mandatory": {},
                 "optional": {
-                    "allow_push_logs_data": {
-                        "type": "boolean",
-                        "details": "Upload robot data logs to the Duckietown database of logs"
+                    "permissions": {
+                        "type": "object",
+                        "details": "Privacy and Backup",
+                        "_data": {
+                            "allow_push_logs_data": {
+                                "type": "boolean",
+                                "default": false,
+                                "details": "Allow the robot to auto-upload sensor data logs to the Duckietown database of logs.",
+                                "__form__": {
+                                    "title": "Share sensor data logs with Duckietown"
+                                }
+                            },
+                            "allow_push_stats_data": {
+                                "type": "boolean",
+                                "default": false,
+                                "details": "Automatically send usage statistics and crash reports to Duckietown.",
+                                "__form__": {
+                                    "title": "Share anonymous data with Duckietown"
+                                }
+                            },
+                            "allow_push_config_data": {
+                                "type": "boolean",
+                                "default": false,
+                                "details": "Automatically backup robot\"s configuration to the Duckietown Cloud Storage Service (DCSS).",
+                                "__form__": {
+                                    "title": "Backup robot configuration on the cloud"
+                                }
+                            }
+                        }
                     },
-                    "allow_push_stats_data": {
-                        "type": "boolean",
-                        "details": "Automatically send usage statistics and crash reports to Duckietown"
+                    "robot": {
+                        "type": "object",
+                        "details": "Robot settings",
+                        "_data": {
+                            "type": {
+                                "type": "enum",
+                                "values": [
+                                    "duckiebot",
+                                    "duckiedrone",
+                                    "watchtower",
+                                    "greenstation",
+                                    "workstation",
+                                    "traffic_light",
+                                    "duckietown"
+                                ],
+                                "__form__": {
+                                    "labels": [
+                                        "Duckiebot",
+                                        "Duckiedrone",
+                                        "Watchtower",
+                                        "Green Station",
+                                        "Workstation",
+                                        "Traffic Light",
+                                        "Duckietown"
+                                    ]
+                                },
+                                "default": "duckiebot",
+                                "details": "Robot type"
+                            },
+                            "configuration": {
+                                "type": "enum",
+                                "values": [
+                                    "DB18",
+                                    "DB19",
+                                    "DB21M",
+                                    "DD18",
+                                    "WT18",
+                                    "WT19A",
+                                    "WT19B",
+                                    "GS17",
+                                    "TL18",
+                                    "TL19",
+                                    "DT20"
+                                ],
+                                "default": "DB18",
+                                "details": "Robot's configuration"
+                            },
+                            "hardware": {
+                                "type": "enum",
+                                "values": [
+                                    "raspberry_pi",
+                                    "jetson_nano"
+                                ],
+                                "__form__": {
+                                    "labels": [
+                                        "Raspberry Pi",
+                                        "NVidia Jetson Nano"
+                                    ]
+                                },
+                                "default": "raspberry_pi",
+                                "details": "Robot's hardware"
+                            }
+                        }
                     },
-                    "allow_push_config_data": {
-                        "type": "boolean",
-                        "details": "Automatically backup robot's configuration to the Duckietown Cloud Storage Service (DCSS)"
+                    "autolab": {
+                        "type": "object",
+                        "details": "Autolab settings",
+                        "_data": {
+                            "map_name": {
+                                "type": "text",
+                                "default": null,
+                                "nullable": true,
+                                "details": "Name of the town this robots belongs to"
+                            },
+                            "tag_id": {
+                                "type": "numeric",
+                                "default": null,
+                                "nullable":  true,
+                                "details": "Unique ID of the Tag attached to the robot"
+                            }
+                        }
                     }
                 }
             },

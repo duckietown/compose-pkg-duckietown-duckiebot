@@ -23,6 +23,13 @@ class Duckiebot {
         "allow_push_config_data",
     ];
     private static $PERMISSION_FILENAME = '/data/config/permissions/%s';
+    private static $SETTING_FILENAME = [
+        "type" => "/data/config/robot_type",
+        "configuration" => "/data/config/robot_configuration",
+        "hardware" => "/data/config/robot_hardware",
+        "autolab/tag_id" => "/data/config/autolab/tag_id",
+        "autolab/map_name" => "/data/config/autolab/map_name"
+    ];
     
     // disable the constructor
     private function __construct() {
@@ -106,17 +113,19 @@ class Duckiebot {
         return $duckiebot_hostname;
     }//getDuckiebotHostname
     
-    public static function setDuckiebotSettings($settings) {
-        foreach ($settings as $key => $value) {
-            if (in_array($key, self::$PERMISSIONS_KEYS)) {
-                $res = self::setDuckiebotPermission($key, $value);
-                if (!$res['success']) {
-                    return $res;
-                }
-            }
-        }
-        return ['success' => true, 'data' => null];
-    }//setDuckiebotSettings
+    public static function setDuckiebotPermission($key, $value) {
+        if (!in_array($key, self::$PERMISSIONS_KEYS))
+            return ['success' => false, 'data' => "Permission key `$key` not recognized."];
+        $fpath = sprintf(self::$PERMISSION_FILENAME, $key);
+        return self::writeFileToDisk($fpath, trim($value));
+    }//setDuckiebotPermission
+    
+    public static function setDuckiebotConfiguration($key, $value) {
+        if (!array_key_exists($key, self::$SETTING_FILENAME))
+            return ['success' => false, 'data' => "Setting `$key` not recognized."];
+        $fpath = self::$SETTING_FILENAME[$key];
+        return self::writeFileToDisk($fpath, trim($value));
+    }//setDuckiebotConfiguration
     
     
     // =======================================================================================================
@@ -146,16 +155,27 @@ class Duckiebot {
         }
     }//getFileFromRobot
     
-    private static function setDuckiebotPermission($permission, $value) {
-        $permission_file = sprintf(self::$PERMISSION_FILENAME, $permission);
-        $res = file_put_contents($permission_file, $value);
+    private static function writeFileToDisk($fpath, $content) {
+        $fdirpath = dirname($fpath);
+        if (file_exists($fdirpath) && !is_writable($fdirpath)) {
+            return ['success' => false, 'data' => "Directory `$fdirpath` cannot be written."];
+        }
+        if (!file_exists($fdirpath)) {
+            $res = mkdir($fdirpath);
+            if ($res === false)
+                return ['success' => false, 'data' => "Directory `$fdirpath` cannot be created."];
+        }
+        if (file_exists($fpath) && !is_writable($fpath)) {
+            return ['success' => false, 'data' => "File `$fpath` cannot be written."];
+        }
+        $res = file_put_contents($fpath, $content);
         if ($res === false)
             return [
                 'success' => false,
-                'data' => sprintf('An error occurred while writing the file %s.', $permission_file)
+                'data' => "An error occurred while writing the file `$fpath`."
             ];
         return ['success' => true, 'data' => null];
-    }//setDuckiebotPermission
+    }//writeFileToDisk
     
 }//Duckiebot
 ?>
