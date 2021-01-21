@@ -22,9 +22,9 @@
                             "allow_push_logs_data": {
                                 "type": "boolean",
                                 "default": false,
-                                "details": "Allow the robot to auto-upload sensor data logs to the Duckietown database of logs.",
+                                "details": "Automatically upload sensor data logs to the global Duckietown Dataset of logs.",
                                 "__form__": {
-                                    "title": "Share sensor data logs with Duckietown"
+                                    "title": "Share sensor data with Duckietown"
                                 }
                             },
                             "allow_push_stats_data": {
@@ -32,15 +32,15 @@
                                 "default": false,
                                 "details": "Automatically send usage statistics and crash reports to Duckietown.",
                                 "__form__": {
-                                    "title": "Share anonymous data with Duckietown"
+                                    "title": "Share anonymous usage data with Duckietown"
                                 }
                             },
                             "allow_push_config_data": {
                                 "type": "boolean",
                                 "default": false,
-                                "details": "Automatically backup robot\"s configuration to the Duckietown Cloud Storage Service (DCSS).",
+                                "details": "Automatically backup robot's configuration to the Duckietown Cloud Storage Service (DCSS).",
                                 "__form__": {
-                                    "title": "Backup robot configuration on the cloud"
+                                    "title": "Backup robot configuration to the cloud"
                                 }
                             }
                         }
