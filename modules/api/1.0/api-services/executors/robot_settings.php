@@ -14,6 +14,13 @@ function execute(&$service, &$actionName, &$arguments) {
     //
     switch ($actionName) {
         case 'set':
+            // open session to have access to login info
+            Core::startSession();
+            // handle first-setup case: the user is not logged in
+            if (!Core::isUserLoggedIn()) {
+                if (Core::isComposeConfigured())
+                    return response401Unauthorized();
+            }
             // robot permissions
             if (array_key_exists('permissions', $arguments)) {
                 foreach ($arguments['permissions'] as $key => $value) {
@@ -23,6 +30,9 @@ function execute(&$service, &$actionName, &$arguments) {
                     }
                 }
             }
+            if (!Core::isUserLoggedIn())
+                // the user is not logged in but the platform is not configured, `permissions` only
+                return response200OK();
             // robot configuration
             if (array_key_exists('robot', $arguments)) {
                 foreach ($arguments['robot'] as $key => $value) {
@@ -35,15 +45,14 @@ function execute(&$service, &$actionName, &$arguments) {
             // autolab configuration
             if (array_key_exists('autolab', $arguments)) {
                 foreach ($arguments['autolab'] as $key => $value) {
-                    $key = "autolab/$key";
-                    $res = Duckiebot::setDuckiebotConfiguration($key, $value);
+                    $res = Duckiebot::setAutolabConfiguration($key, $value);
                     if (!$res['success']) {
                         return response400BadRequest($res['data']);
                     }
                 }
             }
             // success
-            return response200OK($res);
+            return response200OK();
             break;
         //
         default:

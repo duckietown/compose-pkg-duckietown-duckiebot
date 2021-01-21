@@ -4,6 +4,7 @@
         "set": {
             "details": "Sets the robot's settings",
             "access_level": [
+                "guest",
                 "user",
                 "superviror",
                 "administrator"
