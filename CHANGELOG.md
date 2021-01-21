@@ -1,3 +1,14 @@
+## 1.1.0 (January 21, 2021)
+  - bumped compose dependency version
+  - added `first_setup` module to `duckietown_duckiebot` package
+  - added robot_settings/set API endpoint
+  - fixed integration of new health API output; added subpage Robot/Settings
+  - fixed bug in Duckiebot.php
+  - Duckiebot class is now using files-api to read/write from/to the robot
+  - implemented setter for permission/settings/autolab parameters
+  - improved robot/settings tab
+  - added robot/settings tab
+
 ## 1.0.4 (September 24, 2020)
   - added page `desktop`
   - page:robot/software: now using code api v1.1+
