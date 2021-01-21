@@ -172,25 +172,31 @@ class Duckiebot {
     }//getDuckiebotPermissions
     
     public static function getDuckiebotConfigurations(): array {
-        $out = [];
+        $out = [
+            "success" => true,
+            "data" => []
+        ];
         foreach (self::$CONFIGURATION_KEYS as $key) {
             $res = self::getDuckiebotConfiguration($key);
             if (!$res['success']) {
                 return $res;
             }
-            $out[$key] = $res['data'];
+            $out['data'][$key] = $res['data'];
         }
         return $out;
     }//getDuckiebotConfigurations
     
     public static function getAutolabConfigurations(): array {
-        $out = [];
+        $out = [
+            "success" => true,
+            "data" => []
+        ];
         foreach (self::$AUTOLAB_CFG_KEYS as $key) {
             $res = self::getAutolabConfiguration($key);
             if (!$res['success']) {
                 return $res;
             }
-            $out[$key] = $res['data'];
+            $out['data'][$key] = $res['data'];
         }
         return $out;
     }//getAutolabConfigurations
