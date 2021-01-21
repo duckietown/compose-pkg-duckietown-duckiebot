@@ -23,10 +23,10 @@ $tabs = [
         'name' => 'Architecture',
         'icon' => 'sitemap'
     ],
-    'software' => [
-        'name' => 'Software',
-        'icon' => 'code-fork'
-    ],
+//    'software' => [
+//        'name' => 'Software',
+//        'icon' => 'code-fork'
+//    ],
     'files' => [
         'name' => 'Files',
         'icon' => 'folder-open'

@@ -5,11 +5,12 @@
 
 
 require_once $GLOBALS['__SYSTEM__DIR__'] . 'templates/forms/SmartForm.php';
-require_once $GLOBALS['__SYSTEM__DIR__'] . '/classes/RESTfulAPI.php';
+require_once $GLOBALS['__SYSTEM__DIR__'] . 'classes/RESTfulAPI.php';
 
 
 use system\classes\Configuration;
 use system\classes\RESTfulAPI;
+use system\packages\duckietown_duckiebot\Duckiebot;
 
 $api_service = 'robot_settings';
 $api_action = 'set';
@@ -30,9 +31,17 @@ $form_schema = [
 
 <div style="margin: auto; width: 80%">
     <?php
+    // get settings
+    $data = [
+        'permissions' => Duckiebot::getDuckiebotPermissions(),
+        'robot' => Duckiebot::getDuckiebotConfigurations(),
+        'autolab' => Duckiebot::getAutolabConfigurations()
+    ];
+    foreach ($data as $key => &$res) {
+        $data[$key] = $res['success']? $res['data'] : [];
+    }
     // create form
-    // TODO: load values and pass them here
-    $form = new SmartForm($form_schema, []);
+    $form = new SmartForm($form_schema, $data);
     // render form
     $form->render();
     ?>

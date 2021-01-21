@@ -185,13 +185,13 @@ $update_hz = 0.5;
                 cpu_voltage_chart.config.data.datasets[0].data.shift();
                 ram_voltage_chart.config.data.datasets[0].data.shift();
                 // add new Y
-                temperature_chart.config.data.datasets[0].data.push(data.temp);
-                fcpu_chart.config.data.datasets[0].data.push(data.frequency / (10 ** 9));
-                pcpu_chart.config.data.datasets[0].data.push(data.pcpu);
-                pmem_chart.config.data.datasets[0].data.push(data.mem.pmem);
-                pswap_chart.config.data.datasets[0].data.push(data.swap.pswap);
+                temperature_chart.config.data.datasets[0].data.push(data.temperature);
+                fcpu_chart.config.data.datasets[0].data.push(data.cpu.frequency.current / (10 ** 9));
+                pcpu_chart.config.data.datasets[0].data.push(data.cpu.percentage);
+                pmem_chart.config.data.datasets[0].data.push(data.memory.percentage);
+                pswap_chart.config.data.datasets[0].data.push(data.swap.percentage);
                 cpu_voltage_chart.config.data.datasets[0].data.push(data.volts.core);
-                ram_voltage_chart.config.data.datasets[0].data.push(data.volts.sdram_i);
+                ram_voltage_chart.config.data.datasets[0].data.push(data.volts.ram);
                 // refresh chart
                 temperature_chart.update();
                 fcpu_chart.update();

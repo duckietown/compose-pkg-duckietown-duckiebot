@@ -147,7 +147,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     <div class="col-md-3">
         <h4 class="square-canvas-title">
             <i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;
-            Clock
+            Frequency
         </h4>
         <canvas id="_robot_fcpu_canvas" class="square-canvas"></canvas>
     </div>
@@ -273,26 +273,26 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         callExternalAPI(url, 'GET', 'text', false, false, function(data){
             data = JSON.parse(data);
             // update temperature
-            temperature_chart.config.data.datasets[0].data[0] = 100.0 - data.temp;
-            temperature_chart.config.data.datasets[0].data[1] = data.temp;
-            temperature_chart.config.options.elements.center.text = data.temp.toFixed(0) +
+            temperature_chart.config.data.datasets[0].data[0] = 100.0 - data.temperature;
+            temperature_chart.config.data.datasets[0].data[1] = data.temperature;
+            temperature_chart.config.options.elements.center.text = data.temperature.toFixed(0) +
                 ' \'C';
             // update disk
-            disk_chart.config.data.datasets[0].data[0] = 100.0 - data.disk.pdisk;
-            disk_chart.config.data.datasets[0].data[1] = data.disk.pdisk;
-            disk_chart.config.options.elements.center.text = data.disk.pdisk.toFixed(1) + '%';
+            disk_chart.config.data.datasets[0].data[0] = 100.0 - data.disk.percentage;
+            disk_chart.config.data.datasets[0].data[1] = data.disk.percentage;
+            disk_chart.config.options.elements.center.text = data.disk.percentage.toFixed(1) + '%';
             // update pCPU
-            pcpu_chart.config.data.datasets[0].data[0] = 100.0 - data.pcpu;
-            pcpu_chart.config.data.datasets[0].data[1] = data.pcpu;
-            pcpu_chart.config.options.elements.center.text = data.pcpu.toFixed(1) + '%';
+            pcpu_chart.config.data.datasets[0].data[0] = 100.0 - data.cpu.percentage;
+            pcpu_chart.config.data.datasets[0].data[1] = data.cpu.percentage;
+            pcpu_chart.config.options.elements.center.text = data.cpu.percentage.toFixed(1) + '%';
             // update RAM
-            ram_chart.config.data.datasets[0].data[0] = 100.0 - data.mem.pmem;
-            ram_chart.config.data.datasets[0].data[1] = data.mem.pmem;
-            ram_chart.config.options.elements.center.text = data.mem.pmem.toFixed(1) + '%';
+            ram_chart.config.data.datasets[0].data[0] = 100.0 - data.memory.percentage;
+            ram_chart.config.data.datasets[0].data[1] = data.memory.percentage;
+            ram_chart.config.options.elements.center.text = data.memory.percentage.toFixed(1) + '%';
             // update fCPU
-            MAX_CLOCK_FREQ = data.hardware.Frequency / 10 ** 9;
-            let fcpu = (data.frequency / (10 ** 9)).toFixed(1);
-            fcpu_chart.config.data.datasets[0].data[0] = MAX_CLOCK_FREQ - fcpu;
+            MAX_CLOCK_FREQ = data.cpu.frequency.max / 10 ** 9;
+            let fcpu = (data.cpu.frequency.current / (10 ** 9)).toFixed(1);
+            fcpu_chart.config.data.datasets[0].data[0] = Math.max(MAX_CLOCK_FREQ - fcpu, 0).toFixed(1);
             fcpu_chart.config.data.datasets[0].data[1] = fcpu;
             fcpu_chart.config.options.elements.center.text = fcpu + 'GHz';
             // update battery
@@ -322,16 +322,14 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             fcpu_chart.update();
             batt_chart.update();
             // update hardware info
-            $('.robot-info-container #hardware_board').html(data.hardware.Board);
-            $('.robot-info-container #hardware_model').html(
-                '{0} - {1}'.format(data.hardware.Model, data.hardware.Memory)
-            );
+            $('.robot-info-container #hardware_board').html(data.hardware.board);
+            $('.robot-info-container #hardware_model').html(data.hardware.model);
             // update firmware info
-            let firmware = '{month} {day} {year}'.format(data.firmware.date);
+            let firmware = '{month}/{day}/{year}'.format(data.firmware.date);
             firmware = '{0} ({1})'.format(firmware, data.firmware.version.substr(0, 7));
             $('.robot-info-container #firmware_info').html(firmware);
             // update health bits
-            for (let [key, value] of Object.entries(data.throttled_humans)) {
+            for (let [key, value] of Object.entries(data.throttling)) {
                 $('.robot-health-bits-container #'+key).removeClass('label-default ' +
                     'label-warning label-success');
                 $('.robot-health-bits-container #'+key).addClass(
@@ -398,7 +396,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         );
         let fcpu_chart = _robot_info_create_plot(
             "#_robot_fcpu_canvas",
-            ['/', 'Clock'],
+            ['Idle', 'Busy'],
             [window.chartColors.grey, window.chartColors.red],
             (t, d) => d.labels[t.index] + ': ' +
                 d.datasets[t.datasetIndex].data[t.index]+'GHz'
