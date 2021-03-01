@@ -1,3 +1,7 @@
+## 1.1.1 (March 01, 2021)
+  - removed "files" tab in Robot's page, now using elfinder as file manager
+  - data permission rewording
+
 ## 1.1.0 (January 21, 2021)
   - bumped compose dependency version
   - added `first_setup` module to `duckietown_duckiebot` package
