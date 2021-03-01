@@ -120,8 +120,8 @@ $update_hz = 0.5;
             _DATA_TEMPERATURE,
             'Temperature',
             'Temperature (\'C)',
-            (v) => v.toFixed(1)+' \'C',
-            window.chartColors.red, 30, 90
+            (v) => v.toFixed(1)+' °C',
+            window.chartColors.red, 20, 80
         );
         let fcpu_chart = _robot_health_create_plot(
             "#_robot_fcpu_canvas",

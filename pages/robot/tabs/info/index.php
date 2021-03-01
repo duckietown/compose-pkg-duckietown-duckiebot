@@ -25,7 +25,6 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         width: 50%;
         position: relative;
         background: white;
-        border: 1px solid lightgrey;
     }
 
     .robot-thumbnail-container:after {
