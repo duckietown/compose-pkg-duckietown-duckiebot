@@ -27,10 +27,6 @@ $tabs = [
 //        'name' => 'Software',
 //        'icon' => 'code-fork'
 //    ],
-    'files' => [
-        'name' => 'Files',
-        'icon' => 'folder-open'
-    ],
     'settings' => [
         'name' => 'Settings',
         'icon' => 'sliders'
