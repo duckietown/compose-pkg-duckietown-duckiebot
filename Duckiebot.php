@@ -257,7 +257,7 @@ class FilesAPI {
         $qs = [];
         if (!is_null($format))
             $qs['format'] = $format;
-        $url = self::url($fpath, $qs);
+        $url = self::url('data', $fpath, $qs);
         // fetch data from robot
         $data = file_get_contents($url);
         if ($data === false) {
@@ -272,7 +272,7 @@ class FilesAPI {
         $qs = [];
         if (!is_null($format))
             $qs['format'] = $format;
-        $url = self::url($fpath, $qs);
+        $url = self::url('data', $fpath, $qs);
         // send data to robot
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -294,8 +294,8 @@ class FilesAPI {
         return ['success' => true, 'data' => $res];
     }
     
-    private function url($resource, $qs = []): string {
-        return join_path($this->url, $resource, toQueryString(array_keys($qs), $qs, true));
+    private function url($action, $resource, $qs = []): string {
+        return join_path($this->url, $action, $resource, toQueryString(array_keys($qs), $qs, true));
     }
     
 }
