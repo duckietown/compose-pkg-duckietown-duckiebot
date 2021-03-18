@@ -7,6 +7,7 @@
 namespace system\packages\duckietown_duckiebot;
 
 use \system\classes\Core;
+use \system\classes\Database;
 
 
 /**
@@ -17,7 +18,7 @@ class Duckiebot {
     private static $initialized = false;
     private static $files_api = null;
     private static $PERMISSION_LOCATION = 'config/permissions/%s';
-    private static $PERMISSION_KEYS = [
+    public static $PERMISSION_KEYS = [
         "allow_push_logs_data",
         "allow_push_stats_data",
         "allow_push_config_data",
@@ -52,6 +53,20 @@ class Duckiebot {
     public static function init(): array {
         if (!self::$initialized) {
             self::$files_api = new FilesAPI();
+            // this is a Duckiebot, so, skip the first two steps on the first-setup
+            $first_setup_db = new Database('core', 'first_setup');
+            if (!$first_setup_db->key_exists('step1')) {
+                $first_setup_db->write('no_admin', null);
+                // enable developer mode
+                $res = Core::setSetting('core', 'developer_mode', true);
+                // confirm step1 and step2
+                if (!$res['success']) {
+                    Core::throwError($res['data']);
+                }
+                // mark the first two steps as completed
+                $first_setup_db->write('step1', null);
+                $first_setup_db->write('step2', null);
+            }
             //
             self::$initialized = true;
             return ['success' => true, 'data' => null];
