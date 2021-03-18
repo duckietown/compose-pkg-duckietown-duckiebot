@@ -1,6 +1,9 @@
 <?php
 use \system\classes\Core;
 use \system\classes\Configuration;
+use \system\packages\duckietown_duckiebot\Duckiebot;
+
+$dbot_hostname = Duckiebot::getDuckiebotHostname();
 
 $tabs = [
     'info' => [
@@ -48,7 +51,32 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 </style>
 
 
-<h2 class="page-title"></h2>
+<h2 class="page-title-static">
+    Robot
+    <div id="robot_power_btn_group" class="btn-group" role="group" style="float:right">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                <span class="glyphicon glyphicon-flash" aria-hidden="true"></span>&nbsp;Power &nbsp;
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a href="#" class="robot_power_btn" data-trigger="shutdown">
+                        <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                        &nbsp; Shutdown
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="robot_power_btn" data-trigger="reboot">
+                        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                        &nbsp; Reboot
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</h2>
 
 <!-- Nav tabs -->
 <ul class="nav nav-tabs" id="_robot_tab_btns" role="tablist">
@@ -76,7 +104,27 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 
 
 <script type="text/javascript">
-  function robot_load_tab(tab) {
-      redirectTo('robot', tab);
-  }
+    
+    function robot_load_tab(tab) {
+        redirectTo('robot', tab);
+    }
+    
+    function _call_health_api(resource, action, qs = null, on_success = undefined, dialog = false) {
+        let _url = api_url.format({api: "health", resource: "{0}/{1}".format(resource, action)});
+        // create query string
+        if (qs != null)
+            _url += '?' + $.param(qs);
+        // call API
+        callExternalAPI(_url, 'GET', 'json', dialog, false, on_success);
+    }
+    
+    $(".robot_power_btn").on("click", function(){
+        let trigger = $(this).data('trigger');
+        _call_health_api("trigger", trigger, null, function (data) {
+            if (data.hasOwnProperty('token')) {
+                _call_health_api("trigger", trigger, {token: data.token});
+            }
+        }, true);
+    });
+    
 </script>
