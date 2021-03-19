@@ -1,3 +1,10 @@
+## 1.2.0 (March 19, 2021)
+  - pages/robot: now passing the trigger signal (aka value) when calling the health-api
+  - added `Shutdown` and `Reboot` buttons to robot's page
+  - permissions set by default to TRUE in firt setup; automatically skip the fist 2 steps of first setup of compose;
+  - now using new files-api endpoint (e.g., /data/<files>)
+  - minor
+
 ## 1.1.1 (March 01, 2021)
   - removed "files" tab in Robot's page, now using elfinder as file manager
   - data permission rewording
