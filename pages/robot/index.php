@@ -122,7 +122,7 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
         let trigger = $(this).data('trigger');
         _call_health_api("trigger", trigger, null, function (data) {
             if (data.hasOwnProperty('token')) {
-                _call_health_api("trigger", trigger, {token: data.token});
+                _call_health_api("trigger", trigger, {token: data.token, value: 'dashboard'});
             }
         }, true);
     });
