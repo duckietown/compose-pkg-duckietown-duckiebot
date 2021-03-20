@@ -1,3 +1,6 @@
+## 1.2.3 (March 20, 2021)
+  - deleted page "code"
+
 ## 1.2.2 (March 20, 2021)
   - now using new files-api /data/ endpoint
 
