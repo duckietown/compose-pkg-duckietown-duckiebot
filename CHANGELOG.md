@@ -1,3 +1,6 @@
+## 1.2.1 (March 20, 2021)
+  - now using disk directly when saving/reading robot settings, was using files-api before
+
 ## 1.2.0 (March 19, 2021)
   - pages/robot: now passing the trigger signal (aka value) when calling the health-api
   - added `Shutdown` and `Reboot` buttons to robot's page
