@@ -339,7 +339,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
 
     $(document).ready(function () {
         // get robot type
-        let url = api_url.format({api:"files", resource:"config/robot_type"});
+        let url = api_url.format({api:"files", resource:"data/config/robot_type"});
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
             let robot_type = 'unknown';
             try {
@@ -348,7 +348,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             $('.robot-info-container #robot_type').html(robot_type.capitalize());
         }, true, true);
         // get robot configuration
-        url = api_url.format({api:"files", resource:"config/robot_configuration"});
+        url = api_url.format({api:"files", resource:"data/config/robot_configuration"});
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
             let robot_configuration = 'unknown';
             try {
