@@ -1,3 +1,6 @@
+## 1.2.4 (March 20, 2021)
+  - now asking for confirmation before shutting down/rebooting the robot
+
 ## 1.2.3 (March 20, 2021)
   - deleted page "code"
 
