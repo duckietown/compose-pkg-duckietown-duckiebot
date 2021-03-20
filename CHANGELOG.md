@@ -1,3 +1,6 @@
+## 1.2.2 (March 20, 2021)
+  - now using new files-api /data/ endpoint
+
 ## 1.2.1 (March 20, 2021)
   - now using disk directly when saving/reading robot settings, was using files-api before
 
