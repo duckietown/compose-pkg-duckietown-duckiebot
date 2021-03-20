@@ -118,13 +118,23 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
         callExternalAPI(_url, 'GET', 'json', dialog, false, on_success);
     }
     
-    $(".robot_power_btn").on("click", function(){
+    $(".robot_power_btn").on("click", function () {
         let trigger = $(this).data('trigger');
-        _call_health_api("trigger", trigger, null, function (data) {
-            if (data.hasOwnProperty('token')) {
-                _call_health_api("trigger", trigger, {token: data.token, value: 'dashboard'});
-            }
-        }, true);
+        openYesNoModal(
+            "Are you sure you want to {0} the robot?".format(trigger),
+            function () {
+                _call_health_api("trigger", trigger, null, function (data) {
+                    if (data.hasOwnProperty('token')) {
+                        _call_health_api("trigger", trigger, {
+                            token: data.token,
+                            value: 'dashboard'
+                        });
+                    }
+                }, true);
+            },
+            false,
+            'sm'
+        );
     });
     
 </script>
