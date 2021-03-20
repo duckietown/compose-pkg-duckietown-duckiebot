@@ -16,20 +16,19 @@ use \system\classes\Database;
 class Duckiebot {
     
     private static $initialized = false;
-    private static $files_api = null;
-    private static $PERMISSION_LOCATION = 'config/permissions/%s';
+    private static $PERMISSION_LOCATION = '/data/config/permissions/%s';
     public static $PERMISSION_KEYS = [
         "allow_push_logs_data",
         "allow_push_stats_data",
         "allow_push_config_data",
     ];
-    private static $CONFIGURATION_LOCATION = 'config/robot_%s';
+    private static $CONFIGURATION_LOCATION = '/data/config/robot_%s';
     private static $CONFIGURATION_KEYS = [
         "type",
         "configuration",
         "hardware"
     ];
-    private static $AUTOLAB_CFG_LOCATION = 'config/autolab/%s';
+    private static $AUTOLAB_CFG_LOCATION = '/data/config/autolab/%s';
     private static $AUTOLAB_CFG_KEYS = [
         "tag_id",
         "map_name"
@@ -52,7 +51,6 @@ class Duckiebot {
      */
     public static function init(): array {
         if (!self::$initialized) {
-            self::$files_api = new FilesAPI();
             // this is a Duckiebot, so, skip the first two steps on the first-setup
             $first_setup_db = new Database('core', 'first_setup');
             if (!$first_setup_db->key_exists('step1')) {
@@ -110,9 +108,17 @@ class Duckiebot {
         return preg_replace('/\.local$/', '', $duckiebot_hostname);
     }//getDuckiebotName
     
-    public static function getDuckiebotType(): string {
-        return self::$files_api->get('/config/robot_type');
-    }//getDuckiebotType
+    public static function getRobotType() {
+        $res = self::readFileFromDisk('/data/config/robot_type');
+        if (!$res['success']) return null;
+        return $res['data'];
+    }//getRobotType
+    
+    public static function getRobotConfiguration() {
+        $res = self::readFileFromDisk('/data/config/robot_configuration');
+        if (!$res['success']) return null;
+        return $res['data'];
+    }//getRobotConfiguration
     
     public static function getDuckiebotHostname(): string {
         $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
@@ -133,42 +139,42 @@ class Duckiebot {
         if (!in_array($key, self::$PERMISSION_KEYS))
             return ['success' => false, 'data' => "Permission key `$key` not recognized."];
         $fpath = sprintf(self::$PERMISSION_LOCATION, $key);
-        return self::$files_api->get($fpath);
+        return self::readFileFromDisk($fpath);
     }//getDuckiebotPermission
     
     public static function getDuckiebotConfiguration($key): array {
         if (!in_array($key, self::$CONFIGURATION_KEYS))
             return ['success' => false, 'data' => "Configuration key `$key` not recognized."];
         $fpath = sprintf(self::$CONFIGURATION_LOCATION, $key);
-        return self::$files_api->get($fpath);
+        return self::readFileFromDisk($fpath);
     }//getDuckiebotConfiguration
     
     public static function getAutolabConfiguration($key): array {
         if (!in_array($key, self::$AUTOLAB_CFG_KEYS))
             return ['success' => false, 'data' => "Autolab setting key `$key` not recognized."];
         $fpath = sprintf(self::$AUTOLAB_CFG_LOCATION, $key);
-        return self::$files_api->get($fpath);
+        return self::readFileFromDisk($fpath);
     }//getAutolabConfiguration
     
     public static function setDuckiebotPermission($key, $value): array {
         if (!in_array($key, self::$PERMISSION_KEYS))
             return ['success' => false, 'data' => "Permission key `$key` not recognized."];
         $fpath = sprintf(self::$PERMISSION_LOCATION, $key);
-        return self::$files_api->post($fpath, is_bool($value)? +$value : trim($value));
+        return self::writeFileToDisk($fpath, is_bool($value)? +$value : trim($value));
     }//setDuckiebotPermission
     
     public static function setDuckiebotConfiguration($key, $value): array {
         if (!in_array($key, self::$CONFIGURATION_KEYS))
             return ['success' => false, 'data' => "Configuration key `$key` not recognized."];
         $fpath = sprintf(self::$CONFIGURATION_LOCATION, $key);
-        return self::$files_api->post($fpath, trim($value));
+        return self::writeFileToDisk($fpath, trim($value));
     }//setDuckiebotConfiguration
     
     public static function setAutolabConfiguration($key, $value): array {
         if (!in_array($key, self::$AUTOLAB_CFG_KEYS))
             return ['success' => false, 'data' => "Autolab setting key `$key` not recognized."];
         $fpath = sprintf(self::$AUTOLAB_CFG_LOCATION, $key);
-        return self::$files_api->post($fpath, trim($value));
+        return self::writeFileToDisk($fpath, trim($value));
     }//setAutolabConfiguration
     
     public static function getDuckiebotPermissions(): array {
@@ -221,6 +227,22 @@ class Duckiebot {
     // Private functions
     
     // YOUR PRIVATE METHODS HERE
+    
+    private static function readFileFromDisk($fpath): array {
+        if (!file_exists($fpath)) {
+            return ['success' => false, 'data' => "File `$fpath` does not exist."];
+        }
+        if (!is_readable($fpath)) {
+            return ['success' => false, 'data' => "File `$fpath` cannot be read."];
+        }
+        $res = file_get_contents($fpath);
+        if ($res === false)
+            return [
+                'success' => false,
+                'data' => "An error occurred while reading the file `$fpath`."
+            ];
+        return ['success' => true, 'data' => $res];
+    }//readFileFromDisk
     
     private static function writeFileToDisk($fpath, $content): array {
         $fdirpath = dirname($fpath);
