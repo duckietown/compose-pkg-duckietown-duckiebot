@@ -324,8 +324,8 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             $('.robot-info-container #hardware_board').html(data.hardware.board);
             $('.robot-info-container #hardware_model').html(data.hardware.model);
             // update firmware info
-            let firmware = '{month}/{day}/{year}'.format(data.firmware.date);
-            firmware = '{0} ({1})'.format(firmware, data.firmware.version.substr(0, 7));
+            let firmware = '{month}/{day}/{year}'.format(data.software.date);
+            firmware = '{0} ({1})'.format(firmware, data.software.version.substr(0, 7));
             $('.robot-info-container #firmware_info').html(firmware);
             // update health bits
             for (let [key, value] of Object.entries(data.throttling)) {
