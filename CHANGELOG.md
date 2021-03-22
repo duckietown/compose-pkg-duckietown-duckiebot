@@ -1,3 +1,6 @@
+## 1.2.5 (March 22, 2021)
+  - pages/robot/info: now showing Duckietown Disk image version instead of JetPack's
+
 ## 1.2.4 (March 20, 2021)
   - now asking for confirmation before shutting down/rebooting the robot
 
