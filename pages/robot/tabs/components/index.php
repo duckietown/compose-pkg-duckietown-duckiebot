@@ -121,6 +121,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         "IMU": "compass",
         "BUS_MULTIPLEXER": "list-ol",
         "TOF": "eye",
+        "MOTOR": "car",
     };
     window.ROBOT_COMPONENT_DEFAULT_ICON = "square";
     
