@@ -30,6 +30,10 @@ $tabs = [
 //        'name' => 'Software',
 //        'icon' => 'code-fork'
 //    ],
+    'components' => [
+        'name' => 'Components',
+        'icon' => 'puzzle-piece'
+    ],
     'settings' => [
         'name' => 'Settings',
         'icon' => 'sliders'
