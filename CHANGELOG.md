@@ -1,3 +1,7 @@
+## 1.3.0 (May 19, 2021)
+  - minor
+  - added components tab to robot page
+
 ## 1.2.5 (March 22, 2021)
   - pages/robot/info: now showing Duckietown Disk image version instead of JetPack's
 
