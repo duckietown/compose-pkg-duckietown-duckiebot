@@ -17,6 +17,7 @@ class Duckiebot {
     
     private static $initialized = false;
     private static $PERMISSION_LOCATION = '/data/config/permissions/%s';
+    private static $CALIBRATIONS_LOCATION = '/data/config/calibrations/';
     public static $PERMISSION_KEYS = [
         "allow_push_logs_data",
         "allow_push_stats_data",
@@ -222,13 +223,14 @@ class Duckiebot {
         return $out;
     }//getAutolabConfigurations
     
+    public static function getCalibrationContent($calib_type): array {
+        $robot_name = self::getDuckiebotName();
+        $calib_filename = sprintf("%s.yaml", $robot_name);
+        $calib_filepath = join_path(self::$CALIBRATIONS_LOCATION, $calib_type, $calib_filename);
+        return self::readFileFromDisk($calib_filepath);
+    }//readFileFromDisk
     
-    // =======================================================================================================
-    // Private functions
-    
-    // YOUR PRIVATE METHODS HERE
-    
-    private static function readFileFromDisk($fpath): array {
+    public static function readFileFromDisk($fpath): array {
         if (!file_exists($fpath)) {
             return ['success' => false, 'data' => "File `$fpath` does not exist."];
         }
@@ -244,7 +246,7 @@ class Duckiebot {
         return ['success' => true, 'data' => $res];
     }//readFileFromDisk
     
-    private static function writeFileToDisk($fpath, $content): array {
+    public static function writeFileToDisk($fpath, $content): array {
         $fdirpath = dirname($fpath);
         if (file_exists($fdirpath) && !is_writable($fdirpath)) {
             return ['success' => false, 'data' => "Directory `$fdirpath` cannot be written."];
@@ -265,6 +267,12 @@ class Duckiebot {
             ];
         return ['success' => true, 'data' => null];
     }//writeFileToDisk
+    
+    
+    // =======================================================================================================
+    // Private functions
+    
+    // YOUR PRIVATE METHODS HERE
     
 }//Duckiebot
 

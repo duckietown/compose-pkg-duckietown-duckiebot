@@ -1,3 +1,20 @@
+## 1.4.2 (May 20, 2021)
+  - fixed bug in calibrations tab
+
+## 1.4.1 (May 20, 2021)
+  - minor
+  - minor
+
+## 1.4.0 (May 20, 2021)
+  - added 'calibrations' tab to robot page
+
+## 1.3.0 (May 19, 2021)
+  - minor
+  - added components tab to robot page
+
+## 1.2.5 (March 22, 2021)
+  - pages/robot/info: now showing Duckietown Disk image version instead of JetPack's
+
 ## 1.2.4 (March 20, 2021)
   - now asking for confirmation before shutting down/rebooting the robot
 
