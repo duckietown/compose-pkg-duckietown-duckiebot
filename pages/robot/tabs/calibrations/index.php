@@ -276,16 +276,18 @@ $open_calibration = "camera_intrinsic";
     });
     
     function _on_backups_list_success (calib_type, data) {
-        let html = "";
-        data.backups.forEach(function (b, i) {
-            html += _backup_row.format({
-                id: i + 1,
-                origin: b.origin,
-                owner: b.owner,
-                date: b.date,
-                calib_type: calib_type
+        let html = "<tr><td colspan='5' class='text-center'>(none)</td></tr>";
+        if (data.backups.length > 0) {
+            data.backups.forEach(function (b, i) {
+                html += _backup_row.format({
+                    id: i + 1,
+                    origin: b.origin,
+                    owner: b.owner,
+                    date: b.date,
+                    calib_type: calib_type
+                });
             });
-        });
+        }
         $('#{0}_{1}'.format([calib_type, 'backups_table'])).html(html);
     }
     
