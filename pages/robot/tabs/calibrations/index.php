@@ -136,10 +136,10 @@ $open_calibration = "camera_intrinsic";
                                     Owner
                                 </td>
                                 <td class="col-md-4">
-                                    Origin device
+                                    Origin Robot
                                 </td>
                                 <td class="col-md-4">
-                                    Date
+                                    Upload Date
                                 </td>
                                 <td class="text-center col-md-2">
                                     Action
