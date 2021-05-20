@@ -1,3 +1,6 @@
+## 1.4.0 (May 20, 2021)
+  - added 'calibrations' tab to robot page
+
 ## 1.3.0 (May 19, 2021)
   - minor
   - added components tab to robot page
