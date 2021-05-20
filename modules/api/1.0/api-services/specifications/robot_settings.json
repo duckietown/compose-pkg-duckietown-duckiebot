@@ -84,10 +84,13 @@
                                     "WT18",
                                     "WT19A",
                                     "WT19B",
+                                    "WT21A",
+                                    "WT21B",
                                     "GS17",
                                     "TL18",
                                     "TL19",
-                                    "DT20"
+                                    "DT20",
+                                    "DT21"
                                 ],
                                 "default": "DB18",
                                 "details": "Robot's configuration"
