@@ -1,3 +1,7 @@
+## 1.4.1 (May 20, 2021)
+  - minor
+  - minor
+
 ## 1.4.0 (May 20, 2021)
   - added 'calibrations' tab to robot page
 
