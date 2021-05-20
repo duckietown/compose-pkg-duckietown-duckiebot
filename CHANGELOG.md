@@ -1,3 +1,7 @@
+## 1.4.3 (May 20, 2021)
+  - Merge branch 'new'
+  - added support for new robot types
+
 ## 1.4.2 (May 20, 2021)
   - fixed bug in calibrations tab
 
