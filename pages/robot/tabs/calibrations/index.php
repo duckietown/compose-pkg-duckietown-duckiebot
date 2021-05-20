@@ -276,7 +276,7 @@ $open_calibration = "camera_intrinsic";
     });
     
     function _on_backups_list_success (calib_type, data) {
-        let html = "<tr><td colspan='5' class='text-center'>(none)</td></tr>";
+        let html = "";
         if (data.backups.length > 0) {
             data.backups.forEach(function (b, i) {
                 html += _backup_row.format({
@@ -287,6 +287,8 @@ $open_calibration = "camera_intrinsic";
                     calib_type: calib_type
                 });
             });
+        } else {
+            html = "<tr><td colspan='5' class='text-center'>(none)</td></tr>";
         }
         $('#{0}_{1}'.format([calib_type, 'backups_table'])).html(html);
     }
