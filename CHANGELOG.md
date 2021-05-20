@@ -1,3 +1,6 @@
+## 1.4.2 (May 20, 2021)
+  - fixed bug in calibrations tab
+
 ## 1.4.1 (May 20, 2021)
   - minor
   - minor
