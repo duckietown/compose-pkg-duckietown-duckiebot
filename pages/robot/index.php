@@ -34,6 +34,10 @@ $tabs = [
         'name' => 'Components',
         'icon' => 'puzzle-piece'
     ],
+    'calibrations' => [
+        'name' => 'Calibrations',
+        'icon' => 'dot-circle-o'
+    ],
     'settings' => [
         'name' => 'Settings',
         'icon' => 'sliders'
