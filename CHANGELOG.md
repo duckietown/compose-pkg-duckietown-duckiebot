@@ -1,3 +1,8 @@
+## 1.4.4 (May 21, 2021)
+  - Merge branch 'master' of github.com:afdaniele/compose-pkg-duckietown-duckiebot
+  - Merge branch 'new'
+  - added support for new robot types
+
 ## 1.4.3 (May 21, 2021)
   - improved components tab
 
