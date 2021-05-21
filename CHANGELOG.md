@@ -1,3 +1,6 @@
+## 1.4.3 (May 21, 2021)
+  - improved components tab
+
 ## 1.4.2 (May 20, 2021)
   - fixed bug in calibrations tab
 
