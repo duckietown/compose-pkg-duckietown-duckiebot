@@ -55,8 +55,18 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         border-right: 1px solid lightgrey;
     }
     
+    ._robot_overall_status_icon{
+        min-width: 130px;
+        max-width: 130px;
+        border-right: 1px solid lightgrey;
+    }
+    
     ._robot_component ._robot_component_icon i.fa{
         font-size: 18pt;
+    }
+    
+    ._robot_overall_status_icon i.fa{
+        font-size: 60pt;
     }
     
     ._robot_component ._robot_component_info{
@@ -88,18 +98,36 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         margin-bottom: 0;
     }
     
-    ._robot_component ._robot_component_actions{
-        min-width: 200px;
-        max-width: 200px;
-    }
-    
     ._robot_component ._robot_component_connector {
         padding: 8px 15px 0 15px;
     }
     
-    ._robot_component ._robot_component_bus {
+    ._robot_component ._robot_component_bus,
+    ._robot_overall_status_reason {
         font-family: monospace;
         font-size: 9pt;
+    }
+    
+    ._robot_overall_status_info {
+        padding-left: 20px;
+    }
+    
+    .navbar-bad{
+        background-image: -webkit-linear-gradient(top, #ff8080 0, #ff9d9d 100%);
+        background-image: -o-linear-gradient(top,#ff8080 0,#ff9d9d 100%);
+        background-image: -webkit-gradient(linear,left top,left bottom,from(#ff8080),to(#ff9d9d));
+        background-image: linear-gradient(to bottom,#ff8080 0,#ff9d9d 100%)
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffff8080', endColorstr='#ffff9d9d', GradientType=0);
+        filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+    }
+    
+    .navbar-good{
+        background-image: -webkit-linear-gradient(top, #8bc34a 0, #bdea88 100%);
+        background-image: -o-linear-gradient(top,#8bc34a 0,#bdea88 100%);
+        background-image: -webkit-gradient(linear,left top,left bottom,from(#8bc34a),to(#bdea88));
+        background-image: linear-gradient(to bottom,#8bc34a 0,#bdea88 100%)
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff8bc34a', endColorstr='#ffbdea88', GradientType=0);
+        filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
     }
 </style>
 
@@ -107,6 +135,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
 <div id="_placeholder_img">
     <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt=""/>
 </div>
+
+<div id="_robot_components_overall_div"></div>
 
 <div id="_robot_components_div"></div>
 
@@ -122,6 +152,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         "BUS_MULTIPLEXER": "list-ol",
         "TOF": "eye",
         "MOTOR": "car",
+        "BATTERY": "battery",
     };
     window.ROBOT_COMPONENT_DEFAULT_ICON = "square";
     
@@ -166,6 +197,38 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     </nav>
     `;
     
+    let _overall_nav = `
+    <nav class="navbar navbar-{style}" role="navigation">
+        <div class="">
+            <div class="collapse navbar-collapse navbar-left">
+                <table class="_robot_overall_status" style="height: 120px">
+                    <tr>
+                        <td rowspan="2" class="text-center _robot_overall_status_icon">
+                            <i class="fa fa-{icon}" aria-hidden="true" style="color: {color}"></i>
+                        </td>
+                        <td class="_robot_overall_status_info">
+                            <h2 class="text-left" style="margin-top: 10px; margin-bottom: 0; color: {color}">{status}</h2>
+                            <h5 class="text-left" style="margin-top: 0">Overall Status</h5>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-12 _robot_overall_status_info">
+                            {explanation}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </nav>
+    <hr>`;
+    
+    let _overall_failure_nav = `
+    <h5 class="text-left">
+        <strong>Reason:</strong>
+        <span class="_robot_overall_status_reason">{missing}</span>
+        not found.
+    </h5>`;
+    
     function api_url(api, action, args) {
         return _api_url.format({api: api, action: action, resource: args.join('/')}).rstrip('/')
     }
@@ -179,12 +242,21 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     
     function render_components(data) {
         let container_div = $('#_robot_components_div');
-        for (const [id, component] of Object.entries(data)) {
+        // sort by "supported"
+        let components = Object.values(data).sort((a, b) => (a.supported > b.supported) ? -1 : 1);
+        container_div.append('<h4><span class="label label-default">Officially Supported</span></h4>');
+        let missing = [];
+        for (let i = 0; i < components.length; i++) {
+            let component = components[i];
+            if (i > 0 && component.supported !== components[i-1].supported) {
+                container_div.append("<hr/>");
+                container_div.append('<h4><span class="label label-default">Optional</span></h4>');
+            }
             let name = component.name;
             container_div.append(
-                _pholder_nav.format({name: id})
+                _pholder_nav.format({name: i})
             );
-            let div = $('#_robot_component_{name}'.format({name: id}));
+            let div = $('#_robot_component_{name}'.format({name: i}));
             let icon = window.ROBOT_COMPONENT_TYPE_TO_ICON.hasOwnProperty(component.type) ?
                 window.ROBOT_COMPONENT_TYPE_TO_ICON[component.type] : window.ROBOT_COMPONENT_DEFAULT_ICON;
             let description = component.hasOwnProperty('description') ? component.description : '(no description)';
@@ -210,7 +282,20 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 })
             );
             div.find('nav').css('display', 'inherit');
+            if (component.supported && !component.detected) {
+                missing.push(component.name);
+            }
         }
+        $('#_robot_components_overall_div').html(_overall_nav.format({
+            status: (missing.length > 0)? 'Some components were not detected' : 'Healthy',
+            icon: (missing.length > 0)? 'exclamation-circle' : 'check-circle-o',
+            style: (missing.length > 0)? 'bad' : 'good',
+            color: (missing.length > 0)? 'darkred' : 'darkgreen',
+            explanation: (missing.length > 0)? _overall_failure_nav.format({
+                    missing: missing.join(", ")
+                }) :
+                'All the components supported by your robot model are detected.',
+        }))
     }
     
     function _component_calib_action(component, action) {
