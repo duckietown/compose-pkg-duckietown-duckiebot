@@ -1,3 +1,7 @@
+## 1.4.6 (June 22, 2021)
+  - Merge tag 'v1.4.5'
+  - disabled permissions setup at first launch
+
 ## 1.4.5 (June 02, 2021)
   - added support for new robot hardware
   - Merge remote-tracking branch 'origin/master'
