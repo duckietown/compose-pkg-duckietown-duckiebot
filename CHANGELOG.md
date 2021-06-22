@@ -1,3 +1,8 @@
+## 1.4.5 (June 02, 2021)
+  - added support for new robot hardware
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.3.
+
 ## 1.4.4 (May 21, 2021)
   - Merge branch 'master' of github.com:afdaniele/compose-pkg-duckietown-duckiebot
   - Merge branch 'new'
