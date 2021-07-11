@@ -1,3 +1,9 @@
+## 1.4.6 (July 11, 2021)
+  - Bump version to 1.4.5.
+  - added duckietown_ros as deps
+  - Bump version to 1.4.5.
+  - added support for new robot hardware
+
 ## 1.4.5 (July 11, 2021)
   - added duckietown_ros as deps
   - Merge remote-tracking branch 'origin/master'
