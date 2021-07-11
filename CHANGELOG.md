@@ -1,3 +1,13 @@
+## 1.4.7 (July 11, 2021)
+  - Bump version to 1.4.6.
+  - Bump version to 1.4.5.
+  - added duckietown_ros as deps
+  - Bump version to 1.4.6.
+  - Merge tag 'v1.4.5'
+  - disabled permissions setup at first launch
+  - Bump version to 1.4.5.
+  - added support for new robot hardware
+
 ## 1.4.6 (July 11, 2021)
   - Bump version to 1.4.5.
   - added duckietown_ros as deps
