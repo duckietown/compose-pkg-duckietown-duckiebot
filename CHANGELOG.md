@@ -1,3 +1,8 @@
+## 1.4.5 (July 11, 2021)
+  - added duckietown_ros as deps
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.3.
+
 ## 1.4.4 (May 21, 2021)
   - Merge branch 'master' of github.com:afdaniele/compose-pkg-duckietown-duckiebot
   - Merge branch 'new'
