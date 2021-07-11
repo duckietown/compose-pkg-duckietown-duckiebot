@@ -9,6 +9,7 @@
     "dependencies": {
         "system-packages": [],
         "packages": [
+            "duckietown_ros",
             "duckietown",
             "data"
         ]
