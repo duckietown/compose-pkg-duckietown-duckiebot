@@ -110,13 +110,13 @@ class Duckiebot {
     }//getDuckiebotName
     
     public static function getRobotType() {
-        $res = self::readFileFromDisk('/data/config/robot_type');
+        $res = self::getDuckiebotConfiguration('type');
         if (!$res['success']) return null;
         return $res['data'];
     }//getRobotType
     
     public static function getRobotConfiguration() {
-        $res = self::readFileFromDisk('/data/config/robot_configuration');
+        $res = self::getDuckiebotConfiguration('configuration');
         if (!$res['success']) return null;
         return $res['data'];
     }//getRobotConfiguration
@@ -147,7 +147,10 @@ class Duckiebot {
         if (!in_array($key, self::$CONFIGURATION_KEYS))
             return ['success' => false, 'data' => "Configuration key `$key` not recognized."];
         $fpath = sprintf(self::$CONFIGURATION_LOCATION, $key);
-        return self::readFileFromDisk($fpath);
+        $res = self::readFileFromDisk($fpath);
+        if ($res['success'])
+            $res['data'] = trim($res['data']);
+        return $res;
     }//getDuckiebotConfiguration
     
     public static function getAutolabConfiguration($key): array {
