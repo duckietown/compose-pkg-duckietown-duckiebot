@@ -1,3 +1,9 @@
+## 1.4.8 (September 10, 2021)
+  - added support for DB21J/R robots
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.5.
+  - added support for new robot hardware
+
 ## 1.4.7 (July 11, 2021)
   - Bump version to 1.4.6.
   - Bump version to 1.4.5.
