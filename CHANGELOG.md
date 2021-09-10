@@ -1,3 +1,6 @@
+## 1.4.9 (September 10, 2021)
+  - bug fix in robot configuration retrieval from disk
+
 ## 1.4.8 (September 10, 2021)
   - added support for DB21J/R robots
   - Merge remote-tracking branch 'origin/master'
