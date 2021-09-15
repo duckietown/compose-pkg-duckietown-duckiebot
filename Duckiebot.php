@@ -104,7 +104,7 @@ class Duckiebot {
     // Public functions
     
     public static function getDuckiebotName(): string {
-        $duckiebot_hostname = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');//self::getDuckiebotHostname();
+        $duckiebot_hostname = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
         // remove '.local' from the end of the host string (if present)
         return preg_replace('/\.local$/', '', $duckiebot_hostname);
     }//getDuckiebotName
