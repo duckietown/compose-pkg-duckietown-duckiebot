@@ -123,9 +123,12 @@ class Duckiebot {
     
     public static function getDuckiebotHostname(): string {
         $duckiebot_name = Core::getSetting('duckiebot_host', 'duckietown_duckiebot');
+        if ($duckiebot_name){
+            return $duckiebot_name;
+        }
         // revert to http host if no vehicle name is set
-        /*
-         * if (strlen($duckiebot_name) < 2) {
+        $duckiebot_name = self::getDuckiebotName();
+        if (strlen($duckiebot_name) < 2) {
             $duckiebot_hostname = Core::getBrowserHostname();
             // remove port (if any) from the http host string
             $duckiebot_name_parts = explode(':', $duckiebot_hostname);
@@ -135,8 +138,6 @@ class Duckiebot {
         }
         // ---
         return $duckiebot_hostname;
-         * */
-        return $duckiebot_name;
     }//getDuckiebotHostname
     
     public static function getDuckiebotPermission($key): array {
