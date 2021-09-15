@@ -104,9 +104,15 @@ class Duckiebot {
     // Public functions
     
     public static function getDuckiebotName(): string {
-        $duckiebot_hostname = self::getDuckiebotHostname();
+        $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+        if (strlen($duckiebot_name) < 2) {
+            $duckiebot_hostname = Core::getBrowserHostname();
+            // remove port (if any) from the http host string
+            $duckiebot_name_parts = explode(':', $duckiebot_hostname);
+            $duckiebot_name = $duckiebot_name_parts[0];
+        }
         // remove '.local' from the end of the host string (if present)
-        return preg_replace('/\.local$/', '', $duckiebot_hostname);
+        return preg_replace('/\.local$/', '', $duckiebot_name);
     }//getDuckiebotName
     
     public static function getRobotType() {
@@ -122,7 +128,12 @@ class Duckiebot {
     }//getRobotConfiguration
     
     public static function getDuckiebotHostname(): string {
-        $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+        $duckiebot_name = Core::getSetting('duckiebot_hostname', 'duckietown_duckiebot');
+        if (strlen($duckiebot_name) >= 2){
+            return $duckiebot_name;
+        }
+        // revert to http host if no vehicle name is set
+        $duckiebot_name = self::getDuckiebotName();
         // revert to http host if no vehicle name is set
         if (strlen($duckiebot_name) < 2) {
             $duckiebot_hostname = Core::getBrowserHostname();

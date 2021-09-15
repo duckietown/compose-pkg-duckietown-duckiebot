@@ -7,6 +7,11 @@
             "type" : "text",
             "default" : null
         },
+        "duckiebot_hostname": {
+            "details": "Hostname of the duckiebot",
+            "type": "text",
+            "default": null
+        },
         "health_api" : {
             "details" : "Health API module configuration",
             "type" : "object",
