@@ -40,6 +40,30 @@
                 "title": "Files API"
             }
         },
+        "code_api" : {
+            "details" : "Code API module configuration",
+            "type" : "object",
+            "_data" : {
+                "hostname" : {
+                    "type" : "text",
+                    "default" : null,
+                    "details" : "IP or Hostname of the machine running the Code API module"
+                },
+                "port" : {
+                    "type" : "text",
+                    "default" : 80,
+                    "details" : "Port the Code API module is listening on"
+                },
+                "prefix" : {
+                    "type" : "text",
+                    "default" : "code",
+                    "details" : "(Advanced) Prefix to append to the hostname to reach the Code API module"
+                }
+            },
+            "__form__": {
+                "title": "Code API"
+            }
+        },
         "ros_api" : {
             "details" : "ROS API module configuration",
             "type" : "object",

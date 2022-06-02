@@ -103,13 +103,16 @@ class Duckiebot {
     // =======================================================================================================
     // Public functions
     
-    public static function getDuckiebotName(): string {
+    public static function getDuckiebotName() {
         $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
         if (strlen($duckiebot_name) < 2) {
             $duckiebot_hostname = Core::getBrowserHostname();
             // remove port (if any) from the http host string
             $duckiebot_name_parts = explode(':', $duckiebot_hostname);
             $duckiebot_name = $duckiebot_name_parts[0];
+            // do not consider "localhost" a valid robot name
+            if (strcasecmp($duckiebot_name, "localhost") == 0)
+                return null;
         }
         // remove '.local' from the end of the host string (if present)
         return preg_replace('/\.local$/', '', $duckiebot_name);
@@ -135,7 +138,7 @@ class Duckiebot {
         // revert to http host if no vehicle name is set
         $duckiebot_name = self::getDuckiebotName();
         // revert to http host if no vehicle name is set
-        if (strlen($duckiebot_name) < 2) {
+        if (is_null($duckiebot_name) || strlen($duckiebot_name) < 2) {
             $duckiebot_hostname = Core::getBrowserHostname();
             // remove port (if any) from the http host string
             $duckiebot_name_parts = explode(':', $duckiebot_hostname);
