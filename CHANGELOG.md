@@ -1,3 +1,9 @@
+## 1.4.10 (July 06, 2022)
+  - added watchtower missions
+  - separating default missions by robot type
+  - improved Software tab
+  - added duckiebot hostname field in settings
+
 ## 1.4.9 (September 10, 2021)
   - bug fix in robot configuration retrieval from disk
 
