@@ -1,3 +1,6 @@
+## 1.4.12 (July 07, 2022)
+  - added support for DD21
+
 ## 1.4.11 (July 07, 2022)
   - added Duckiebot::setDuckiebotHostname
 
