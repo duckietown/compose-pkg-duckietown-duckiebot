@@ -18,6 +18,7 @@ class Duckiebot {
     private static $initialized = false;
     private static $PERMISSION_LOCATION = '/data/config/permissions/%s';
     private static $CALIBRATIONS_LOCATION = '/data/config/calibrations/';
+    private static $FILE_WRITERS_LOCATION = '/tmp/sockets';
     public static $PERMISSION_KEYS = [
         "allow_push_logs_data",
         "allow_push_stats_data",
@@ -149,6 +150,20 @@ class Duckiebot {
         // ---
         return $duckiebot_hostname;
     }//getDuckiebotHostname
+    
+    public static function setDuckiebotHostname($hostname) {
+        $sockets_dir = self::$FILE_WRITERS_LOCATION;
+        $hostname_socket_fname = "$sockets_dir/etc/hostname.sock";
+        if (file_exists($hostname_socket_fname)) {
+            $socket = fsockopen("unix://$hostname_socket_fname");
+            // sanitize hostname
+            $hostname = preg_replace('/[^a-z0-9-]/', '', $hostname);
+            $hostname = trim($hostname, "-");
+            // write hostname to socket
+            fwrite($socket, $hostname);
+            fclose($socket);
+        }
+    }//setDuckiebotHostname
     
     public static function getDuckiebotPermission($key): array {
         if (!in_array($key, self::$PERMISSION_KEYS))
