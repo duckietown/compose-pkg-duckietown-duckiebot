@@ -1,5 +1,6 @@
 <?php
 
+use system\classes\Core;
 use system\packages\duckietown_duckiebot\Duckiebot;
 
 $dbot_hostname = Core::getSetting(
