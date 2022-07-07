@@ -1,3 +1,6 @@
+## 1.4.11 (July 07, 2022)
+  - added Duckiebot::setDuckiebotHostname
+
 ## 1.4.10 (July 06, 2022)
   - added watchtower missions
   - separating default missions by robot type
