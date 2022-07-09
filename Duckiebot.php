@@ -151,7 +151,13 @@ class Duckiebot {
         return $duckiebot_hostname;
     }//getDuckiebotHostname
     
-    public static function setDuckiebotHostname($hostname) {
+    public static function canSetDuckiebotHostname() {
+        $sockets_dir = self::$FILE_WRITERS_LOCATION;
+        $hostname_socket_fname = "$sockets_dir/etc/hostname.sock";
+        return file_exists($hostname_socket_fname);
+    }//canSetDuckiebotHostname
+    
+    public static function setDuckiebotHostname($hostname): array {
         $sockets_dir = self::$FILE_WRITERS_LOCATION;
         $hostname_socket_fname = "$sockets_dir/etc/hostname.sock";
         if (file_exists($hostname_socket_fname)) {
@@ -162,7 +168,9 @@ class Duckiebot {
             // write hostname to socket
             fwrite($socket, $hostname);
             fclose($socket);
+            return ['success' => true, 'data' => null];
         }
+        return ['success' => false, 'data' => "Socket file '$hostname_socket_fname' not found"];
     }//setDuckiebotHostname
     
     public static function getDuckiebotPermission($key): array {

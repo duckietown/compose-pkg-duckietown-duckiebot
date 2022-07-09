@@ -30,6 +30,15 @@ function execute(&$service, &$actionName, &$arguments) {
                     }
                 }
             }
+            // system settings
+            if (array_key_exists('system', $arguments)) {
+                if (array_key_exists('hostname', $arguments["system"])) {
+                    $res = Duckiebot::setDuckiebotHostname($arguments["system"]["hostname"]);
+                    if (!$res['success']) {
+                        return response400BadRequest($res['data']);
+                    }
+                }
+            }
             if (!Core::isUserLoggedIn())
                 // the user is not logged in but the platform is not configured, `permissions` only
                 return response200OK();

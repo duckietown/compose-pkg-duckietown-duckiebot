@@ -49,25 +49,50 @@ $action_params = array_merge($action_cfg['parameters']['mandatory'], $action_cfg
 foreach (Duckiebot::$PERMISSION_KEYS as $key) {
     $action_params['permissions']['_data'][$key]['default'] = true;
 }
-// create form
+// create form schema
 $form_schema = [
     'type' => 'form',
-    'details' => 'Data Permissions',
-    '_data' => $action_params['permissions']['_data']
+    'details' => 'Robot Settings',
+    '_data' => []
 ];
+$form_data = [];
+
+// only show hostname option if we can set it
+if (Duckiebot::canSetDuckiebotHostname()) {
+    $form_schema["_data"]["system"] = [
+        "type" => "object",
+        "details" => "System preferences",
+        "_data" => [
+            "hostname" => [
+                "type" => "text",
+                "default" => null,
+                "details" => "The hostname of your robot"
+            ]
+        ]
+    ];
+    $form_data["system"]["hostname"] = Duckiebot::getDuckiebotHostname();
+}
+// create form
+$form_schema["_data"]["permissions"] = [
+    "type" => "object",
+    "details" => "Data permissions",
+    "_data" => $action_params['permissions']['_data']
+];
+
+// get settings
+$res = Duckiebot::getDuckiebotConfigurations();
+$robot_type = $res['success']? $res['data']['type'] : null;
+$robot_configuration = $res['success']? $res['data']['configuration'] : null;
+// permissions are set to true by default
+$permissions = [];
+foreach (Duckiebot::$PERMISSION_KEYS as $key) {
+    $permissions[$key] = "1";
+}
+$form_data["permissions"] = $permissions;
 ?>
 
 <div style="margin: 20px 60px">
     <?php
-    // get settings
-    $res = Duckiebot::getDuckiebotConfigurations();
-    $robot_type = $res['success']? $res['data']['type'] : null;
-    $robot_configuration = $res['success']? $res['data']['configuration'] : null;
-    // permissions are set to true by default
-    $permissions = [];
-    foreach (Duckiebot::$PERMISSION_KEYS as $key) {
-        $permissions[$key] = "1";
-    }
     if (!is_null($robot_configuration)) {
         ?>
         <h4>Setup your
@@ -83,16 +108,18 @@ $form_schema = [
     }
     ?>
     <br/>
-    <h3>Data Permissions</h3>
+    <h3>Robot Settings and Data Permissions</h3>
     <p>
-        <strong>Duckietown</strong> would like to collect usage statistics and sensor
+        You can change the name of your robot using the field below.
+        <br/>
+        <strong>Duckietown</strong> would also like to collect usage statistics and sensor
         data while the robot is in use. Read carefully what types of data you can share with
         Duckietown and grant the permissions you fell more comfortable with.
     </p>
     <br/>
     <?php
     // create form
-    $form = new SmartForm($form_schema, $permissions);
+    $form = new SmartForm($form_schema, $form_data);
     // render form
     $form->render();
     ?>
@@ -103,7 +130,6 @@ $form_schema = [
 </button>
 
 <script type="text/javascript">
-    
     $('#confirm-step-button').on('click', function(){
         // define success function
         let confirm_step_fcn = function(r){
@@ -114,14 +140,11 @@ $form_schema = [
         smartAPI('robot_settings', 'set', {
             method: 'POST',
             arguments: {},
-            data: {
-                permissions: form.serialize()
-            },
+            data: form.serialize(),
             block: true,
             confirm: true,
             reload: false,
             on_success: confirm_step_fcn
         });
     });
-    
 </script>
