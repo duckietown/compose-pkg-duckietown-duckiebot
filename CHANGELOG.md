@@ -1,3 +1,6 @@
+## 1.4.15 (July 09, 2022)
+  - minor
+
 ## 1.4.14 (July 09, 2022)
   - implemented hostname update in first setup tab
 
