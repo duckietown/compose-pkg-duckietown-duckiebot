@@ -22,6 +22,11 @@ $api_cfg = RESTfulAPI::getConfiguration();
 // create schema for robot's settings from the API configuration
 $action_cfg = $api_cfg[Configuration::$WEBAPI_VERSION]['services'][$api_service]['actions'][$api_action];
 $action_params = array_merge($action_cfg['parameters']['mandatory'], $action_cfg['parameters']['optional']);
+
+// remove settings
+unset($action_params["system"]);
+
+// compile schema
 $form_schema = [
     'type' => 'form',
     'details' => 'Robot settings',
