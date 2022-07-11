@@ -1,3 +1,10 @@
+## 1.4.16 (July 11, 2022)
+  - revert versions
+  - Bump version to 1.4.15.
+  - minor
+  - Bump version to 1.4.14.
+  - implemented hostname update in first setup tab
+
 ## 1.4.13 (July 07, 2022)
   - bug fix
 
