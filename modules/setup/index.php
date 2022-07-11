@@ -70,6 +70,7 @@ if (Duckiebot::canSetDuckiebotHostname()) {
             ]
         ]
     ];
+    $form_data["system"]["hostname"] = Duckiebot::getDuckiebotName();
 }
 // create form
 $form_schema["_data"]["permissions"] = [
