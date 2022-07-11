@@ -66,11 +66,10 @@ if (Duckiebot::canSetDuckiebotHostname()) {
             "hostname" => [
                 "type" => "text",
                 "default" => null,
-                "details" => "The hostname of your robot"
+                "details" => "The hostname of your robot (Only lowercase letters and numbers). WARNING: You CANNOT change this later."
             ]
         ]
     ];
-    $form_data["system"]["hostname"] = Duckiebot::getDuckiebotHostname();
 }
 // create form
 $form_schema["_data"]["permissions"] = [
