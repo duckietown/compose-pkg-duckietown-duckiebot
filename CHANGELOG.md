@@ -1,3 +1,6 @@
+## 1.4.17 (July 12, 2022)
+  - added FLIGHT_CONTROLLER to list of modules
+
 ## 1.4.16 (July 11, 2022)
   - revert versions
   - Bump version to 1.4.15.
