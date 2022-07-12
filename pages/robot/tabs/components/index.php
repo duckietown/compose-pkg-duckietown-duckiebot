@@ -153,6 +153,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         "TOF": "eye",
         "MOTOR": "car",
         "BATTERY": "battery",
+        "FLIGHT_CONTROLLER": "plane",
     };
     window.ROBOT_COMPONENT_DEFAULT_ICON = "square";
     
