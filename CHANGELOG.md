@@ -1,3 +1,6 @@
+## 1.4.18 (July 13, 2022)
+  - added "accelerometer" calibration to calibrations tab
+
 ## 1.4.17 (July 12, 2022)
   - added FLIGHT_CONTROLLER to list of modules
 
