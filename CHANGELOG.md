@@ -1,3 +1,6 @@
+## 1.4.19 (July 21, 2022)
+  - re-enabled software tab
+
 ## 1.4.18 (July 13, 2022)
   - added "accelerometer" calibration to calibrations tab
 
