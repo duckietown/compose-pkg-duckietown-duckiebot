@@ -26,10 +26,10 @@ $tabs = [
         'name' => 'Architecture',
         'icon' => 'sitemap'
     ],
-//    'software' => [
-//        'name' => 'Software',
-//        'icon' => 'code-fork'
-//    ],
+    'software' => [
+        'name' => 'Software',
+        'icon' => 'code-fork'
+    ],
     'components' => [
         'name' => 'Components',
         'icon' => 'puzzle-piece'
