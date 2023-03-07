@@ -1,3 +1,13 @@
+## 1.4.20 (March 07, 2023)
+  - Bump version to 1.4.19.
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.19.
+  - re-enabled software tab
+  - Bump version to 1.4.15.
+  - minor
+  - Bump version to 1.4.14.
+  - implemented hostname update in first setup tab
+
 ## 1.4.19 (March 07, 2023)
   - Merge remote-tracking branch 'origin/master'
   - Bump version to 1.4.15.
