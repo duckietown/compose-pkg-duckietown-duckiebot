@@ -1,3 +1,10 @@
+## 1.4.19 (March 07, 2023)
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.15.
+  - minor
+  - Bump version to 1.4.14.
+  - implemented hostname update in first setup tab
+
 ## 1.4.18 (July 13, 2022)
 - added "accelerometer" calibration to calibrations tab
 
