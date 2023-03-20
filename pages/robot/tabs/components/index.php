@@ -15,6 +15,111 @@ $error_evt = ROS::get_event(ROS::$ROSBRIDGE_ERROR, $ros_hostname);
 $closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
 
 ROS::connect($ros_hostname);
+
+// $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+// $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']);
+// $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
+
+// // TODO: remove all record files
+// $files = glob('path/to/temp/*'); // get all file names
+// foreach($files as $file){ // iterate files
+//   if(is_file($file)) {
+//     unlink($file); // delete file
+//   }
+// }
+
+function get_last_line($file_path) {
+    $line = '';
+
+    $f = fopen($file_path, 'r');
+    $cursor = -1;
+
+    // Read the file backwards until a newline is found or the start of the file is reached
+    while (fseek($f, $cursor, SEEK_END) === 0) {
+        $char = fgetc($f);
+        if ($char === "\n") {
+            if ($cursor === -1) {
+                // Ignore the newline at the end of the file
+                $cursor--;
+                continue;
+            }
+            break;
+        }
+        $line = $char . $line;
+        $cursor--;
+    }
+
+    fclose($f);
+
+    return $line;
+}
+
+function append_line($id_str, $content) {
+    $save_dir = '/data/stats/components_verification';
+
+    if (!file_exists($save_dir)) {
+        mkdir($save_dir, 0775, true);
+    }
+
+    $fname = $save_dir . '/' . $id_str . '.txt';
+
+    $confirm_file = fopen($fname, "a");
+    fwrite($confirm_file, $content . "\n");
+    fclose($confirm_file);
+}
+
+function record_success($id_str) {
+    $entry = "Success on " . date('Y-m-d H:i:s');
+    append_line($id_str, $entry);
+    return $entry;
+}
+
+function record_problem($id_str) {
+    $entry = "Problem since " . date('Y-m-d H:i:s');
+    append_line($id_str, $entry);
+    return $entry;
+}
+
+// TODO: log file size limitation?
+if (isset($_POST['id_str'])) {
+    $id_str = $_POST['id_str'];
+
+    $entry = record_success($id_str);
+
+    $special_str = '___' . $id_str . '___';
+    echo $special_str . $entry . $special_str;
+}
+
+if (isset($_POST['id_str_problem'])) {
+    $id_str = $_POST['id_str_problem'];
+
+    $entry = record_problem($id_str);
+
+    $special_str = '___' . $id_str . '___';
+    echo $special_str . $entry . $special_str;
+}
+
+if (isset($_POST['id_str_read'])) {
+    $id_str_read = $_POST['id_str_read'];
+
+    $save_dir = '/data/stats/components_verification';
+    if (!file_exists($save_dir)) {
+        mkdir($save_dir, 0775, true);
+    }
+
+    $special_str = '___' . $id_str_read . '___';
+    $fname = $save_dir . '/' . $id_str_read . '.txt';
+
+    if (!file_exists($fname)) {
+        echo $special_str . '' . $special_str;
+    } else {
+        $last_line = get_last_line($fname);
+        echo $special_str . $last_line . $special_str;
+    }
+}
+
+
 ?>
 
 <style type="text/css">
@@ -292,6 +397,24 @@ ROS::connect($ros_hostname);
         }
         return '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red" data-toggle="tooltip" data-placement="right" title="No"></span>';
     }
+
+    function update_style_based_on_records(id_str_name, last_record) {
+        let modal_btn_id = 'modal-btn-' + id_str_name;
+        let record_id = 'record-' + id_str_name;
+
+        let disp_txt = "None"
+        if (last_record !== "") {
+            disp_txt = last_record;
+            if (last_record.startsWith("Problem")) {
+                $('#' + modal_btn_id).removeClass().addClass("btn btn-warning");
+            } else {
+                $('#' + modal_btn_id).removeClass().addClass("btn btn-success");
+            }
+        } else {
+            $('#' + modal_btn_id).removeClass().addClass("btn btn-info");
+        }
+        $('#' + record_id).html(`Last status: ${disp_txt}`);
+    }
     
     function render_components(data) {
         let container_div = $('#_robot_components_div');
@@ -325,7 +448,7 @@ ROS::connect($ros_hostname);
             let verification_test_button = "";
             if (component.detected) {
                 let id_str_name = name.replaceAll(' ', '-');
-                verification_test_button = '<button type="button" class="btn btn-info" data-toggle="modal" data-target="' + '#modal-' + id_str_name + '">Verify Hardware</button>';
+                verification_test_button = '<button type="button" id="modal-btn-' + id_str_name + '" class="btn btn-info" data-toggle="modal" data-target="' + '#modal-' + id_str_name + '">Verify Hardware</button>';
 
                 let test_modal = `
                     <!-- Modal -->
@@ -339,7 +462,14 @@ ROS::connect($ros_hostname);
                             <h4 class="modal-title">{test_name}</h4>
                             </div>
                             <div class="modal-body">
-                            <p id="{desc_id}" class="text-left"></p>
+                                <p id="{desc_id}" class="text-left"></p>
+                                <br>
+                                <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
+                                <!-- div class="row">
+                                    <div class="col-md-12 bg-light text-right">
+                                        <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
+                                    </div>
+                                </div -->
                             </div>
                             <div class="modal-footer">
                             <p class="text-left" id="{output_id}"></p>
@@ -348,29 +478,51 @@ ROS::connect($ros_hostname);
                                     <span class="sr-only">Running</span>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-primary text-left" id="{button_id}">Run test</button>
                             <!-- button type="button" class="btn btn-default" data-dismiss="modal">Close</button -->
                             </div>
                             <div class="modal-footer">
-                            <button type="button" class="btn btn-success">Success</button>
-                            <button type="button" class="btn btn-danger">Failed</button>
-                            <!-- button type="button" class="btn btn-default" data-dismiss="modal">Close</button -->
+                                <div class="container>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <p id="{record_id}" class="text-left"></p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="button" class="btn btn-success" id="{btn_id_success}">Success</button>
+                                            <button type="button" class="btn btn-warning" id="{btn_id_failed}">Problem</button>
+                                        </div>
+                                    </div>
+                                    <!-- button type="button" class="btn btn-default" data-dismiss="modal">Close</button -->
+                                </div>
                             </div>
                         </div>
                         
                         </div>
                     </div>
                 `;
+
+
+                // IDs
+                let modal_btn_id = 'modal-btn-' + id_str_name;
+                let btn_id_run = 'btn-' + id_str_name;
+                let btn_id_success = 'btn-succ-' + id_str_name;
+                let btn_id_failed = 'btn-fail-' + id_str_name;
+                let output_id = 'out-' + id_str_name;
+                let prog_id = 'prog-' + id_str_name;
+                let desc_id = 'desc-' + id_str_name;
+                let record_id = 'record-' + id_str_name;
+
                 container_div.append(test_modal.format({
                     modal_id: 'modal-' + id_str_name,
                     test_name: "Verification: " + name,
-                    button_id: 'btn-' + id_str_name,
-                    output_id: 'out-' + id_str_name,
-                    prog_id: 'prog-' + id_str_name,
-                    desc_id: 'desc-' + id_str_name,
+                    btn_id_run: btn_id_run,
+                    btn_id_success: btn_id_success,
+                    btn_id_failed: btn_id_failed,
+                    output_id: output_id,
+                    prog_id: prog_id,
+                    desc_id: desc_id,
+                    record_id: record_id,
                 }));
 
-                let desc_id = "#desc-" + id_str_name;
                 // test ros service description
                 let _testDescClient = new ROSLIB.Service({
                     ros : window.ros['<?php echo $dbot_hostname ?>'],
@@ -381,9 +533,38 @@ ROS::connect($ros_hostname);
                 _testDescClient.callService(reqDesc, function(result) {
                     console.log('Desc service call on \n'
                     + _testDescClient.name
-                    + ':\n'
-                    + result.message);
-                    $(desc_id).html(result.message.replaceAll("\n", "<br>"));
+                    + ':\n');
+                    // + result.message);
+                    
+                    let outHtml = "";
+                    // TODO: formatting from string to html
+                    let sections = result.message.split(/\r?\n\r?\n/);
+                    // sections: 1 - prep; 2 - run; 3 - expectations; 4 - logs gathering
+                    let secTitles = ["Preparation", "Expected Outcomes", "How to run", "Logs Gathering (in case of errors)"];
+
+                    console.log(sections);
+                    for (let idx = 0; idx < sections.length; idx++) {
+                        outHtml += ("<h4>" + secTitles[idx] + "</h4>");
+
+                        let sec = sections.at(idx);
+                        let lines = sec.split(/\r?\n/);
+
+                        let tmp = "<ul>";
+                        lines.forEach((item) => {
+                            let s = item.replaceAll('`', '<code>').replaceAll("'", "</code>")
+                            // TODO: handle this properly. The reason it's only handled here, but 
+                            // not in the desription, is because the test services are not necessarily run only via the GUI.
+                            if (s == "Run the test.") {
+                                s = "Click the 'Run the test' button below";
+                            }
+                            tmp += ("<li>" + s + "</li>");
+                        });
+                        tmp += "</ul>";
+
+                        outHtml += tmp;
+                    }
+
+                    $('#' + desc_id).html(outHtml);
                 });
 
                 // test ros service
@@ -394,32 +575,87 @@ ROS::connect($ros_hostname);
                 });
                 let request = new ROSLIB.ServiceRequest({});
 
-                let btn_id = "#btn-" + id_str_name;
-                let out_id = "#out-" + id_str_name;
-                let prog_id = "#prog-" + id_str_name;
+                // before test finish, do not show success/problem buttons
+                $('#' + btn_id_success).hide();
 
-                $(btn_id).click(function() {
+                $('#' + btn_id_run).click(function() {
                     console.log("Triggered " + id_str_name);
 
                     // clear output
-                    $(out_id).html("");
+                    $('#' + output_id).html("");
                     // show progress
-                    $(prog_id).show();
+                    $('#' + prog_id).show();
                     // hide button
-                    $(btn_id).hide();
+                    $('#' + btn_id_run).hide();
 
                     // console.log($dbot_hostname)
                     _testRunClient.callService(request, function(result) {
-                        $(prog_id).hide();
-                        $(btn_id).show();
+                        $('#' + prog_id).hide();
+                        $('#' + btn_id_run).show();
+                        // show result buttons
+                        $('#' + btn_id_success).show();
                         console.log('Result for service call on \n'
                         + _testRunClient.name
                         + ':\n'
                         + result.message);
 
-                        $(out_id).html(result.message.replaceAll("\n", "<br>"));
+                        $('#' + output_id).html(result.message.replaceAll("\n", "<br>"));
                     });
                 })
+
+                $.ajax({
+                    url: window.location.href,
+                    type: "POST",
+                    data: {id_str_read: id_str_name},
+                    success: function(response) {
+                        let special_str = "___" + id_str_name + "___";
+                        let entry = response.split(special_str)[1];
+                        // console.log("Found record: " + entry);
+                        if (entry !== "") {
+                            console.log(`[${id_str_name}] Found verification record: ${entry}`);
+                        }
+                        update_style_based_on_records(id_str_name, entry);
+                    }
+                });
+
+                // user confirms success
+                $('#' + btn_id_success).click(function() {
+                    let text = "Do you confirm the test was successful?";
+                    if (confirm(text) == true) {
+                        console.log("Success");
+                        // console.log(window.location.href)
+                        $.ajax({
+                            url: window.location.href,
+                            // url: '<?php echo $base_url; ?>/components/process.php',
+                            type: "POST",
+                            data: {id_str: id_str_name},
+                            success: function(response) {
+                                let special_str = "___" + id_str_name + "___";
+                                let entry = response.split(special_str)[1];
+                                console.log(`[${id_str_name}] Marked success: ${entry}`);
+                                update_style_based_on_records(id_str_name, entry);
+                            }
+                        });
+                        $('#' + btn_id_success).hide();
+                    }
+                });
+
+                // user confirms 
+                $('#' + btn_id_failed).click(function() {
+                    console.log("Problem encountered");
+                    $.ajax({
+                        url: window.location.href,
+                        type: "POST",
+                        data: {id_str_problem: id_str_name},
+                        success: function(response) {
+                            let special_str = "___" + id_str_name + "___";
+                            let entry = response.split(special_str)[1];
+                            console.log(`[${id_str_name}] Marked problem: ${entry}`);
+                            update_style_based_on_records(id_str_name, entry);
+                        }
+                    });
+                    $('#' + btn_id_success).hide();
+                });
 
             }
             // create component's nav
