@@ -20,6 +20,15 @@ ROS::connect($ros_hostname);
 // $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']);
 // $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
+
+// // TODO: remove all record files
+// $files = glob('path/to/temp/*'); // get all file names
+// foreach($files as $file){ // iterate files
+//   if(is_file($file)) {
+//     unlink($file); // delete file
+//   }
+// }
+
 function get_last_line($file_path) {
     $line = '';
 
@@ -397,10 +406,12 @@ if (isset($_POST['id_str_read'])) {
         if (last_record !== "") {
             disp_txt = last_record;
             if (last_record.startsWith("Problem")) {
-                $('#' + modal_btn_id).removeClass("btn-success").addClass("btn-info");
+                $('#' + modal_btn_id).removeClass().addClass("btn btn-warning");
             } else {
-                $('#' + modal_btn_id).removeClass("btn-info").addClass("btn-success");
+                $('#' + modal_btn_id).removeClass().addClass("btn btn-success");
             }
+        } else {
+            $('#' + modal_btn_id).removeClass().addClass("btn btn-info");
         }
         $('#' + record_id).html(`Last status: ${disp_txt}`);
     }
