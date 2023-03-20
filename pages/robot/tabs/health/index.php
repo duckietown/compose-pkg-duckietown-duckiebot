@@ -1,7 +1,11 @@
 <?php
-use \system\packages\duckietown_duckiebot\Duckiebot;
 
-$dbot_hostname = Duckiebot::getDuckiebotHostname();
+use system\classes\Core;
+use system\packages\duckietown_duckiebot\Duckiebot;
+
+$dbot_hostname = Core::getSetting(
+    'health_api/hostname', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
+);
 $update_hz = 0.5;
 ?>
 
@@ -41,9 +45,9 @@ $update_hz = 0.5;
 
 
 <script type="text/javascript">
-    
+
     let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{resource}";
-    
+
     let _HISTORY_HORIZON_LEN = 60;
     let _DATA_TEMPERATURE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_CPU_FREQUENCY = new Array(_HISTORY_HORIZON_LEN).fill(0);
@@ -53,7 +57,7 @@ $update_hz = 0.5;
     let _DATA_CPU_VOLTAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_RAM_VOLTAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
 
-    function format_time(secs){
+    function format_time(secs) {
         let parts = [];
         if (secs > 59)
             parts.push('{0}m'.format(Math.floor(secs / 60)));
@@ -62,7 +66,7 @@ $update_hz = 0.5;
         return parts.join(' ');
     }
 
-    function _robot_health_create_plot(canvas_id, data, title, y_label, tick_cb, color, min, max){
+    function _robot_health_create_plot(canvas_id, data, title, y_label, tick_cb, color, min, max) {
         let chart_config = {
             type: 'line',
             data: {
@@ -120,7 +124,7 @@ $update_hz = 0.5;
             _DATA_TEMPERATURE,
             'Temperature',
             'Temperature (\'C)',
-            (v) => v.toFixed(1)+' °C',
+            (v) => v.toFixed(1) + ' °C',
             window.chartColors.red, 20, 80
         );
         let fcpu_chart = _robot_health_create_plot(
@@ -128,7 +132,7 @@ $update_hz = 0.5;
             _DATA_CPU_FREQUENCY,
             'CPU Frequency',
             'Clock Frequency (GHz)',
-            (v) => v.toFixed(1)+' GHz',
+            (v) => v.toFixed(1) + ' GHz',
             window.chartColors.green, 0, 2.0
         );
         let pcpu_chart = _robot_health_create_plot(
@@ -136,7 +140,7 @@ $update_hz = 0.5;
             _DATA_CPU_USAGE,
             'CPU Usage',
             'Usage (%)',
-            (v) => v.toFixed(1)+'%',
+            (v) => v.toFixed(1) + '%',
             window.chartColors.blue, 0.0, 100.0
         );
         let pmem_chart = _robot_health_create_plot(
@@ -144,7 +148,7 @@ $update_hz = 0.5;
             _DATA_RAM_USAGE,
             'RAM Usage',
             'Usage (%)',
-            (v) => v.toFixed(1)+'%',
+            (v) => v.toFixed(1) + '%',
             window.chartColors.blue, 0.0, 100.0
         );
         let pswap_chart = _robot_health_create_plot(
@@ -152,7 +156,7 @@ $update_hz = 0.5;
             _DATA_SWAP_USAGE,
             'Swap Usage',
             'Usage (%)',
-            (v) => v.toFixed(1)+'%',
+            (v) => v.toFixed(1) + '%',
             window.chartColors.blue, 0.0, 100.0
         );
         let cpu_voltage_chart = _robot_health_create_plot(
@@ -160,7 +164,7 @@ $update_hz = 0.5;
             _DATA_CPU_VOLTAGE,
             'CPU Voltage',
             'Voltage (V)',
-            (v) => v.toFixed(1)+' V',
+            (v) => v.toFixed(1) + ' V',
             window.chartColors.yellow, 0.6, 1.4
         );
         let ram_voltage_chart = _robot_health_create_plot(
@@ -168,13 +172,13 @@ $update_hz = 0.5;
             _DATA_RAM_VOLTAGE,
             'RAM Voltage',
             'Voltage (V)',
-            (v) => v.toFixed(1)+' V',
+            (v) => v.toFixed(1) + ' V',
             window.chartColors.yellow, 0.6, 1.4
         );
         // keep updating the plot
-        setInterval(function(){
-            let url = api_url.format({api:"health", resource:""});
-            callExternalAPI(url, 'GET', 'text', false, false, function(data){
+        setInterval(function () {
+            let url = api_url.format({api: "health", resource: ""});
+            callExternalAPI(url, 'GET', 'text', false, false, function (data) {
                 data = JSON.parse(data);
                 // cut the time horizon to `_HISTORY_HORIZON_LEN` points
                 temperature_chart.config.data.datasets[0].data.shift();

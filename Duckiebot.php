@@ -18,6 +18,7 @@ class Duckiebot {
     private static $initialized = false;
     private static $PERMISSION_LOCATION = '/data/config/permissions/%s';
     private static $CALIBRATIONS_LOCATION = '/data/config/calibrations/';
+    private static $FILE_WRITERS_LOCATION = '/tmp/sockets';
     public static $PERMISSION_KEYS = [
         "allow_push_logs_data",
         "allow_push_stats_data",
@@ -103,10 +104,19 @@ class Duckiebot {
     // =======================================================================================================
     // Public functions
     
-    public static function getDuckiebotName(): string {
-        $duckiebot_hostname = self::getDuckiebotHostname();
+    public static function getDuckiebotName() {
+        $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+        if (strlen($duckiebot_name) < 2) {
+            $duckiebot_hostname = Core::getBrowserHostname();
+            // remove port (if any) from the http host string
+            $duckiebot_name_parts = explode(':', $duckiebot_hostname);
+            $duckiebot_name = $duckiebot_name_parts[0];
+            // do not consider "localhost" a valid robot name
+            if (strcasecmp($duckiebot_name, "localhost") == 0)
+                return null;
+        }
         // remove '.local' from the end of the host string (if present)
-        return preg_replace('/\.local$/', '', $duckiebot_hostname);
+        return preg_replace('/\.local$/', '', $duckiebot_name);
     }//getDuckiebotName
     
     public static function getRobotType() {
@@ -122,9 +132,14 @@ class Duckiebot {
     }//getRobotConfiguration
     
     public static function getDuckiebotHostname(): string {
-        $duckiebot_name = Core::getSetting('duckiebot_name', 'duckietown_duckiebot');
+        $duckiebot_name = Core::getSetting('duckiebot_hostname', 'duckietown_duckiebot');
+        if (strlen($duckiebot_name) >= 2){
+            return $duckiebot_name;
+        }
         // revert to http host if no vehicle name is set
-        if (strlen($duckiebot_name) < 2) {
+        $duckiebot_name = self::getDuckiebotName();
+        // revert to http host if no vehicle name is set
+        if (is_null($duckiebot_name) || strlen($duckiebot_name) < 2) {
             $duckiebot_hostname = Core::getBrowserHostname();
             // remove port (if any) from the http host string
             $duckiebot_name_parts = explode(':', $duckiebot_hostname);
@@ -135,6 +150,28 @@ class Duckiebot {
         // ---
         return $duckiebot_hostname;
     }//getDuckiebotHostname
+    
+    public static function canSetDuckiebotHostname() {
+        $sockets_dir = self::$FILE_WRITERS_LOCATION;
+        $hostname_socket_fname = "$sockets_dir/etc/hostname.sock";
+        return file_exists($hostname_socket_fname);
+    }//canSetDuckiebotHostname
+    
+    public static function setDuckiebotHostname($hostname): array {
+        $sockets_dir = self::$FILE_WRITERS_LOCATION;
+        $hostname_socket_fname = "$sockets_dir/etc/hostname.sock";
+        if (file_exists($hostname_socket_fname)) {
+            $socket = fsockopen("unix://$hostname_socket_fname");
+            // sanitize hostname
+            $hostname = preg_replace('/[^a-z0-9-]/', '', $hostname);
+            $hostname = trim($hostname, "-");
+            // write hostname to socket
+            fwrite($socket, $hostname);
+            fclose($socket);
+            return ['success' => true, 'data' => null];
+        }
+        return ['success' => false, 'data' => "Socket file '$hostname_socket_fname' not found"];
+    }//setDuckiebotHostname
     
     public static function getDuckiebotPermission($key): array {
         if (!in_array($key, self::$PERMISSION_KEYS))

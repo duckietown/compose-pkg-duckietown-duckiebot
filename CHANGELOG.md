@@ -1,3 +1,37 @@
+## 1.4.18 (July 13, 2022)
+- added "accelerometer" calibration to calibrations tab
+
+## 1.4.17 (July 12, 2022)
+- added FLIGHT_CONTROLLER to list of modules
+
+## 1.4.16 (July 11, 2022)
+- revert versions
+- Bump version to 1.4.15.
+- minor
+- Bump version to 1.4.14.
+- implemented hostname update in first setup tab
+
+## 1.4.15 (July 09, 2022)
+  - minor
+
+## 1.4.14 (July 09, 2022)
+  - implemented hostname update in first setup tab
+
+## 1.4.13 (July 07, 2022)
+  - bug fix
+
+## 1.4.12 (July 07, 2022)
+  - added support for DD21
+
+## 1.4.11 (July 07, 2022)
+  - added Duckiebot::setDuckiebotHostname
+
+## 1.4.10 (July 06, 2022)
+  - added watchtower missions
+  - separating default missions by robot type
+  - improved Software tab
+  - added duckiebot hostname field in settings
+
 ## 1.4.9 (September 10, 2021)
   - bug fix in robot configuration retrieval from disk
 

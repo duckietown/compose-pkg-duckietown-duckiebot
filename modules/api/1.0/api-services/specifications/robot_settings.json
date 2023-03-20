@@ -15,6 +15,20 @@
             "parameters": {
                 "mandatory": {},
                 "optional": {
+                    "system": {
+                        "type": "object",
+                        "details": "System settings",
+                        "_data": {
+                            "hostname": {
+                                "type": "text",
+                                "default": null,
+                                "details": "Hostname of the robot",
+                                "__form__": {
+                                    "title": "The hostname of your robot"
+                                }
+                            }
+                        }
+                    },
                     "permissions": {
                         "type": "object",
                         "details": "Privacy and Backup",
@@ -83,6 +97,7 @@
                                     "DB21J",
                                     "DB21R",
                                     "DD18",
+                                    "DD21",
                                     "WT18",
                                     "WT19A",
                                     "WT19B",

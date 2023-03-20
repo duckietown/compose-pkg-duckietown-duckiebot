@@ -3,7 +3,11 @@ use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
 
-$dbot_hostname = Duckiebot::getDuckiebotHostname();
+$api_hostname = Core::getSetting(
+    'code_api/hostname', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
+);
+$api_port = Core::getSetting('code_api/port', 'duckietown_duckiebot');
+$api_prefix = Core::getSetting('code_api/prefix', 'duckietown_duckiebot');
 $update_hz = 1.0;
 ?>
 
@@ -118,7 +122,7 @@ $update_hz = 1.0;
 
 <script type="text/javascript">
     
-    let _api_url = "http://<?php echo $dbot_hostname ?>/{api}/{action}/{resource}";
+    let _api_url = "http://<?php echo $api_hostname ?>:<?php echo $api_port ?>/{api}/{action}/{resource}";
     window.ROBOT_SOFTWARE_MODULES_INFO = {};
     window.ROBOT_SOFTWARE_MODULES_UPDATER = null;
     
@@ -184,7 +188,7 @@ $update_hz = 1.0;
     `;
     
     function api_url(action, args=[]) {
-        return _api_url.format({api: 'code', action: action, resource: args.join('/')}).rstrip('/')
+        return _api_url.format({api: '<?php echo $api_prefix ?>', action: action, resource: args.join('/')}).rstrip('/')
     }
     
     function _update(data) {
@@ -257,7 +261,7 @@ $update_hz = 1.0;
                     btn_style = 'success';
                     btn_icon = 'check';
                     btn_html = 'disabled="disabled"';
-                    status_desc = 'Your local version is the latest one available.';
+                    status_desc = 'Your local version is the latest available.';
                     break;
                 case 'AHEAD':
                     btn_label = 'Update';

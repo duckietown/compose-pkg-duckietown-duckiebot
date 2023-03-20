@@ -55,6 +55,12 @@ if (in_array($robot_type, ["duckiebot"])) {
         'icon' => 'car',
     ];
 }
+if (in_array($robot_type, ["duckiedrone"])) {
+    $calibrations['accelerometer'] = [
+        'title' => 'Accelerometer',
+        'icon' => 'compass',
+    ];
+}
 $open_calibration = "camera_intrinsic";
 ?>
 

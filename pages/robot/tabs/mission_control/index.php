@@ -12,7 +12,9 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 
 
 <?php
-$mission_db = "duckietown_duckiebot_missions";
+$robot_type = Duckiebot::getRobotType();
+$robot_type = (strlen($robot_type) < 2)? "duckiebot" : $robot_type;
+$mission_db = "duckietown_{$robot_type}_missions";
 $mission_db_package = "data";
 $mission_name = (isset($_GET['mission']) && strlen(trim($_GET['mission'])) > 0)? trim($_GET['mission']) : null;
 $vehicle_name = Duckiebot::getDuckiebotName();
