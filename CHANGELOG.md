@@ -1,3 +1,6 @@
+## 1.4.21 (April 07, 2023)
+  - removed ToC step
+
 ## 1.4.20 (March 07, 2023)
   - Bump version to 1.4.19.
   - Merge remote-tracking branch 'origin/master'
