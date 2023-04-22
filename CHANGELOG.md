@@ -1,3 +1,6 @@
+## 1.4.23 (April 22, 2023)
+  - added icon for WIRELESS_ADAPTER hw component
+
 ## 1.4.22 (April 22, 2023)
   - DTSW-2180 - added GPU plots
 
