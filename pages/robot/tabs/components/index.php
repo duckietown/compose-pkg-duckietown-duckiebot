@@ -154,6 +154,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         "MOTOR": "car",
         "BATTERY": "battery",
         "FLIGHT_CONTROLLER": "plane",
+        "WIRELESS_ADAPTER": "wifi",
     };
     window.ROBOT_COMPONENT_DEFAULT_ICON = "square";
     
