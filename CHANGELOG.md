@@ -1,3 +1,6 @@
+## 1.4.22 (April 22, 2023)
+  - DTSW-2180 - added GPU plots
+
 ## 1.4.21 (April 07, 2023)
   - removed ToC step
 
