@@ -155,15 +155,18 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         "BATTERY": "battery",
         "FLIGHT_CONTROLLER": "plane",
         "WIRELESS_ADAPTER": "wifi",
+        "WHEEL_ENCODER": "sun-o",
+        "BUTTON": "hand-o-down",
+        "LED_GROUP": "adjust",
     };
     window.ROBOT_COMPONENT_DEFAULT_ICON = "square";
-    
+
     let _pholder_nav = `
     <div class="_robot_component_container" id="_robot_component_{name}">
         <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
     </div>
     `;
-    
+
     let _nav = `
     <nav class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
@@ -198,7 +201,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         </div>
     </nav>
     `;
-    
+
     let _overall_nav = `
     <nav class="navbar navbar-{style}" role="navigation">
         <div class="">
@@ -223,25 +226,29 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         </div>
     </nav>
     <hr>`;
-    
+
     let _overall_failure_nav = `
     <h5 class="text-left">
         <strong>Reason:</strong>
         <span class="_robot_overall_status_reason">{missing}</span>
         not found.
     </h5>`;
-    
+
     function api_url(api, action, args) {
         return _api_url.format({api: api, action: action, resource: args.join('/')}).rstrip('/')
     }
-    
-    function status_icon(value) {
-        if (value) {
+
+    function status_icon(value, strict, passive) {
+        if (value === true) {
             return '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green" data-toggle="tooltip" data-placement="right" title="Yes"></span>';
         }
-        return '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red" data-toggle="tooltip" data-placement="right" title="No"></span>';
+        if (strict){
+            return '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red" data-toggle="tooltip" data-placement="right" title="No"></span>';
+        } else {
+            return '<span class="glyphicon glyphicon-minus-sign" aria-hidden="true" style="color:darkgrey" data-toggle="tooltip" data-placement="right" title="{0}"></span>'.format(passive);
+        }
     }
-    
+
     function render_components(data) {
         let container_div = $('#_robot_components_div');
         // sort by "supported"
@@ -265,11 +272,17 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             let bus = "Bus {0} #{1} - Channel #{2} - Address {3}".format(
                 component.bus.description, component.bus.number, component.instance, component.address
             );
-            let supported = status_icon(component.supported);
-            let detected = status_icon(component.detected);
+            let supported = status_icon(component.supported, false, "Optional");
+            let detected = status_icon(
+                component.detected,
+                (component.supported && component.detectable !== false),
+                component.detectable? "No" : "Not detectable"
+            );
             let calibrated = component.hasOwnProperty('calibration')? (
                 component.calibration.needed?
-                    "<h5><strong>Calibrated:</strong> {0}</h5>".format(status_icon(component.calibration.completed)) : ''
+                    "<h5><strong>Calibrated:</strong> {0}</h5>".format(
+                        status_icon(component.calibration.completed, true, null)
+                    ) : ''
             ) : '';
             // create component's nav
             div.html(
@@ -284,7 +297,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 })
             );
             div.find('nav').css('display', 'inherit');
-            if (component.supported && !component.detected) {
+            if (component.supported && (component.detectable !== false && !component.detected)) {
                 missing.push(component.name);
             }
         }
