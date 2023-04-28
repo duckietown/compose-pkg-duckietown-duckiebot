@@ -1,3 +1,6 @@
+## 1.4.24 (April 28, 2023)
+  - components: added support for not detectable components; added support for wifi, wheel encoder, button, LEDs;
+
 ## 1.4.23 (April 22, 2023)
   - added icon for WIRELESS_ADAPTER hw component
 
