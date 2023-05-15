@@ -644,38 +644,7 @@ if (isset($_POST['id_str_read'])) {
                         $('#' + desc_id).html(json_to_html(response_obj));
                         // --- Method v1 End
                     } catch (error) {
-                        // --- Method v0: send sections separated by \n\n
-                        let outHtml = "";
-
-                        // TODO: formatting from string to html
-                        let sections = result.message.split(/\r?\n\r?\n/);
-                        // sections: 1 - prep; 2 - run; 3 - expectations; 4 - logs gathering
-                        let secTitles = ["Preparation", "Expected Outcomes", "How to run", "Logs Gathering (in case of errors)"];
-
-                        console.log(sections);
-                        for (let idx = 0; idx < sections.length; idx++) {
-                            outHtml += ("<h4>" + secTitles[idx] + "</h4>");
-
-                            let sec = sections.at(idx);
-                            let lines = sec.split(/\r?\n/);
-
-                            let tmp = "<ul>";
-                            lines.forEach((item) => {
-                                let s = item.replaceAll('`', '<code>').replaceAll("'", "</code>")
-                                // TODO: handle this properly. The reason it's only handled here, but 
-                                // not in the desription, is because the test services are not necessarily run only via the GUI.
-                                if (s == "Run the test.") {
-                                    s = "Click the 'Run the test' button below";
-                                }
-                                tmp += ("<li>" + s + "</li>");
-                            });
-                            tmp += "</ul>";
-
-                            outHtml += tmp;
-                        }
-
-                        $('#' + desc_id).html(outHtml);
-                        // --- Method v0 End
+                        $('#' + desc_id).html("Error parsing the response: " + result.message);
                     }
                 });
 
@@ -745,7 +714,7 @@ if (isset($_POST['id_str_read'])) {
                                 }
                             }
                         } catch (error) {
-                            $('#' + output_id).html(result.message.replaceAll("\n", "<br>"));
+                            $('#' + output_id).html("Error parsing the response: " + result.message);
                         }
                     });
                 })
