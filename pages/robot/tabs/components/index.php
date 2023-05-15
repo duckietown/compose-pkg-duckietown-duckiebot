@@ -245,6 +245,57 @@ if (isset($_POST['id_str_read'])) {
         filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff8bc34a', endColorstr='#ffbdea88', GradientType=0);
         filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
     }
+
+    body {
+    margin: 0;
+}
+
+.float-right{
+    position: fixed;
+    right: 40px;
+}
+
+.btn{
+    color: #FFF;
+    background-color: #0A9;
+    border-radius: 5px;
+    border-width: 0;
+    padding: 10px;
+    font-size: large;
+    box-shadow: 3px 3px 4px #999;
+}
+
+.btn-hover{
+    color: #EEE;
+    background-color: #099;
+    border-radius: 5px;
+    border-width: 0;
+    padding: 10px;
+    font-size: large;
+    box-shadow: 3px 3px 4px #DDD;
+}
+
+.btn-connected{
+    color: #AAA;
+    background-color: #070;
+    border-radius: 5px;
+    border-width: 0;
+    padding: 10px;
+    font-size: large;
+}
+
+.pointer {cursor: pointer;}
+
+.info {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    color: #FFF;
+}
+
+.top-view-modal {
+    z-index:1060;
+}
 </style>
 
 <table style="width: 970px; margin: auto; margin-bottom: 12px">
@@ -265,6 +316,42 @@ if (isset($_POST['id_str_read'])) {
     </tr>
 </table>
 
+
+<!-- Modal -->
+<div class="modal fade top-view-modal" id="modal_IMU" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Duckiebot IMU Game</h4>
+        </div>
+        <div class="modal-body">
+            <ul>
+                <li>Hold your Duckiebot and move it, and verify that the plane movements correspond to your Duckiebot.</li>
+                <li>If the plane does not move, there is a problem.</li>
+                <li>Once you're satisfied, you can close this window and resume back to the verification results reporting.</li>
+            </ul>
+            
+            <button id="connect_to_duckiebot" class="btn pointer"></button>
+            <div id="IMU-GAME" style="padding-top: 10px">
+
+                <!-- <div id="info" class="info"></div> -->
+                <button id="reset" class="float-right btn pointer" style="bottom: 40px; background-color:rgb(180, 55, 55);">
+                    Restart
+                </button>
+
+                <h3 id="score" class="float-right" style="top: 220px; color: white; user-select: none;"></h3>
+                <h3 id="best_score" class="float-right" style="top: 260px; color: white; user-select: none;"></h3>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+</div>
+<button type="button" id="start_imu_game" style="display: none;" data-toggle="modal" data-target="#modal_IMU">IMU Game</button>
+
 <div id="_placeholder_img">
     <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt=""/>
 </div>
@@ -272,6 +359,11 @@ if (isset($_POST['id_str_read'])) {
 <div id="_robot_components_overall_div"></div>
 
 <div id="_robot_components_div"></div>
+
+<script src="<?php echo Core::getJSscriptURL('duckiebot_imu_game_lib_oimo.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('duckiebot_imu_game_lib_three.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('duckiebot_imu_game.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('hardware_test_utils.js', 'duckietown_duckiebot'); ?>"></script>
 
 
 <script type="text/javascript">
@@ -415,8 +507,12 @@ if (isset($_POST['id_str_read'])) {
         }
         $('#' + record_id).html(`Last status: ${disp_txt}`);
     }
-    
+
     function render_components(data) {
+        // to be passed to js functions imported
+        let ros = window.ros['<?php echo $dbot_hostname ?>'];
+        let robot_name = '<?php echo $robot_name?>';
+
         let container_div = $('#_robot_components_div');
         // sort by "supported"
         let components = Object.values(data).sort((a, b) => (a.supported > b.supported) ? -1 : 1);
@@ -446,9 +542,10 @@ if (isset($_POST['id_str_read'])) {
                     "<h5><strong>Calibrated:</strong> {0}</h5>".format(status_icon(component.calibration.completed)) : ''
             ) : '';
             let verification_test_button = "";
-            if (component.detected) {
+            // if (component.detected) {
+            if (component.supported && component.test_service_name !== "") {
                 let id_str_name = name.replaceAll(' ', '-');
-                verification_test_button = '<button type="button" id="modal-btn-' + id_str_name + '" class="btn btn-info" data-toggle="modal" data-target="' + '#modal-' + id_str_name + '">Verify Hardware</button>';
+                verification_test_button = '<button type="button" disabled="true" id="modal-btn-' + id_str_name + '" class="btn btn-info" data-toggle="modal" data-target="' + '#modal-' + id_str_name + '">Test Hardware</button>';
 
                 let test_modal = `
                     <!-- Modal -->
@@ -502,6 +599,7 @@ if (isset($_POST['id_str_read'])) {
 
 
                 // IDs
+                let modal_id = 'modal-' + id_str_name;
                 let modal_btn_id = 'modal-btn-' + id_str_name;
                 let btn_id_run = 'btn-' + id_str_name;
                 let btn_id_success = 'btn-succ-' + id_str_name;
@@ -512,7 +610,7 @@ if (isset($_POST['id_str_read'])) {
                 let record_id = 'record-' + id_str_name;
 
                 container_div.append(test_modal.format({
-                    modal_id: 'modal-' + id_str_name,
+                    modal_id: modal_id,
                     test_name: "Verification: " + name,
                     btn_id_run: btn_id_run,
                     btn_id_success: btn_id_success,
@@ -535,36 +633,50 @@ if (isset($_POST['id_str_read'])) {
                     + _testDescClient.name
                     + ':\n');
                     // + result.message);
+
+                    // enable button
+                    $('#' + modal_btn_id).prop('disabled', false);
                     
-                    let outHtml = "";
-                    // TODO: formatting from string to html
-                    let sections = result.message.split(/\r?\n\r?\n/);
-                    // sections: 1 - prep; 2 - run; 3 - expectations; 4 - logs gathering
-                    let secTitles = ["Preparation", "Expected Outcomes", "How to run", "Logs Gathering (in case of errors)"];
+                    try {
+                        // --- Method v1: send json and parse blocks
+                        const response_obj = JSON.parse(result.message);
+                        // console.log(response_obj);
+                        $('#' + desc_id).html(json_to_html(response_obj));
+                        // --- Method v1 End
+                    } catch (error) {
+                        // --- Method v0: send sections separated by \n\n
+                        let outHtml = "";
 
-                    console.log(sections);
-                    for (let idx = 0; idx < sections.length; idx++) {
-                        outHtml += ("<h4>" + secTitles[idx] + "</h4>");
+                        // TODO: formatting from string to html
+                        let sections = result.message.split(/\r?\n\r?\n/);
+                        // sections: 1 - prep; 2 - run; 3 - expectations; 4 - logs gathering
+                        let secTitles = ["Preparation", "Expected Outcomes", "How to run", "Logs Gathering (in case of errors)"];
 
-                        let sec = sections.at(idx);
-                        let lines = sec.split(/\r?\n/);
+                        console.log(sections);
+                        for (let idx = 0; idx < sections.length; idx++) {
+                            outHtml += ("<h4>" + secTitles[idx] + "</h4>");
 
-                        let tmp = "<ul>";
-                        lines.forEach((item) => {
-                            let s = item.replaceAll('`', '<code>').replaceAll("'", "</code>")
-                            // TODO: handle this properly. The reason it's only handled here, but 
-                            // not in the desription, is because the test services are not necessarily run only via the GUI.
-                            if (s == "Run the test.") {
-                                s = "Click the 'Run the test' button below";
-                            }
-                            tmp += ("<li>" + s + "</li>");
-                        });
-                        tmp += "</ul>";
+                            let sec = sections.at(idx);
+                            let lines = sec.split(/\r?\n/);
 
-                        outHtml += tmp;
+                            let tmp = "<ul>";
+                            lines.forEach((item) => {
+                                let s = item.replaceAll('`', '<code>').replaceAll("'", "</code>")
+                                // TODO: handle this properly. The reason it's only handled here, but 
+                                // not in the desription, is because the test services are not necessarily run only via the GUI.
+                                if (s == "Run the test.") {
+                                    s = "Click the 'Run the test' button below";
+                                }
+                                tmp += ("<li>" + s + "</li>");
+                            });
+                            tmp += "</ul>";
+
+                            outHtml += tmp;
+                        }
+
+                        $('#' + desc_id).html(outHtml);
+                        // --- Method v0 End
                     }
-
-                    $('#' + desc_id).html(outHtml);
                 });
 
                 // test ros service
@@ -588,19 +700,68 @@ if (isset($_POST['id_str_read'])) {
                     // hide button
                     $('#' + btn_id_run).hide();
 
-                    // console.log($dbot_hostname)
-                    _testRunClient.callService(request, function(result) {
-                        $('#' + prog_id).hide();
-                        $('#' + btn_id_run).show();
-                        // show result buttons
-                        $('#' + btn_id_success).show();
-                        console.log('Result for service call on \n'
-                        + _testRunClient.name
-                        + ':\n'
-                        + result.message);
+                    // // todo: make this proper
+                    // if (id_str_name == "IMU") {
+                    //     $("#start_imu_game").click();
+                    //     $("#modal_IMU").on("hidden.bs.modal", function(event) {
+                    //         $('#' + prog_id).hide();
+                    //         $('#' + btn_id_run).show();
+                    //         // show result buttons
+                    //         $('#' + btn_id_success).show();
 
-                        $('#' + output_id).html(result.message.replaceAll("\n", "<br>"));
-                    });
+                    //         $('#' + output_id).html('Experiment finised. Did the plane move according to your Duckiebot movements?');
+                    //     });
+                    // } else {
+                        // console.log($dbot_hostname)
+                        _testRunClient.callService(request, function(result) {
+                            $('#' + prog_id).hide();
+                            $('#' + btn_id_run).show();
+                            // show result buttons
+                            $('#' + btn_id_success).show();
+                            console.log('Result for service call on \n'
+                            + _testRunClient.name
+                            + ':\n'
+                            + result);
+
+                            if (!result.success) {
+                                // alert("Not successful");
+                                $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>");
+                                return;
+                            }
+
+                            try {
+                                const response_obj = JSON.parse(result.message);
+
+                                if (response_obj.type == "object") {
+                                    $('#' + output_id).html(json_to_html(response_obj));
+                                } else if (response_obj.type == "stream") {
+                                    $('#' + output_id).html(json_to_html(response_obj));
+
+                                    // setup live stream of data
+                                    try {
+                                        let stream_topic = extract_stream_topic_from_json(response_obj);
+
+                                        let update_id = output_id + "-stream"
+                                        let update_div = $('<div>').attr('id', update_id);
+                                        $('#' + output_id).append(update_div);
+                                        stream_data(
+                                            ros,
+                                            robot_name,
+                                            stream_topic.test_topic_name,
+                                            stream_topic.test_topic_type,
+                                            update_id,
+                                            modal_id,
+                                        );
+                                    } catch (error) {
+                                        console.log("Stream type response received, but an error has occurred. Error msg:" + error);
+                                    }
+                                }
+                            } catch (error) {
+                                $('#' + output_id).html(result.message.replaceAll("\n", "<br>"));
+                            }
+                        });
+                    // }
+
                 })
 
                 $.ajax({
@@ -672,7 +833,7 @@ if (isset($_POST['id_str_read'])) {
                 })
             );
             div.find('nav').css('display', 'inherit');
-            if (component.supported && !component.detected) {
+            if (component.supported && component.detectable && !component.detected) {
                 missing.push(component.name);
             }
         }
@@ -684,7 +845,7 @@ if (isset($_POST['id_str_read'])) {
             explanation: (missing.length > 0)? _overall_failure_nav.format({
                     missing: missing.join(", ")
                 }) :
-                'All the components supported by your robot model are detected.',
+                'All the components supported and detectable by your robot model are detected.',
         }))
     }
     
