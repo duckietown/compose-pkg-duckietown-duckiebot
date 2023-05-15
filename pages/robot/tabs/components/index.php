@@ -700,68 +700,54 @@ if (isset($_POST['id_str_read'])) {
                     // hide button
                     $('#' + btn_id_run).hide();
 
-                    // // todo: make this proper
-                    // if (id_str_name == "IMU") {
-                    //     $("#start_imu_game").click();
-                    //     $("#modal_IMU").on("hidden.bs.modal", function(event) {
-                    //         $('#' + prog_id).hide();
-                    //         $('#' + btn_id_run).show();
-                    //         // show result buttons
-                    //         $('#' + btn_id_success).show();
+                    // console.log($dbot_hostname)
+                    _testRunClient.callService(request, function(result) {
+                        $('#' + prog_id).hide();
+                        $('#' + btn_id_run).show();
+                        // show result buttons
+                        $('#' + btn_id_success).show();
+                        console.log('Result for service call on \n'
+                        + _testRunClient.name
+                        + ':\n'
+                        + result);
 
-                    //         $('#' + output_id).html('Experiment finised. Did the plane move according to your Duckiebot movements?');
-                    //     });
-                    // } else {
-                        // console.log($dbot_hostname)
-                        _testRunClient.callService(request, function(result) {
-                            $('#' + prog_id).hide();
-                            $('#' + btn_id_run).show();
-                            // show result buttons
-                            $('#' + btn_id_success).show();
-                            console.log('Result for service call on \n'
-                            + _testRunClient.name
-                            + ':\n'
-                            + result);
+                        if (!result.success) {
+                            // alert("Not successful");
+                            $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>");
+                            return;
+                        }
 
-                            if (!result.success) {
-                                // alert("Not successful");
-                                $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>");
-                                return;
-                            }
+                        try {
+                            const response_obj = JSON.parse(result.message);
 
-                            try {
-                                const response_obj = JSON.parse(result.message);
+                            if (response_obj.type == "object") {
+                                $('#' + output_id).html(json_to_html(response_obj));
+                            } else if (response_obj.type == "stream") {
+                                $('#' + output_id).html(json_to_html(response_obj));
 
-                                if (response_obj.type == "object") {
-                                    $('#' + output_id).html(json_to_html(response_obj));
-                                } else if (response_obj.type == "stream") {
-                                    $('#' + output_id).html(json_to_html(response_obj));
+                                // setup live stream of data
+                                try {
+                                    let stream_topic = extract_stream_topic_from_json(response_obj);
 
-                                    // setup live stream of data
-                                    try {
-                                        let stream_topic = extract_stream_topic_from_json(response_obj);
-
-                                        let update_id = output_id + "-stream"
-                                        let update_div = $('<div>').attr('id', update_id);
-                                        $('#' + output_id).append(update_div);
-                                        stream_data(
-                                            ros,
-                                            robot_name,
-                                            stream_topic.test_topic_name,
-                                            stream_topic.test_topic_type,
-                                            update_id,
-                                            modal_id,
-                                        );
-                                    } catch (error) {
-                                        console.log("Stream type response received, but an error has occurred. Error msg:" + error);
-                                    }
+                                    let update_id = output_id + "-stream"
+                                    let update_div = $('<div>').attr('id', update_id);
+                                    $('#' + output_id).append(update_div);
+                                    stream_data(
+                                        ros,
+                                        robot_name,
+                                        stream_topic.test_topic_name,
+                                        stream_topic.test_topic_type,
+                                        update_id,
+                                        modal_id,
+                                    );
+                                } catch (error) {
+                                    console.log("Stream type response received, but an error has occurred. Error msg:" + error);
                                 }
-                            } catch (error) {
-                                $('#' + output_id).html(result.message.replaceAll("\n", "<br>"));
                             }
-                        });
-                    // }
-
+                        } catch (error) {
+                            $('#' + output_id).html(result.message.replaceAll("\n", "<br>"));
+                        }
+                    });
                 })
 
                 $.ajax({
