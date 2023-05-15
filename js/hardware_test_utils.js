@@ -91,6 +91,12 @@ function stream_data(
                     outHtml += "<p style='color: red;'>Out of range</p>"
                 }
                 break;
+            case "sensor_msgs/CompressedImage":
+                var imageUrl = "data:image/jpg;base64," + message.data;
+                // downsized the image shown, to make the modal appear fully without scrolling
+                // 640 x 480 -> 320 x 240
+                outHtml += "<img src='" + imageUrl + "' alt='Live stream' width='320' height='240'/>";
+                break;
             default:
                 outHtml += ("<p>Error: Test topic type ["+ test_topic_type + "] is not supported! It has to be handled properly in the dashboard code.</p>");
         }
