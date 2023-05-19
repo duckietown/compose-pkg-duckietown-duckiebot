@@ -559,7 +559,7 @@ if (isset($_POST['id_str_read'])) {
                             <h4 class="modal-title">{test_name}</h4>
                             </div>
                             <div class="modal-body">
-                                <p id="{desc_id}" class="text-left"></p>
+                                <p id="{description_id}" class="text-left"></p>
                                 <br>
                                 <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
                                 <!-- div class="row">
@@ -606,7 +606,7 @@ if (isset($_POST['id_str_read'])) {
                 let btn_id_failed = 'btn-fail-' + id_str_name;
                 let output_id = 'out-' + id_str_name;
                 let prog_id = 'prog-' + id_str_name;
-                let desc_id = 'desc-' + id_str_name;
+                let description_id = 'description-' + id_str_name;
                 let record_id = 'record-' + id_str_name;
 
                 container_div.append(test_modal.format({
@@ -617,21 +617,21 @@ if (isset($_POST['id_str_read'])) {
                     btn_id_failed: btn_id_failed,
                     output_id: output_id,
                     prog_id: prog_id,
-                    desc_id: desc_id,
+                    description_id: description_id,
                     record_id: record_id,
                 }));
 
                 // test ros service description
-                let _testDescClient = new ROSLIB.Service({
+                let _testDescriptionClient = new ROSLIB.Service({
                     ros : window.ros['<?php echo $dbot_hostname ?>'],
-                    name : '/' + '<?php echo $robot_name?>' + '/' + component.test_service_name + '/desc',
+                    name : '/' + '<?php echo $robot_name?>' + '/' + component.test_service_name + '/description',
                     serviceType : 'std_srvs/Trigger'
                 });
-                var reqDesc = new ROSLIB.ServiceRequest({});
-                _testDescClient.callService(reqDesc, function(result) {
-                    console.log('Desc service call on \n'
-                    + _testDescClient.name
-                    + ':\n');
+                var reqDescription = new ROSLIB.ServiceRequest({});
+                _testDescriptionClient.callService(reqDescription, function(result) {
+                    console.log('Description service returned from \n'
+                    + _testDescriptionClient.name
+                    + '\n');
                     // + result.message);
 
                     // enable button
@@ -641,10 +641,10 @@ if (isset($_POST['id_str_read'])) {
                         // --- Method v1: send json and parse blocks
                         const response_obj = JSON.parse(result.message);
                         // console.log(response_obj);
-                        $('#' + desc_id).html(json_to_html(response_obj));
+                        $('#' + description_id).html(json_to_html(response_obj));
                         // --- Method v1 End
                     } catch (error) {
-                        $('#' + desc_id).html("Error parsing the response: " + result.message);
+                        $('#' + description_id).html("Error parsing the response: " + result.message);
                     }
                 });
 
@@ -675,10 +675,10 @@ if (isset($_POST['id_str_read'])) {
                         $('#' + btn_id_run).show();
                         // show result buttons
                         $('#' + btn_id_success).show();
-                        console.log('Result for service call on \n'
+                        console.log('Test run service returned from \n'
                         + _testRunClient.name
-                        + ':\n'
-                        + result);
+                        + '\n');
+                        // + result);
 
                         if (!result.success) {
                             // alert("Not successful");
