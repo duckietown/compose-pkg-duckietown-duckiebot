@@ -35,6 +35,26 @@ $update_hz = 0.5;
 
 
 <br/>
+<h4>GPU Usage</h4>
+<canvas id="_robot_pgpu_canvas" style="width:100%; height:250px"></canvas>
+
+
+<br/>
+<h4>GPU Memory</h4>
+<canvas id="_robot_mgpu_canvas" style="width:100%; height:250px"></canvas>
+
+
+<br/>
+<h4>GPU Temperature</h4>
+<canvas id="_robot_tgpu_canvas" style="width:100%; height:250px"></canvas>
+
+
+<br/>
+<h4>GPU Wattage</h4>
+<canvas id="_robot_wgpu_canvas" style="width:100%; height:250px"></canvas>
+
+
+<br/>
 <h4>CPU Voltage</h4>
 <canvas id="_robot_cpu_voltage_canvas" style="width:100%; height:250px"></canvas>
 
@@ -54,6 +74,10 @@ $update_hz = 0.5;
     let _DATA_CPU_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_RAM_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_SWAP_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
+    let _DATA_GPU_USAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
+    let _DATA_GPU_MEM = new Array(_HISTORY_HORIZON_LEN).fill(0);
+    let _DATA_GPU_TEMP = new Array(_HISTORY_HORIZON_LEN).fill(0);
+    let _DATA_GPU_WATTAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_CPU_VOLTAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
     let _DATA_RAM_VOLTAGE = new Array(_HISTORY_HORIZON_LEN).fill(0);
 
@@ -159,6 +183,38 @@ $update_hz = 0.5;
             (v) => v.toFixed(1) + '%',
             window.chartColors.blue, 0.0, 100.0
         );
+        let pgpu_chart = _robot_health_create_plot(
+            "#_robot_pgpu_canvas",
+            _DATA_GPU_USAGE,
+            'GPU Usage',
+            'Usage (%)',
+            (v) => v.toFixed(1) + '%',
+            window.chartColors.blue, 0.0, 100.0
+        );
+        let mgpu_chart = _robot_health_create_plot(
+            "#_robot_mgpu_canvas",
+            _DATA_GPU_MEM,
+            'GPU Memory',
+            'Memory (MB)',
+            (v) => v.toFixed(1) + 'MB',
+            window.chartColors.orange, 0.0, 4000.0
+        );
+        let tgpu_chart = _robot_health_create_plot(
+            "#_robot_tgpu_canvas",
+            _DATA_GPU_TEMP,
+            'GPU Temperature',
+            'Temperature (\'C)',
+            (v) => v.toFixed(1) + ' °C',
+            window.chartColors.red, 20, 80
+        );
+        let wgpu_chart = _robot_health_create_plot(
+            "#_robot_wgpu_canvas",
+            _DATA_GPU_WATTAGE,
+            'GPU Power',
+            'Power (W)',
+            (v) => v.toFixed(1) + ' W',
+            window.chartColors.purple, 0.0, 10.0
+        );
         let cpu_voltage_chart = _robot_health_create_plot(
             "#_robot_cpu_voltage_canvas",
             _DATA_CPU_VOLTAGE,
@@ -186,6 +242,10 @@ $update_hz = 0.5;
                 pcpu_chart.config.data.datasets[0].data.shift();
                 pmem_chart.config.data.datasets[0].data.shift();
                 pswap_chart.config.data.datasets[0].data.shift();
+                pgpu_chart.config.data.datasets[0].data.shift();
+                mgpu_chart.config.data.datasets[0].data.shift();
+                tgpu_chart.config.data.datasets[0].data.shift();
+                wgpu_chart.config.data.datasets[0].data.shift();
                 cpu_voltage_chart.config.data.datasets[0].data.shift();
                 ram_voltage_chart.config.data.datasets[0].data.shift();
                 // add new Y
@@ -194,6 +254,10 @@ $update_hz = 0.5;
                 pcpu_chart.config.data.datasets[0].data.push(data.cpu.percentage);
                 pmem_chart.config.data.datasets[0].data.push(data.memory.percentage);
                 pswap_chart.config.data.datasets[0].data.push(data.swap.percentage);
+                pgpu_chart.config.data.datasets[0].data.push(data.gpu.percentage);
+                mgpu_chart.config.data.datasets[0].data.push(data.gpu.memory.used / (10 ** 6));
+                tgpu_chart.config.data.datasets[0].data.push(data.gpu.temperature);
+                wgpu_chart.config.data.datasets[0].data.push(data.gpu.power);
                 cpu_voltage_chart.config.data.datasets[0].data.push(data.volts.core);
                 ram_voltage_chart.config.data.datasets[0].data.push(data.volts.ram);
                 // refresh chart
@@ -202,6 +266,10 @@ $update_hz = 0.5;
                 pcpu_chart.update();
                 pmem_chart.update();
                 pswap_chart.update();
+                pgpu_chart.update();
+                mgpu_chart.update();
+                tgpu_chart.update();
+                wgpu_chart.update();
                 cpu_voltage_chart.update();
                 ram_voltage_chart.update();
             }, true, true);

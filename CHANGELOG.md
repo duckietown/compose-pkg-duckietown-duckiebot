@@ -1,3 +1,32 @@
+## 1.4.24 (April 28, 2023)
+  - components: added support for not detectable components; added support for wifi, wheel encoder, button, LEDs;
+
+## 1.4.23 (April 22, 2023)
+  - added icon for WIRELESS_ADAPTER hw component
+
+## 1.4.22 (April 22, 2023)
+  - DTSW-2180 - added GPU plots
+
+## 1.4.21 (April 07, 2023)
+  - removed ToC step
+
+## 1.4.20 (March 07, 2023)
+  - Bump version to 1.4.19.
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.19.
+  - re-enabled software tab
+  - Bump version to 1.4.15.
+  - minor
+  - Bump version to 1.4.14.
+  - implemented hostname update in first setup tab
+
+## 1.4.19 (March 07, 2023)
+  - Merge remote-tracking branch 'origin/master'
+  - Bump version to 1.4.15.
+  - minor
+  - Bump version to 1.4.14.
+  - implemented hostname update in first setup tab
+
 ## 1.4.18 (July 13, 2022)
 - added "accelerometer" calibration to calibrations tab
 
