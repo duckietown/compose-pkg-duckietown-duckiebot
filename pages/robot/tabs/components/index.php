@@ -296,6 +296,13 @@ if (isset($_POST['id_str_read'])) {
 .top-view-modal {
     z-index:1060;
 }
+
+.btn-custom-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 1.4rem;
+    line-height: 1.5;
+    background-color: #828282;
+} 
 </style>
 
 <table style="width: 970px; margin: auto; margin-bottom: 12px">
@@ -560,7 +567,15 @@ if (isset($_POST['id_str_read'])) {
                             </div>
                             <div class="modal-body">
                                 <p id="{description_id}" class="text-left"></p>
-                                <br>
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <p>Or, conveniently:</p>
+                                    </div>
+                                    <div class="col-md-4 bg-light text-left">
+                                        <button type="button" class="btn btn-white btn-custom-sm text-left" id="{btn_id_logs_node}">Download the log file for this ROS Node</button>
+                                    </div>
+                                </div>
+                                <br><br>
                                 <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
                                 <!-- div class="row">
                                     <div class="col-md-12 bg-light text-right">
@@ -569,13 +584,13 @@ if (isset($_POST['id_str_read'])) {
                                 </div -->
                             </div>
                             <div class="modal-footer">
-                            <p class="text-left" id="{output_id}"></p>
-                            <div id="{prog_id}" class="progress" style="display:none">
-                                <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                                    <span class="sr-only">Running</span>
+                                <p class="text-left" id="{output_id}"></p>
+                                <div id="{prog_id}" class="progress" style="display:none">
+                                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                                        <span class="sr-only">Running</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <!-- button type="button" class="btn btn-default" data-dismiss="modal">Close</button -->
+                                <!-- button type="button" class="btn btn-default" data-dismiss="modal">Close</button -->
                             </div>
                             <div class="modal-footer">
                                 <div class="container>
@@ -602,6 +617,7 @@ if (isset($_POST['id_str_read'])) {
                 let modal_id = 'modal-' + id_str_name;
                 let modal_btn_id = 'modal-btn-' + id_str_name;
                 let btn_id_run = 'btn-' + id_str_name;
+                let btn_id_logs_node = 'btn-logs-node-' + id_str_name;
                 let btn_id_success = 'btn-succ-' + id_str_name;
                 let btn_id_failed = 'btn-fail-' + id_str_name;
                 let output_id = 'out-' + id_str_name;
@@ -613,6 +629,7 @@ if (isset($_POST['id_str_read'])) {
                     modal_id: modal_id,
                     test_name: "Verification: " + name,
                     btn_id_run: btn_id_run,
+                    btn_id_logs_node: btn_id_logs_node,
                     btn_id_success: btn_id_success,
                     btn_id_failed: btn_id_failed,
                     output_id: output_id,
@@ -773,6 +790,11 @@ if (isset($_POST['id_str_read'])) {
                     $('#' + btn_id_success).hide();
                 });
 
+                // download logs
+                $('#' + btn_id_logs_node).click(function() {
+                    let node_name = component.test_service_name.split('/')[0];
+                    download_ros_node_logs(robot_name, node_name);
+                });
             }
             // create component's nav
             div.html(

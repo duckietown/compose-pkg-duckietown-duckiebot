@@ -1,7 +1,7 @@
 function json_to_html(json_obj) {
     let outHtml = "";
     let blocks = json_obj.parameters
-    
+
     for (let idx = 0; idx < blocks.length; idx++) {
         let block = blocks.at(idx);
 
@@ -40,7 +40,7 @@ function json_to_html(json_obj) {
         outHtml += tmp_title;
         outHtml += tmp;
     }
-    
+
     return outHtml
 }
 
@@ -60,12 +60,12 @@ function stream_data(
     if (test_topic_type === "sensor_msgs/Imu") {
         duckiebot_imu_funcs.ros_setup(ros, robot_name, topic_name);
         $('#modal_IMU').modal('show');
-        $("#modal_IMU").on("hidden.bs.modal", function(event) {
+        $("#modal_IMU").on("hidden.bs.modal", function (event) {
             duckiebot_imu_funcs.ros_cleanup();
         });
         return;
     }
-    
+
     // other live data
     let listener = new ROSLIB.Topic({
         ros: ros,
@@ -78,7 +78,7 @@ function stream_data(
 
         // handle different rendering of different message types here
         let outHtml = "<h4>Live Data</h4>";
-        switch(test_topic_type) {
+        switch (test_topic_type) {
             case "duckietown_msgs/WheelEncoderStamped":
                 outHtml += "<p><strong>Tick value: </strong>" + message.data + "</p>";
                 break;
@@ -98,14 +98,14 @@ function stream_data(
                 outHtml += "<img src='" + imageUrl + "' alt='Live stream' width='320' height='240'/>";
                 break;
             default:
-                outHtml += ("<p>Error: Test topic type ["+ test_topic_type + "] is not supported! It has to be handled properly in the dashboard code.</p>");
+                outHtml += ("<p>Error: Test topic type [" + test_topic_type + "] is not supported! It has to be handled properly in the dashboard code.</p>");
         }
 
         $('#' + update_id).html(outHtml);
     });
 
     // on modal close, unsubscribe
-    $("#" + modal_id).on("hidden.bs.modal", function(event) {
+    $("#" + modal_id).on("hidden.bs.modal", function (event) {
         listener.unsubscribe();
     });
 }
@@ -114,7 +114,7 @@ function extract_stream_topic_from_json(json_obj) {
     let blocks = json_obj.parameters
 
     let ret = {};
-    
+
     for (let idx = 0; idx < blocks.length; idx++) {
         let block = blocks.at(idx);
         if (block.key === "test_topic_name") {
@@ -123,6 +123,37 @@ function extract_stream_topic_from_json(json_obj) {
             ret["test_topic_type"] = block.value;
         }
     }
-    
+
     return ret
+}
+
+function download_ros_node_logs(robot_name, node_name) {
+    // fetch list of all logs
+    let url = `http://${robot_name}.local/duckiebot/logs/list`;
+    $.get(url, function (res) {
+        if (res.data.result_data.n_logs_found == 0) {
+            console.log("Failed to fetch list of ROS Node logs. Raw results:", res);
+        }
+
+        res.data.result_data.lst_log_file_names.forEach(item => {
+            if (item.includes(node_name)) {
+                // download log
+                console.log("Fetching ROS Node logs:", item);
+                let download_url = `http://${robot_name}.local/duckiebot/logs/download/${item}`
+                // console.log("Download URL:", download_url);
+
+                // trigger click of the donwload link
+                let tmp_download_elem = $('<a>', {
+                    href: download_url,
+                    style: 'display: none;'
+                });
+                $('body').append(tmp_download_elem);
+                tmp_download_elem[0].click();
+                // clean up
+                tmp_download_elem.remove();
+            }
+        });
+    }).fail(function (xhr, status, error) {
+        console.error('Request failed:', status, error);
+    });
 }
