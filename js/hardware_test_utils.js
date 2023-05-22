@@ -128,32 +128,17 @@ function extract_stream_topic_from_json(json_obj) {
 }
 
 function download_ros_node_logs(robot_name, node_name) {
-    // fetch list of all logs
-    let url = `http://${robot_name}.local/duckiebot/logs/list`;
-    $.get(url, function (res) {
-        if (res.data.result_data.n_logs_found == 0) {
-            console.log("Failed to fetch list of ROS Node logs. Raw results:", res);
-        }
+    let download_url = `http://${robot_name}.local/duckiebot/logs/download/${node_name}`;
+    // console.log("Download URL:", download_url);
 
-        res.data.result_data.lst_log_file_names.forEach(item => {
-            if (item.includes(node_name)) {
-                // download log
-                console.log("Fetching ROS Node logs:", item);
-                let download_url = `http://${robot_name}.local/duckiebot/logs/download/${item}`
-                // console.log("Download URL:", download_url);
-
-                // trigger click of the donwload link
-                let tmp_download_elem = $('<a>', {
-                    href: download_url,
-                    style: 'display: none;'
-                });
-                $('body').append(tmp_download_elem);
-                tmp_download_elem[0].click();
-                // clean up
-                tmp_download_elem.remove();
-            }
-        });
-    }).fail(function (xhr, status, error) {
-        console.error('Request failed:', status, error);
+    // trigger click of the donwload link
+    let tmp_download_elem = $('<a>', {
+        href: download_url,
+        style: 'display: none;'
     });
+    $('body').append(tmp_download_elem);
+    tmp_download_elem[0].click();
+    // clean up
+    tmp_download_elem.remove();
+    console.log("Fetched logs for ROS Node:", node_name);
 }
