@@ -53,8 +53,6 @@ function stream_data(
     modal_id,  // on closing this test modal, the listener would unsubscribe
 ) {
     let topic_name = '/' + robot_name + '/' + test_topic_name;
-    // console.log("Listening to topic: " + topic_name);
-    // console.log("Updating text: ", update_id);
 
     // special handling for the IMU game
     if (test_topic_type === "sensor_msgs/Imu") {
@@ -74,8 +72,6 @@ function stream_data(
     });
 
     listener.subscribe(function (message) {
-        // console.log(message);
-
         // handle different rendering of different message types here
         let outHtml = "<h4>Live Data</h4>";
         switch (test_topic_type) {
@@ -129,8 +125,6 @@ function extract_stream_topic_from_json(json_obj) {
 
 function download_ros_node_logs(robot_name, node_name) {
     let download_url = `http://${robot_name}.local/duckiebot/logs/download/${node_name}`;
-    // console.log("Download URL:", download_url);
-
     // trigger click of the donwload link
     let tmp_download_elem = $('<a>', {
         href: download_url,

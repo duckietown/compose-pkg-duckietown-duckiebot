@@ -16,19 +16,7 @@ $closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
 
 ROS::connect($ros_hostname);
 
-// $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
-// $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']);
-// $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-
-
-// // TODO: remove all record files
-// $files = glob('path/to/temp/*'); // get all file names
-// foreach($files as $file){ // iterate files
-//   if(is_file($file)) {
-//     unlink($file); // delete file
-//   }
-// }
-
+// functions for storing local hardware test records
 function get_last_line($file_path) {
     $line = '';
 
@@ -247,62 +235,62 @@ if (isset($_POST['id_str_read'])) {
     }
 
     body {
-    margin: 0;
-}
+        margin: 0;
+    }
 
-.float-right{
-    position: fixed;
-    right: 40px;
-}
+    .float-right{
+        position: fixed;
+        right: 40px;
+    }
 
-.btn{
-    color: #FFF;
-    background-color: #0A9;
-    border-radius: 5px;
-    border-width: 0;
-    padding: 10px;
-    font-size: large;
-    box-shadow: 3px 3px 4px #999;
-}
+    .btn{
+        color: #FFF;
+        background-color: #0A9;
+        border-radius: 5px;
+        border-width: 0;
+        padding: 10px;
+        font-size: large;
+        box-shadow: 3px 3px 4px #999;
+    }
 
-.btn-hover{
-    color: #EEE;
-    background-color: #099;
-    border-radius: 5px;
-    border-width: 0;
-    padding: 10px;
-    font-size: large;
-    box-shadow: 3px 3px 4px #DDD;
-}
+    .btn-hover{
+        color: #EEE;
+        background-color: #099;
+        border-radius: 5px;
+        border-width: 0;
+        padding: 10px;
+        font-size: large;
+        box-shadow: 3px 3px 4px #DDD;
+    }
 
-.btn-connected{
-    color: #AAA;
-    background-color: #070;
-    border-radius: 5px;
-    border-width: 0;
-    padding: 10px;
-    font-size: large;
-}
+    .btn-connected{
+        color: #AAA;
+        background-color: #070;
+        border-radius: 5px;
+        border-width: 0;
+        padding: 10px;
+        font-size: large;
+    }
 
-.pointer {cursor: pointer;}
+    .pointer {cursor: pointer;}
 
-.info {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    color: #FFF;
-}
+    .info {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        color: #FFF;
+    }
 
-.top-view-modal {
-    z-index:1060;
-}
+    .top-view-modal {
+        z-index:1060;
+    }
 
-.btn-custom-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 1.4rem;
-    line-height: 1.5;
-    background-color: #828282;
-} 
+    .btn-custom-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 1.4rem;
+        line-height: 1.5;
+        background-color: #828282;
+    } 
 </style>
 
 <table style="width: 970px; margin: auto; margin-bottom: 12px">
@@ -564,10 +552,9 @@ if (isset($_POST['id_str_read'])) {
                     ) : ''
             ) : '';
             let verification_test_button = "";
-            // if (component.detected) {
             if (component.supported && component.test_service_name !== "") {
                 let id_str_name = name.replaceAll(' ', '-');
-                verification_test_button = '<button type="button" disabled="true" id="modal-btn-' + id_str_name + '" class="btn btn-info" data-toggle="modal" data-target="' + '#modal-' + id_str_name + '">Test Hardware</button>';
+                verification_test_button = `<button type="button" disabled="true" id="modal-btn-${id_str_name}" class="btn btn-info" data-toggle="modal" data-target="#modal-${id_str_name}">Test Hardware</button>`;
 
                 let test_modal = `
                     <!-- Modal -->
@@ -656,16 +643,11 @@ if (isset($_POST['id_str_read'])) {
                 // test ros service description
                 let _testDescriptionClient = new ROSLIB.Service({
                     ros : window.ros['<?php echo $dbot_hostname ?>'],
-                    name : '/' + '<?php echo $robot_name?>' + '/' + component.test_service_name + '/description',
+                    name : `/${robot_name}/${component.test_service_name}/description`,
                     serviceType : 'std_srvs/Trigger'
                 });
                 var reqDescription = new ROSLIB.ServiceRequest({});
                 _testDescriptionClient.callService(reqDescription, function(result) {
-                    console.log('Description service returned from \n'
-                    + _testDescriptionClient.name
-                    + '\n');
-                    // + result.message);
-
                     // enable button
                     $('#' + modal_btn_id).prop('disabled', false);
                     
@@ -692,7 +674,7 @@ if (isset($_POST['id_str_read'])) {
                 $('#' + btn_id_success).hide();
 
                 $('#' + btn_id_run).click(function() {
-                    console.log("Triggered " + id_str_name);
+                    console.log(`[${id_str_name}] Hardware test triggered.`);
 
                     // clear output
                     $('#' + output_id).html("");
@@ -701,16 +683,14 @@ if (isset($_POST['id_str_read'])) {
                     // hide button
                     $('#' + btn_id_run).hide();
 
-                    // console.log($dbot_hostname)
                     _testRunClient.callService(request, function(result) {
                         $('#' + prog_id).hide();
                         $('#' + btn_id_run).show();
                         // show result buttons
                         $('#' + btn_id_success).show();
-                        console.log('Test run service returned from \n'
-                        + _testRunClient.name
-                        + '\n');
-                        // + result);
+
+                        // indicate the completion of the service call
+                        console.log(`[${id_str_name}] Test run service returned from:\n${_testRunClient.name}`);
 
                         if (!result.success) {
                             // alert("Not successful");
@@ -742,7 +722,7 @@ if (isset($_POST['id_str_read'])) {
                                         modal_id,
                                     );
                                 } catch (error) {
-                                    console.log("Stream type response received, but an error has occurred. Error msg:" + error);
+                                    console.log(`[${id_str_name}]Stream type response received, but an error has occurred. Error msg: ${error}`);
                                 }
                             }
                         } catch (error) {
@@ -751,6 +731,7 @@ if (isset($_POST['id_str_read'])) {
                     });
                 })
 
+                // looking for test records
                 $.ajax({
                     url: window.location.href,
                     type: "POST",
@@ -758,7 +739,6 @@ if (isset($_POST['id_str_read'])) {
                     success: function(response) {
                         let special_str = "___" + id_str_name + "___";
                         let entry = response.split(special_str)[1];
-                        // console.log("Found record: " + entry);
                         if (entry !== "") {
                             console.log(`[${id_str_name}] Found verification record: ${entry}`);
                         }
@@ -770,11 +750,9 @@ if (isset($_POST['id_str_read'])) {
                 $('#' + btn_id_success).click(function() {
                     let text = "Do you confirm the test was successful?";
                     if (confirm(text) == true) {
-                        console.log("Success");
-                        // console.log(window.location.href)
+                        console.log(`[${id_str_name}] Recording "Success" status for this test.`);
                         $.ajax({
                             url: window.location.href,
-                            // url: '<?php echo $base_url; ?>/components/process.php',
                             type: "POST",
                             data: {id_str: id_str_name},
                             success: function(response) {
@@ -788,9 +766,9 @@ if (isset($_POST['id_str_read'])) {
                     }
                 });
 
-                // user confirms 
+                // user confirms problem
                 $('#' + btn_id_failed).click(function() {
-                    console.log("Problem encountered");
+                    console.log(`[${id_str_name}] Recording "Problem" status for this component.`);
                     $.ajax({
                         url: window.location.href,
                         type: "POST",
