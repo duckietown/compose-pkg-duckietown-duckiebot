@@ -2,12 +2,6 @@
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
-
-$api_hostname = Core::getSetting(
-    'code_api/hostname', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
-);
-$api_port = Core::getSetting('code_api/port', 'duckietown_duckiebot');
-$api_prefix = Core::getSetting('code_api/prefix', 'duckietown_duckiebot');
 $update_hz = 1.0;
 ?>
 
@@ -121,8 +115,7 @@ $update_hz = 1.0;
 
 
 <script type="text/javascript">
-    
-    let _api_url = "http://<?php echo $api_hostname ?>:<?php echo $api_port ?>/{api}/{action}/{resource}";
+
     window.ROBOT_SOFTWARE_MODULES_INFO = {};
     window.ROBOT_SOFTWARE_MODULES_UPDATER = null;
     
@@ -187,10 +180,6 @@ $update_hz = 1.0;
     </nav>
     `;
     
-    function api_url(action, args=[]) {
-        return _api_url.format({api: '<?php echo $api_prefix ?>', action: action, resource: args.join('/')}).rstrip('/')
-    }
-    
     function _update(data) {
         for (const [name, status] of Object.entries(data.data)) {
             let div = $('#_robot_software_module_{name}'.format({name: name}));
@@ -218,7 +207,7 @@ $update_hz = 1.0;
     
     function update_module(name, force=false) {
         // compile command url
-        let url = api_url('module/update', [name + '?force={0}'.format(force? '1' : '0')]);
+        let url = get_api_url('code', 'module/update', [name + '?force={0}'.format(force? '1' : '0')]);
         callExternalAPI(url, 'GET', 'json', false, false, function(res){
             if (res.status === 'need-force') {
                 let aux_msg = "Use the button <b>Force Update</b> from the dropdown to force the update.";
@@ -236,7 +225,7 @@ $update_hz = 1.0;
     
     function _keep_updating() {
         if (window.ROBOT_SOFTWARE_MODULES_UPDATER === null) {
-            let url = api_url('modules/status');
+            let url = get_api_url('code', 'modules/status');
             window.ROBOT_SOFTWARE_MODULES_UPDATER = setInterval(function(){
                 callExternalAPI(url, 'GET', 'json', false, false, _update, true, true);
             }, 1000 * (1 / <?php echo $update_hz ?>));
@@ -335,7 +324,7 @@ $update_hz = 1.0;
         window.ROBOT_SOFTWARE_MODULES_INFO = data.data;
         render_modules_placeholders();
         // get modules status
-        let url = api_url('modules/status');
+        let url = get_api_url('code', 'modules/status');
         callExternalAPI(
             url, 'GET', 'json', false, false,
             render_modules, true, false, _on_code_api_error
@@ -350,7 +339,7 @@ $update_hz = 1.0;
     }
     
     $(document).ready(function(){
-        let url = api_url('modules/info');
+        let url = get_api_url('code', 'modules/info');
         callExternalAPI(
             url, 'GET', 'json', false, false,
             _on_modules_list_success, true, false, _on_code_api_error

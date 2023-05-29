@@ -5,6 +5,7 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $robot_name = Duckiebot::getDuckiebotName();
 $robot_type = Duckiebot::getRobotType();
+// TODO: these might not be needed anymore
 $robot_hostname = Duckiebot::getDuckiebotHostname();
 $ros_hostname = ROS::sanitize_hostname($robot_hostname);
 
@@ -212,8 +213,6 @@ $open_calibration = "camera_intrinsic";
         );
     });
     
-    let _api_url = "http://<?php echo $robot_hostname ?>/{api}/{action}/{resource}";
-    
     let _backup_row = `
         <tr>
             <td class="text-center">
@@ -233,10 +232,6 @@ $open_calibration = "camera_intrinsic";
             </td>
         </tr>
     `;
-    
-    function api_url(api, action, args) {
-        return _api_url.format({api: api, action: action, resource: args.join('/')}).rstrip('/')
-    }
     
     function exists_icon(value) {
         if (value) {
@@ -264,7 +259,7 @@ $open_calibration = "camera_intrinsic";
     }
     
     function _load_info (calib_type) {
-        let url = api_url('files/calibration', 'info', [calib_type]);
+        let url = get_api_url('files', 'calibration/info', [calib_type]);
         function _on_success_fcn(data) {
             _on_info_success(calib_type, data);
         }
@@ -304,7 +299,7 @@ $open_calibration = "camera_intrinsic";
     }
     
     function _load_backups (calib_type) {
-        let url = api_url('files/calibration/backup', 'list', [calib_type]);
+        let url = get_api_url('files', 'calibration/backup/list', [calib_type]);
         $('#{0}_{1}'.format([calib_type, 'backups_loader'])).css("display", "inline-block");
         function _on_success_fcn(data) {
             $('#{0}_{1}'.format([calib_type, 'backups_table'])).html("");
@@ -320,7 +315,7 @@ $open_calibration = "camera_intrinsic";
     }
     
     function _restore_backup (calib_type, origin) {
-        let url = api_url('files/calibration/backup', 'restore', [calib_type, origin]);
+        let url = get_api_url('files', 'calibration/backup/restore', [calib_type, origin]);
         callExternalAPI(
             url, 'GET', 'json', true, true
         );

@@ -2,6 +2,7 @@
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
+// TODO: these might not be needed anymore
 $dbot_name = Duckiebot::getDuckiebotName();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
 $update_hz = 0.5;
@@ -219,8 +220,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
 
 
 <script type="text/javascript">
-    
-    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{resource}";
+
     let MAX_CLOCK_FREQ = 2.0;
 
     function _robot_info_create_plot(canvas_id, labels, colors, tooltip_cb){
@@ -268,7 +268,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     }
 
     function update_charts(temperature_chart, disk_chart, pcpu_chart, ram_chart, fcpu_chart, batt_chart){
-        let url = api_url.format({api:"health", resource:""});
+        let url = get_api_url("health");
         callExternalAPI(url, 'GET', 'text', false, false, function(data){
             data = JSON.parse(data);
             // update temperature
@@ -339,7 +339,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
 
     $(document).ready(function () {
         // get robot type
-        let url = api_url.format({api:"files", resource:"data/config/robot_type"});
+        let url = get_api_url("files", "data/config/robot_type");
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
             let robot_type = 'unknown';
             try {
@@ -348,7 +348,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             $('.robot-info-container #robot_type').html(robot_type.capitalize());
         }, true, true);
         // get robot configuration
-        url = api_url.format({api:"files", resource:"data/config/robot_configuration"});
+        url = get_api_url("files", "data/config/robot_configuration");
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
             let robot_configuration = 'unknown';
             try {

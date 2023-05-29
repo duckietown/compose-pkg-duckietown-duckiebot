@@ -112,13 +112,20 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 
 
 <script type="text/javascript">
-    
+
+    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{path}";
+
+    function get_api_url(api, action="/", args=[]) {
+        let path = [action, ...args];
+        return api_url.format({api: api, path: path.join('/')}).rstrip('/');
+    }
+
     function robot_load_tab(tab) {
         redirectTo('robot', tab);
     }
     
     function _call_health_api(resource, action, qs = null, on_success = undefined, dialog = false) {
-        let _url = api_url.format({api: "health", resource: "{0}/{1}".format(resource, action)});
+        let _url = get_api_url("health", "{0}/{1}".format(resource, action));
         // create query string
         if (qs != null)
             _url += '?' + $.param(qs);

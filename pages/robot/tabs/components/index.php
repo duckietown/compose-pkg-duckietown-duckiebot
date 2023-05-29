@@ -2,7 +2,7 @@
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
-
+// TODO: these might not be needed anymore
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
 ?>
 
@@ -143,7 +143,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
 
 <script type="text/javascript">
     
-    let _api_url = "http://<?php echo $dbot_hostname ?>/{api}/{action}/{resource}";
     window.ROBOT_COMPONENT_TYPE_TO_ICON = {
         "HAT": "microchip",
         "SCREEN": "desktop",
@@ -233,10 +232,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         <span class="_robot_overall_status_reason">{missing}</span>
         not found.
     </h5>`;
-
-    function api_url(api, action, args) {
-        return _api_url.format({api: api, action: action, resource: args.join('/')}).rstrip('/')
-    }
 
     function status_icon(value, strict, passive) {
         if (value === true) {
@@ -330,7 +325,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     
     $(document).ready(function(){
-        let url = api_url('health', 'components', []);
+        let url = get_api_url('health', 'components', []);
         callExternalAPI(
             url, 'GET', 'json', false, false,
             _on_list_success, true, false, _on_code_api_error

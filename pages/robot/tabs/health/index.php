@@ -3,6 +3,7 @@
 use system\classes\Core;
 use system\packages\duckietown_duckiebot\Duckiebot;
 
+// TODO: these might not be needed anymore
 $dbot_hostname = Core::getSetting(
     'health_api/hostname', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
 );
@@ -65,8 +66,6 @@ $update_hz = 0.5;
 
 
 <script type="text/javascript">
-
-    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{resource}";
 
     let _HISTORY_HORIZON_LEN = 60;
     let _DATA_TEMPERATURE = new Array(_HISTORY_HORIZON_LEN).fill(0);
@@ -233,7 +232,7 @@ $update_hz = 0.5;
         );
         // keep updating the plot
         setInterval(function () {
-            let url = api_url.format({api: "health", resource: ""});
+            let url = get_api_url("health");
             callExternalAPI(url, 'GET', 'text', false, false, function (data) {
                 data = JSON.parse(data);
                 // cut the time horizon to `_HISTORY_HORIZON_LEN` points
