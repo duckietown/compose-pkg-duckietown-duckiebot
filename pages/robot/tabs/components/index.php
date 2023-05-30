@@ -287,7 +287,7 @@ if (isset($_POST['id_str_read'])) {
 
     .btn-custom-sm {
         padding: 0.25rem 0.5rem;
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         line-height: 1.5;
         background-color: #828282;
     } 
@@ -576,6 +576,9 @@ if (isset($_POST['id_str_read'])) {
                                     <div class="col-md-4 bg-light text-left">
                                         <button type="button" class="btn btn-white btn-custom-sm text-left" id="{btn_id_logs_node}">Download the log file for this ROS Node</button>
                                     </div>
+                                    <div class="col-md-4 bg-light text-left">
+                                        <button type="button" class="btn btn-white btn-custom-sm text-left" id="{btn_id_logs_docker_container}">Download Docker container logs</button>
+                                    </div>
                                 </div>
                                 <br><br>
                                 <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
@@ -620,6 +623,7 @@ if (isset($_POST['id_str_read'])) {
                 let modal_btn_id = 'modal-btn-' + id_str_name;
                 let btn_id_run = 'btn-' + id_str_name;
                 let btn_id_logs_node = 'btn-logs-node-' + id_str_name;
+                let btn_id_logs_docker_container = 'btn-logs-docker-container-' + id_str_name;
                 let btn_id_success = 'btn-succ-' + id_str_name;
                 let btn_id_failed = 'btn-fail-' + id_str_name;
                 let output_id = 'out-' + id_str_name;
@@ -632,6 +636,7 @@ if (isset($_POST['id_str_read'])) {
                     test_name: "Verification: " + name,
                     btn_id_run: btn_id_run,
                     btn_id_logs_node: btn_id_logs_node,
+                    btn_id_logs_docker_container: btn_id_logs_docker_container,
                     btn_id_success: btn_id_success,
                     btn_id_failed: btn_id_failed,
                     output_id: output_id,
@@ -783,10 +788,16 @@ if (isset($_POST['id_str_read'])) {
                     $('#' + btn_id_success).hide();
                 });
 
-                // download logs
+                // --- download logs
+                // ROS node
                 $('#' + btn_id_logs_node).click(function() {
                     let node_name = component.test_service_name.split('/')[0];
                     download_ros_node_logs(robot_name, node_name);
+                });
+                // docker container
+                $('#' + btn_id_logs_docker_container).click(function() {
+                    // Show the download modal
+                    $('#modal-docker-container-logs').modal('show');
                 });
             }
             // create component's nav
@@ -808,6 +819,9 @@ if (isset($_POST['id_str_read'])) {
                 missing.push(component.name);
             }
         }
+        // create a modal allowing the user to download logs from each running docker container
+        create_view_list_docker_containers(robot_name);
+
         $('#_robot_components_overall_div').html(_overall_nav.format({
             status: (missing.length > 0)? 'Some components were not detected' : 'Healthy',
             icon: (missing.length > 0)? 'exclamation-circle' : 'check-circle-o',

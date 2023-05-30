@@ -88,7 +88,7 @@ function stream_data(
                 }
                 break;
             case "sensor_msgs/CompressedImage":
-                var imageUrl = "data:image/jpg;base64," + message.data;
+                let imageUrl = "data:image/jpg;base64," + message.data;
                 // downsized the image shown, to make the modal appear fully without scrolling
                 // 640 x 480 -> 320 x 240
                 outHtml += "<img src='" + imageUrl + "' alt='Live stream' width='320' height='240'/>";
@@ -123,16 +123,138 @@ function extract_stream_topic_from_json(json_obj) {
     return ret
 }
 
-function download_ros_node_logs(robot_name, node_name) {
-    let download_url = `http://${robot_name}.local/duckiebot/logs/download/${node_name}`;
+function download_file_via_link(url_link, file_name_suggest = "") {
+    // the file_name_suggest is not used, if the file name is provided by the server
+
     // trigger click of the donwload link
     let tmp_download_elem = $('<a>', {
-        href: download_url,
-        style: 'display: none;'
+        href: url_link,
+        style: 'display: none;',
+        download: file_name_suggest,
     });
     $('body').append(tmp_download_elem);
     tmp_download_elem[0].click();
     // clean up
     tmp_download_elem.remove();
+}
+
+function download_ros_node_logs(robot_name, node_name) {
+    let download_url = `http://${robot_name}.local/duckiebot/logs/download/${node_name}`;
+    download_file_via_link(download_url);
     console.log("Fetched logs for ROS Node:", node_name);
+}
+
+function create_view_list_docker_containers(robot_name, modal_id = 'modal-docker-container-logs-label') {
+    let api_url = `http://${robot_name}.local/code/container/list`;
+    $.ajax({
+        url: api_url,
+        method: 'GET',
+        success: function(response) {
+            let list_containers = response.data.list_running_containers;
+            list_containers.sort();
+
+            // Create the selction modal
+            let $modal = $('<div>', {
+                'class': 'modal fade',
+                'id': 'modal-docker-container-logs',
+                'tabindex': '-1',
+                'role': 'dialog',
+                'aria-labelledby': modal_id,
+                'aria-hidden': 'true'
+            });
+            
+            // Create the modal dialog
+            let $modalDialog = $('<div>', {
+                'class': 'modal-dialog',
+                'role': 'document'
+            });
+            
+            // Create the modal content
+            let $modalContent = $('<div>', {
+                'class': 'modal-content'
+            });
+            
+            // Create the modal header
+            let $modalHeader = $('<div>', {
+                'class': 'modal-header'
+            }).append($('<h4>', {
+                'class': 'modal-title',
+                'id': 'modal-docker-container-logs-label',
+                'text': 'Download Docker container logs for:'
+            }));
+            
+            // Create the modal body
+            let $modalBody = $('<div>', {
+                'class': 'modal-body',
+            });
+
+            
+            let $column = $('<div>', {'class': 'col-sm-12'});
+            // $modalBody.append($column);
+
+            $.each(list_containers, function(index, value) {
+                let $row = $('<div>', {'class': 'row'});
+                let $button = $('<button>', {
+                    'type': 'button',
+                    'class': 'btn btn-primary',
+                    'text': value,
+                    'click': function() {
+                        download_docker_container_logs(robot_name, value);
+                    }
+                }).css({
+                    "width": "60%",
+                    // top, right, bottom, left
+                    "margin": "10px 10px 0px 10px",
+                    "text-align": "left",
+                });
+                $row.append($button);
+                $modalBody.append($row)
+            });
+
+            // Create the modal footer
+            let $modalFooter = $('<div>', {
+                'class': 'modal-footer'
+            }).append($('<button>', {
+                'type': 'button',
+                'class': 'btn btn-secondary',
+                'data-dismiss': 'modal',
+                'text': 'Close'
+            }));
+            
+            // Append modal components in the correct hierarchy
+            $modalContent.append($modalHeader, $modalBody, $modalFooter);
+            $modalDialog.append($modalContent);
+            $modal.append($modalDialog);
+            
+            // Append the modal to the document body
+            $('body').append($modal);
+            
+        },
+        error: function(xhr, status, error) {
+            console.error('Request failed:', status, error);
+        }
+    });
+
+}
+
+function download_docker_container_logs(robot_name, container_name) {
+    let api_url = `http://${robot_name}.local/code/container/logs/${container_name}`;
+    $.ajax({
+        url: api_url,
+        method: 'GET',
+        success: function(response) {
+            // Create a Blob object from the response string
+            let blob = new Blob([response.data.logs], { type: 'text/plain' });
+            // a temporary URL for the Blob object
+            let url = URL.createObjectURL(blob);
+
+            let now = new Date();
+            let timestamp = now.toISOString().replace(/[-:.Z]/g, '').slice(0, -3);
+            download_file_via_link(url, `${robot_name}_docker_container_${container_name}_TS${timestamp}.log`);
+            console.log("Fetched logs for docker container:", container_name);
+        },
+        error: function(xhr, status, error) {
+            console.error('Request failed:', status, error);
+        }
+    });
 }
