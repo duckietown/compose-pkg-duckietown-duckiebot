@@ -325,7 +325,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     
     $(document).ready(function(){
-        let url = get_api_url('health', 'components', []);
+        let url = get_api_url('health', 'components');
         callExternalAPI(
             url, 'GET', 'json', false, false,
             _on_list_success, true, false, _on_code_api_error

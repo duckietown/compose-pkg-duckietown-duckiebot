@@ -115,9 +115,17 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 
     let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{path}";
 
-    function get_api_url(api, action="/", args=[]) {
-        let path = [action, ...args];
-        return api_url.format({api: api, path: path.join('/')}).rstrip('/');
+    function get_api_url(api, action="", resources=[], qs=null) {
+        let path = [action, ...resources];
+        // compile URL
+        let _url = api_url.format({api: api, path: path.join('/')}).rstrip('/');
+        // make sure there is a final slash in the URL
+        _url += "/";
+        // create query string
+        if (qs != null)
+            _url += '?' + $.param(qs);
+        // ---
+        return _url;
     }
 
     function robot_load_tab(tab) {

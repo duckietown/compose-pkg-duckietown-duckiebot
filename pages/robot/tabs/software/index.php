@@ -207,7 +207,7 @@ $update_hz = 1.0;
     
     function update_module(name, force=false) {
         // compile command url
-        let url = get_api_url('code', 'module/update', [name + '?force={0}'.format(force? '1' : '0')]);
+        let url = get_api_url('code', 'module/update', [name], {force: force? '1' : '0'});
         callExternalAPI(url, 'GET', 'json', false, false, function(res){
             if (res.status === 'need-force') {
                 let aux_msg = "Use the button <b>Force Update</b> from the dropdown to force the update.";
