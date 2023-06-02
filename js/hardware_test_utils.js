@@ -150,7 +150,7 @@ function create_view_list_docker_containers(robot_name, modal_id = 'modal-docker
         url: api_url,
         method: 'GET',
         success: function(response) {
-            let list_containers = response.data.list_running_containers;
+            let list_containers = response.data.containers;
             list_containers.sort();
 
             // Create the selction modal
