@@ -571,7 +571,7 @@ if (isset($_POST['id_str_read'])) {
                                 <p id="{description_id}" class="text-left"></p>
                                 <div class="row">
                                     <div class="col-sm-2">
-                                        <p>Or, conveniently:</p>
+                                        <p>Also, you could:</p>
                                     </div>
                                     <div class="col-md-4 bg-light text-left">
                                         <button type="button" class="btn btn-white btn-custom-sm text-left" id="{btn_id_logs_node}">Download the log file for this ROS Node</button>
