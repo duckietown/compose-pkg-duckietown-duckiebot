@@ -303,3 +303,38 @@ function update_style_based_on_records(id_str_name, datetime, passed) {
     }
     $('#' + record_id).html(`Last status: ${disp_txt}`);
 }
+
+
+function create_hardware_test_event_file(robot_name, test_id, passed, notes = "") {
+    // the file is created with dt-files-api
+    // the file format complies with dt-commons/dt_staticstics_utils
+    // the created file will be read by dt-device-online and uploaded/backed-up, if the user permits
+
+    const EVENTS_DIR = "/data/stats/events";
+    const FILES_API_URL_BASE = `http://${robot_name}.local/files`;
+
+    // timestamp as int, in nanoseconds
+    let stamp = parseInt((performance.timeOrigin + performance.now()) * (10 ** 6));
+    let url = `${FILES_API_URL_BASE}${EVENTS_DIR}/${stamp}.json`;
+
+    let obj = {
+        "type": `hardware/test/${test_id}`,
+        "stamp": stamp,
+        "data": {
+            "passed": passed,
+            "notes": notes,
+        },
+    };
+    let raw_data_str = JSON.stringify(obj) + "\n";
+
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: raw_data_str,
+        contentType: false, // to prevent automatic content-type header
+        processData: false, // to prevent automatic data processing
+        error: function(xhr, status, error) {
+            console.error('Request failed:', status, error);
+        }
+    });
+}

@@ -690,6 +690,8 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
                             }
                         });
                         $('#' + btn_id_success).hide();
+                        // create events file
+                        create_hardware_test_event_file(robot_name, id_str_name, true);
                     }
                 });
 
@@ -707,6 +709,8 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
                         }
                     });
                     $('#' + btn_id_success).hide();
+                    // create events file
+                    create_hardware_test_event_file(robot_name, id_str_name, false);
                 });
 
                 // --- download logs
