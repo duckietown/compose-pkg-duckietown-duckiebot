@@ -2,6 +2,7 @@
 use \system\classes\Core;
 use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
+use \system\classes\Database;
 
 
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
@@ -16,98 +17,42 @@ $closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
 
 ROS::connect($ros_hostname);
 
-// functions for storing local hardware test records
-function get_last_line($file_path) {
-    $line = '';
-
-    $f = fopen($file_path, 'r');
-    $cursor = -1;
-
-    // Read the file backwards until a newline is found or the start of the file is reached
-    while (fseek($f, $cursor, SEEK_END) === 0) {
-        $char = fgetc($f);
-        if ($char === "\n") {
-            if ($cursor === -1) {
-                // Ignore the newline at the end of the file
-                $cursor--;
-                continue;
-            }
-            break;
-        }
-        $line = $char . $line;
-        $cursor--;
-    }
-
-    fclose($f);
-
-    return $line;
-}
-
-function append_line($id_str, $content) {
-    $save_dir = '/data/stats/components_verification';
-
-    if (!file_exists($save_dir)) {
-        mkdir($save_dir, 0775, true);
-    }
-
-    $fname = $save_dir . '/' . $id_str . '.txt';
-
-    $confirm_file = fopen($fname, "a");
-    fwrite($confirm_file, $content . "\n");
-    fclose($confirm_file);
-}
-
-function record_success($id_str) {
-    $entry = "Success on " . date('Y-m-d H:i:s');
-    append_line($id_str, $entry);
-    return $entry;
-}
-
-function record_problem($id_str) {
-    $entry = "Problem since " . date('Y-m-d H:i:s');
-    append_line($id_str, $entry);
-    return $entry;
-}
-
-// TODO: log file size limitation?
-if (isset($_POST['id_str'])) {
-    $id_str = $_POST['id_str'];
-
-    $entry = record_success($id_str);
-
-    $special_str = '___' . $id_str . '___';
-    echo $special_str . $entry . $special_str;
-}
-
-if (isset($_POST['id_str_problem'])) {
-    $id_str = $_POST['id_str_problem'];
-
-    $entry = record_problem($id_str);
-
-    $special_str = '___' . $id_str . '___';
-    echo $special_str . $entry . $special_str;
-}
-
-if (isset($_POST['id_str_read'])) {
-    $id_str_read = $_POST['id_str_read'];
-
-    $save_dir = '/data/stats/components_verification';
-    if (!file_exists($save_dir)) {
-        mkdir($save_dir, 0775, true);
-    }
-
-    $special_str = '___' . $id_str_read . '___';
-    $fname = $save_dir . '/' . $id_str_read . '.txt';
-
-    if (!file_exists($fname)) {
-        echo $special_str . '' . $special_str;
+// read and write test records
+$db = new Database("duckietown_duckiebot", "hardware_test_result");
+function read_test_result($db, $key) {
+    if (!$db->key_exists($key)) {
+        echo "No tests found for: " . $key;
     } else {
-        $last_line = get_last_line($fname);
-        echo $special_str . $last_line . $special_str;
+        $op = $db->read($key);
+        if ($op["success"]) {
+            // read from db
+            $record = $op["data"];  // same as the $content written
+            echo_formatted_test_record($key, $record);
+        }
     }
 }
 
+function write_test_result($db, $key, $success) {
+    // $key: string (the hardware component id_str)
+    // $success: boolean
+    $content = ["passed" => $success, "datetime" => date("Y-m-d H:i:s")];
+    $db->write($key, $content);
+    echo_formatted_test_record($key, $content);
+}
 
+function echo_formatted_test_record($key, $record) {
+    // format the record for JS to process
+    $separator = "___" . $key . "___";
+    if ($record["passed"] == "true") {
+        echo $separator . "PASSED" . $separator . $record["datetime"] . $separator;
+    } else {
+        echo $separator . "FAILED" . $separator . $record["datetime"] . $separator;
+    }
+}
+
+// endpoints to read and write test records
+if (isset($_POST['test_id_write'])) {write_test_result($db, $_POST['test_id_write'], $_POST['passed']);}
+if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']);}
 ?>
 
 <style type="text/css">
@@ -494,24 +439,6 @@ if (isset($_POST['id_str_read'])) {
         }
     }
 
-    function update_style_based_on_records(id_str_name, last_record) {
-        let modal_btn_id = 'modal-btn-' + id_str_name;
-        let record_id = 'record-' + id_str_name;
-
-        let disp_txt = "None"
-        if (last_record !== "") {
-            disp_txt = last_record;
-            if (last_record.startsWith("Problem")) {
-                $('#' + modal_btn_id).removeClass().addClass("btn btn-warning");
-            } else {
-                $('#' + modal_btn_id).removeClass().addClass("btn btn-success");
-            }
-        } else {
-            $('#' + modal_btn_id).removeClass().addClass("btn btn-info");
-        }
-        $('#' + record_id).html(`Last status: ${disp_txt}`);
-    }
-
     function render_components(data) {
         // to be passed to js functions imported
         let ros = window.ros['<?php echo $dbot_hostname ?>'];
@@ -740,14 +667,10 @@ if (isset($_POST['id_str_read'])) {
                 $.ajax({
                     url: window.location.href,
                     type: "POST",
-                    data: {id_str_read: id_str_name},
+                    data: {test_id_read: id_str_name},
                     success: function(response) {
-                        let special_str = "___" + id_str_name + "___";
-                        let entry = response.split(special_str)[1];
-                        if (entry !== "") {
-                            console.log(`[${id_str_name}] Found verification record: ${entry}`);
-                        }
-                        update_style_based_on_records(id_str_name, entry);
+                        let [datetime, passed] = parse_db_record_response(response, id_str_name);
+                        update_style_based_on_records(id_str_name, datetime, passed);
                     }
                 });
 
@@ -759,12 +682,11 @@ if (isset($_POST['id_str_read'])) {
                         $.ajax({
                             url: window.location.href,
                             type: "POST",
-                            data: {id_str: id_str_name},
+                            data: {test_id_write: id_str_name, passed: true},
                             success: function(response) {
-                                let special_str = "___" + id_str_name + "___";
-                                let entry = response.split(special_str)[1];
-                                console.log(`[${id_str_name}] Marked success: ${entry}`);
-                                update_style_based_on_records(id_str_name, entry);
+                                let [datetime, passed] = parse_db_record_response(response, id_str_name);
+                                update_style_based_on_records(id_str_name, datetime, passed);
+                                console.log(`[${id_str_name}] Marked success: ${datetime}`);
                             }
                         });
                         $('#' + btn_id_success).hide();
@@ -777,12 +699,11 @@ if (isset($_POST['id_str_read'])) {
                     $.ajax({
                         url: window.location.href,
                         type: "POST",
-                        data: {id_str_problem: id_str_name},
+                        data: {test_id_write: id_str_name, passed: false},
                         success: function(response) {
-                            let special_str = "___" + id_str_name + "___";
-                            let entry = response.split(special_str)[1];
-                            console.log(`[${id_str_name}] Marked problem: ${entry}`);
-                            update_style_based_on_records(id_str_name, entry);
+                            let [datetime, passed] = parse_db_record_response(response, id_str_name);
+                            update_style_based_on_records(id_str_name, datetime, passed);
+                            console.log(`[${id_str_name}] Marked problem: ${datetime}`);
                         }
                     });
                     $('#' + btn_id_success).hide();

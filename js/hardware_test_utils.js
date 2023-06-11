@@ -139,7 +139,7 @@ function download_file_via_link(url_link, file_name_suggest = "") {
 }
 
 function download_ros_node_logs(robot_name, node_name) {
-    let download_url = `http://${robot_name}.local/duckiebot/logs/download/${node_name}`;
+    let download_url = `http://${robot_name}.local/duckiebot/ros/logs/download/${node_name}`;
     download_file_via_link(download_url);
     console.log("Fetched logs for ROS Node:", node_name);
 }
@@ -257,4 +257,49 @@ function download_docker_container_logs(robot_name, container_name) {
             console.error('Request failed:', status, error);
         }
     });
+}
+
+function parse_db_record_response(response, test_id) {
+    // parse formatted record string, and return
+    // [null, null] if illy formatted, otherwise
+    // [datetime: str, passed: bool]
+
+    let datetime = null;
+    let passed = null;
+
+    let separator = `___${test_id}___`;  // see the php functions in components/index.php
+    let lst_resp = response.split(separator);
+    if (lst_resp.length == 4) {
+        // contains exactly the special separator 3 times
+        if (lst_resp[1] == "PASSED") {
+            passed = true;
+            datetime = lst_resp[2];
+        } else if (lst_resp[1] == "FAILED") {
+            passed = false;
+            datetime = lst_resp[2];
+        }
+    }
+
+    return [datetime, passed];
+}
+
+function update_style_based_on_records(id_str_name, datetime, passed) {
+    // based on the last "passing" status of the test, the buttons are colored
+
+    let modal_btn_id = 'modal-btn-' + id_str_name;
+    let record_id = 'record-' + id_str_name;
+
+    let disp_txt = "None"
+    if (datetime != null && passed != null) {
+        if (passed) {
+            $('#' + modal_btn_id).removeClass().addClass("btn btn-success");
+            disp_txt = `Success at ${datetime}`
+        } else {
+            $('#' + modal_btn_id).removeClass().addClass("btn btn-warning");
+            disp_txt = `Problem since ${datetime}`
+        }
+    } else {
+        $('#' + modal_btn_id).removeClass().addClass("btn btn-info");
+    }
+    $('#' + record_id).html(`Last status: ${disp_txt}`);
 }
