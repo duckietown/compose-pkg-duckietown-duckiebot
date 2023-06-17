@@ -15,44 +15,9 @@ $connected_evt = ROS::get_event(ROS::$ROSBRIDGE_CONNECTED, $ros_hostname);
 $error_evt = ROS::get_event(ROS::$ROSBRIDGE_ERROR, $ros_hostname);
 $closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
 
+$HW_TEST_DB_NAME = Duckiebot::$HARDWARE_TEST_RESULTS_DATABASE_NAME;
+
 ROS::connect($ros_hostname);
-
-// read and write test records
-$db = new Database("duckietown_duckiebot", "hardware_test_result");
-function read_test_result($db, $key) {
-    if (!$db->key_exists($key)) {
-        echo "No tests found for: " . $key;
-    } else {
-        $op = $db->read($key);
-        if ($op["success"]) {
-            // read from db
-            $record = $op["data"];  // same as the $content written
-            echo_formatted_test_record($key, $record);
-        }
-    }
-}
-
-function write_test_result($db, $key, $success) {
-    // $key: string (the hardware component id_str)
-    // $success: boolean
-    $content = ["passed" => $success, "datetime" => date("Y-m-d H:i:s")];
-    $db->write($key, $content);
-    echo_formatted_test_record($key, $content);
-}
-
-function echo_formatted_test_record($key, $record) {
-    // format the record for JS to process
-    $separator = "___" . $key . "___";
-    if ($record["passed"] == "true") {
-        echo $separator . "PASSED" . $separator . $record["datetime"] . $separator;
-    } else {
-        echo $separator . "FAILED" . $separator . $record["datetime"] . $separator;
-    }
-}
-
-// endpoints to read and write test records
-if (isset($_POST['test_id_write'])) {write_test_result($db, $_POST['test_id_write'], $_POST['passed']);}
-if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']);}
 ?>
 
 <style type="text/css">
@@ -179,8 +144,8 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
         filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
     }
 
-    body {
-        margin: 0;
+    .cursor-pointer {
+        cursor: pointer;
     }
 
     .float-right{
@@ -188,54 +153,9 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
         right: 40px;
     }
 
-    .btn{
-        color: #FFF;
-        background-color: #0A9;
-        border-radius: 5px;
-        border-width: 0;
-        padding: 10px;
-        font-size: large;
-        box-shadow: 3px 3px 4px #999;
-    }
-
-    .btn-hover{
-        color: #EEE;
-        background-color: #099;
-        border-radius: 5px;
-        border-width: 0;
-        padding: 10px;
-        font-size: large;
-        box-shadow: 3px 3px 4px #DDD;
-    }
-
-    .btn-connected{
-        color: #AAA;
-        background-color: #070;
-        border-radius: 5px;
-        border-width: 0;
-        padding: 10px;
-        font-size: large;
-    }
-
-    .pointer {cursor: pointer;}
-
-    .info {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        color: #FFF;
-    }
-
     .top-view-modal {
         z-index:1060;
     }
-
-    .btn-custom-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 1.5rem;
-        line-height: 1.5;
-        background-color: #828282;
-    } 
 </style>
 
 <table style="width: 970px; margin: auto; margin-bottom: 12px">
@@ -256,41 +176,9 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
     </tr>
 </table>
 
+<?php include_once __DIR__ . "/modals/imu-game.php" ?>
 
-<!-- Modal -->
-<div class="modal fade top-view-modal" id="modal_IMU" role="dialog">
-    <div class="modal-dialog modal-lg">
-
-    <!-- Modal content-->
-    <div class="modal-content">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Duckiebot IMU Game</h4>
-        </div>
-        <div class="modal-body">
-            <ul>
-                <li>Hold your Duckiebot and move it, and verify that the plane movements correspond to your Duckiebot.</li>
-                <li>If the plane does not move, there is a problem.</li>
-                <li>Once you're satisfied, you can close this window and resume back to the verification results reporting.</li>
-            </ul>
-            
-            <button id="connect_to_duckiebot" class="btn pointer"></button>
-            <div id="IMU-GAME" style="padding-top: 10px">
-
-                <!-- <div id="info" class="info"></div> -->
-                <button id="reset" class="float-right btn pointer" style="bottom: 40px; background-color:rgb(180, 55, 55);">
-                    Restart
-                </button>
-
-                <h3 id="score" class="float-right" style="top: 220px; color: white; user-select: none;"></h3>
-                <h3 id="best_score" class="float-right" style="top: 260px; color: white; user-select: none;"></h3>
-            </div>
-        </div>
-    </div>
-    
-    </div>
-</div>
-<button type="button" id="start_imu_game" style="display: none;" data-toggle="modal" data-target="#modal_IMU">IMU Game</button>
+<script src="<?php echo Core::getJSscriptURL('hardware_test_utils.js', 'duckietown_duckiebot'); ?>"></script>
 
 <div id="_placeholder_img">
     <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt=""/>
@@ -300,10 +188,6 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
 
 <div id="_robot_components_div"></div>
 
-<script src="<?php echo Core::getJSscriptURL('duckiebot_imu_game_lib_oimo.js', 'duckietown_duckiebot'); ?>"></script>
-<script src="<?php echo Core::getJSscriptURL('duckiebot_imu_game_lib_three.js', 'duckietown_duckiebot'); ?>"></script>
-<script src="<?php echo Core::getJSscriptURL('duckiebot_imu_game.js', 'duckietown_duckiebot'); ?>"></script>
-<script src="<?php echo Core::getJSscriptURL('hardware_test_utils.js', 'duckietown_duckiebot'); ?>"></script>
 
 
 <script type="text/javascript">
@@ -496,16 +380,18 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
                             </div>
                             <div class="modal-body">
                                 <p id="{description_id}" class="text-left"></p>
+                                <br/>
                                 <div class="row">
-                                    <div class="col-sm-2">
+                                    <div class="col-md-2">
                                         <p>Also, you could:</p>
                                     </div>
-                                    <div class="col-md-4 bg-light text-left">
-                                        <button type="button" class="btn btn-white btn-custom-sm text-left" id="{btn_id_logs_node}">Download the log file for this ROS Node</button>
+                                    <div class="col-md-3 bg-light text-left">
+                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_node}">Download this ROS node logs</button>
                                     </div>
-                                    <div class="col-md-4 bg-light text-left">
-                                        <button type="button" class="btn btn-white btn-custom-sm text-left" id="{btn_id_logs_docker_container}">Download Docker container logs</button>
+                                    <div class="col-md-3 bg-light text-left">
+                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_docker_container}">Download docker container logs</button>
                                     </div>
+                                    <div class="col-md-4"></div>
                                 </div>
                                 <br><br>
                                 <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
@@ -543,7 +429,6 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
                         </div>
                     </div>
                 `;
-
 
                 // IDs
                 let modal_id = 'modal-' + id_str_name;
@@ -664,31 +549,47 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
                 })
 
                 // looking for test records
-                $.ajax({
-                    url: window.location.href,
-                    type: "POST",
-                    data: {test_id_read: id_str_name},
-                    success: function(response) {
-                        let [datetime, passed] = parse_db_record_response(response, id_str_name);
-                        update_style_based_on_records(id_str_name, datetime, passed);
+                smartAPI(
+                    "data",
+                    "get",
+                    {
+                        arguments: {
+                            database: "<?php echo $HW_TEST_DB_NAME ?>",
+                            key: id_str_name
+                        },
+                        quiet: true,
+                        on_success: function (data) {
+                            let [datetime, passed] = parse_db_record_response(data);
+                            update_style_based_on_records(id_str_name, datetime, passed);
+                        },
                     }
-                });
+                )
+
+                let write_to_db = function(passed) {
+                    smartAPI(
+                        "data",
+                        "set",
+                        {
+                            arguments: {
+                                database: "<?php echo $HW_TEST_DB_NAME ?>",
+                                key: id_str_name,
+                                value: JSON.stringify({
+                                    passed: passed,
+                                    datetime: Date.now()
+                                })
+                            },
+                            quiet: true,
+                            reload: true
+                        }
+                    )
+                }
 
                 // user confirms success
                 $('#' + btn_id_success).click(function() {
                     let text = "Do you confirm the test was successful?";
                     if (confirm(text) == true) {
                         console.log(`[${id_str_name}] Recording "Success" status for this test.`);
-                        $.ajax({
-                            url: window.location.href,
-                            type: "POST",
-                            data: {test_id_write: id_str_name, passed: true},
-                            success: function(response) {
-                                let [datetime, passed] = parse_db_record_response(response, id_str_name);
-                                update_style_based_on_records(id_str_name, datetime, passed);
-                                console.log(`[${id_str_name}] Marked success: ${datetime}`);
-                            }
-                        });
+                        write_to_db(true);
                         $('#' + btn_id_success).hide();
                         // create events file
                         create_hardware_test_event_file(robot_name, id_str_name, true);
@@ -698,16 +599,7 @@ if (isset($_POST['test_id_read'])) {read_test_result($db, $_POST['test_id_read']
                 // user confirms problem
                 $('#' + btn_id_failed).click(function() {
                     console.log(`[${id_str_name}] Recording "Problem" status for this component.`);
-                    $.ajax({
-                        url: window.location.href,
-                        type: "POST",
-                        data: {test_id_write: id_str_name, passed: false},
-                        success: function(response) {
-                            let [datetime, passed] = parse_db_record_response(response, id_str_name);
-                            update_style_based_on_records(id_str_name, datetime, passed);
-                            console.log(`[${id_str_name}] Marked problem: ${datetime}`);
-                        }
-                    });
+                    write_to_db(false);
                     $('#' + btn_id_success).hide();
                     // create events file
                     create_hardware_test_event_file(robot_name, id_str_name, false);

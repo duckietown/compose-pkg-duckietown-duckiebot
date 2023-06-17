@@ -259,25 +259,17 @@ function download_docker_container_logs(robot_name, container_name) {
     });
 }
 
-function parse_db_record_response(response, test_id) {
+function parse_db_record_response(response) {
     // parse formatted record string, and return
-    // [null, null] if illy formatted, otherwise
-    // [datetime: str, passed: bool]
+    //      [null, null] if illy formatted,
+    //      [datetime: Date, passed: bool] otherwise
 
     let datetime = null;
     let passed = null;
 
-    let separator = `___${test_id}___`;  // see the php functions in components/index.php
-    let lst_resp = response.split(separator);
-    if (lst_resp.length == 4) {
-        // contains exactly the special separator 3 times
-        if (lst_resp[1] == "PASSED") {
-            passed = true;
-            datetime = lst_resp[2];
-        } else if (lst_resp[1] == "FAILED") {
-            passed = false;
-            datetime = lst_resp[2];
-        }
+    if (response["status"] === "OK") {
+        passed = response["data"]["value"]["passed"];
+        datetime = new Date(response["data"]["value"]["datetime"]).toString();
     }
 
     return [datetime, passed];

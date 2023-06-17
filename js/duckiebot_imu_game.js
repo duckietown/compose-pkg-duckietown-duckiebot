@@ -23,7 +23,7 @@ $(function () {
         container_w,
         container_h
     );
-    $('#IMU-GAME').append(renderer.domElement);
+    $('#imu-game').append(renderer.domElement);
 
     // physical world
     var world; 
