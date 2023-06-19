@@ -1,3 +1,35 @@
+## 1.5.0 (June 19, 2023)
+  - Merge pull request #4 from duckietown/feat-jsn-hwtst
+  - use key field from dt-device-health for event
+  - Merge pull request #5 from duckietown/feat-jsn-hwtst-api
+  - minor
+  - setup guest access on hardware test database
+  - added read-from/write-to DB using REST API
+  - use files api to create events file for backup (dt-device-online)
+  - hardware test records with dashboard Database
+  - renamed DB21R -> DBR4
+  - text change
+  - update api signature
+  - add button and selection menu to download docker container logs
+  - cleaned up get_api_url in robot tabs
+  - restructued API urls in robot page and tabs
+  - remove unused code and comments
+  - use updated ros node log download API
+  - Merge branch 'master' into feat-jsn-hwtst
+  - add GUI to download current ROS Node log file
+  - add mit license to lib
+  - change desc to description
+  - add support for live stream video
+  - remove outdated service response parsing
+  - remove commented
+  - all component tests added, refactoring
+  - Merge branch 'feat-jsn-hwtst' of https://github.com/duckietown/compose-pkg-duckietown-duckiebot into feat-jsn-hwtst
+  - Add TODO and minor style
+  - Informative layout and local storage of history
+  - HW Test with local records
+  - Fetch tests from health API, render in modal
+  - fetch tests from components, render modal and results
+
 ## 1.4.24 (April 28, 2023)
   - components: added support for not detectable components; added support for wifi, wheel encoder, button, LEDs;
 
