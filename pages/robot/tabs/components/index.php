@@ -386,7 +386,7 @@ ROS::connect($ros_hostname);
                                         <p>Also, you could:</p>
                                     </div>
                                     <div class="col-md-3 bg-light text-left">
-                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_node}">Download this ROS node logs</button>
+                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_node}">Download logs of this ROS node</button>
                                     </div>
                                     <div class="col-md-3 bg-light text-left">
                                         <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_docker_container}">Download docker container logs</button>
