@@ -592,7 +592,7 @@ ROS::connect($ros_hostname);
                         write_to_db(true);
                         $('#' + btn_id_success).hide();
                         // create events file
-                        create_hardware_test_event_file(robot_name, id_str_name, true);
+                        create_hardware_test_event_file(robot_name, component.key, true);
                     }
                 });
 
@@ -602,7 +602,7 @@ ROS::connect($ros_hostname);
                     write_to_db(false);
                     $('#' + btn_id_success).hide();
                     // create events file
-                    create_hardware_test_event_file(robot_name, id_str_name, false);
+                    create_hardware_test_event_file(robot_name, component.key, false);
                 });
 
                 // --- download logs
