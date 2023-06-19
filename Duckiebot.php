@@ -72,6 +72,8 @@ class Duckiebot {
             // create hardware test database
             if (!Data::exists(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME)) {
                 Data::new(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
+                Data::set_public_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
+                Data::set_guest_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME, true, true);
             }
             //
             self::$initialized = true;
