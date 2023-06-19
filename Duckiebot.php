@@ -8,6 +8,7 @@ namespace system\packages\duckietown_duckiebot;
 
 use \system\classes\Core;
 use \system\classes\Database;
+use \system\packages\data\Data;
 
 
 /**
@@ -35,6 +36,7 @@ class Duckiebot {
         "tag_id",
         "map_name"
     ];
+    public static $HARDWARE_TEST_RESULTS_DATABASE_NAME = "hardware_test_result";
     
     // disable the constructor
     private function __construct() {
@@ -66,6 +68,12 @@ class Duckiebot {
                 // mark the first two steps as completed
                 $first_setup_db->write('step1', null);
                 $first_setup_db->write('step2', null);
+            }
+            // create hardware test database
+            if (!Data::exists(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME)) {
+                Data::new(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
+                Data::set_public_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
+                Data::set_guest_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME, true, true);
             }
             //
             self::$initialized = true;
