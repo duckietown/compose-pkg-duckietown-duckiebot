@@ -260,6 +260,9 @@ $open_calibration = "camera_intrinsic";
     
     function _load_info (calib_type) {
         let url = get_api_url('files', 'calibration/info', [calib_type]);
+        // get_api_url(...) appends '/' to URLs without query params
+        // for this endpoint, it needs to be removed
+        url = url.rstrip("/");
         function _on_success_fcn(data) {
             _on_info_success(calib_type, data);
         }
@@ -300,6 +303,8 @@ $open_calibration = "camera_intrinsic";
     
     function _load_backups (calib_type) {
         let url = get_api_url('files', 'calibration/backup/list', [calib_type]);
+        // see comments in: function _load_info(...)
+        url = url.rstrip("/")
         $('#{0}_{1}'.format([calib_type, 'backups_loader'])).css("display", "inline-block");
         function _on_success_fcn(data) {
             $('#{0}_{1}'.format([calib_type, 'backups_table'])).html("");
@@ -316,6 +321,8 @@ $open_calibration = "camera_intrinsic";
     
     function _restore_backup (calib_type, origin) {
         let url = get_api_url('files', 'calibration/backup/restore', [calib_type, origin]);
+        // see comments in: function _load_info(...)
+        url = url.rstrip("/")
         callExternalAPI(
             url, 'GET', 'json', true, true
         );
