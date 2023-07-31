@@ -321,6 +321,8 @@ $open_calibration = "camera_intrinsic";
     
     function _restore_backup (calib_type, origin) {
         let url = get_api_url('files', 'calibration/backup/restore', [calib_type, origin]);
+        // see comments in: function _load_info(...)
+        url = url.rstrip("/")
         callExternalAPI(
             url, 'GET', 'json', true, true
         );
