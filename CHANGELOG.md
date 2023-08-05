@@ -1,3 +1,8 @@
+## 1.5.1 (August 05, 2023)
+  - Merge pull request #6 from duckietown/DTSW-3742-calibration-tab-error
+  - apply same to all get_api_url in this tab
+  - Fix calibration API url formats
+
 ## 1.5.0 (June 19, 2023)
   - Merge pull request #4 from duckietown/feat-jsn-hwtst
   - use key field from dt-device-health for event
