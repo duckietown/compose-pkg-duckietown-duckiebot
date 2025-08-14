@@ -8,9 +8,9 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Linear",
-				"subtitle": "\/joy_mapper_node\/car_cmd",
+				"subtitle": "\/kinematics_node\/velocity",
 				"args": {
-					"topic": "~/joy_mapper_node\/car_cmd",
+					"topic": "~/kinematics_node\/velocity",
 					"fps": 5,
 					"field": "v",
 					"unit": "m\/s",
@@ -39,14 +39,14 @@
 				},
 				"renderer": "DuckietownMsgs_Twist2DStamped",
 				"title": "Speed - Angular",
-				"subtitle": "\/joy_mapper_node\/car_cmd",
+				"subtitle": "\/kinematics_node\/velocity",
 				"args": {
-					"topic": "~/joy_mapper_node\/car_cmd",
+					"topic": "~/kinematics_node\/velocity",
 					"fps": 5,
 					"field": "omega",
 					"unit": "rad\/s",
 					"max_value": 8,
-					"allow_negative": true
+					"allow_negative": false
 				}
 			},
 			{
