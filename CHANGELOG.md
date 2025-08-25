@@ -1,3 +1,8 @@
+## 1.5.2 (August 25, 2025)
+  - Merge pull request #7 from duckietown/DTSW-6865-Fix-the-linear-and-angular-velocity-panels-in-the-Dashboard
+  - linear and angular speed block topics changed, and angular speed block no longer allows negative values
+  - search/replace of DBR4 -> DBR
+
 ## 1.5.1 (August 05, 2023)
   - Merge pull request #6 from duckietown/DTSW-3742-calibration-tab-error
   - apply same to all get_api_url in this tab
