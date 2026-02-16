@@ -95,6 +95,7 @@
                                     "DB19",
                                     "DB21M",
                                     "DB21J",
+                                    "DB26J",
                                     "DBR",
                                     "DD18",
                                     "DD21",
@@ -117,13 +118,15 @@
                                 "values": [
                                     "raspberry_pi",
                                     "raspberry_pi_64",
-                                    "jetson_nano"
+                                    "jetson_nano",
+                                    "jetson_orin"
                                 ],
                                 "__form__": {
                                     "labels": [
                                         "Raspberry Pi",
                                         "Raspberry Pi 64",
-                                        "NVidia Jetson Nano"
+                                        "Nvidia Jetson Nano",
+                                        "Nvidia Jetson Orin"
                                     ]
                                 },
                                 "default": "raspberry_pi",
