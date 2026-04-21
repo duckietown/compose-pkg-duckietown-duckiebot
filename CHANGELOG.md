@@ -1,3 +1,6 @@
+## 1.5.4 (April 21, 2026)
+  - fix(DTSW-7781): guard `~` substitution when vehicle_name is empty
+
 ## 1.5.3 (February 16, 2026)
   - Merge pull request #8 from duckietown/DTSW-7635-Update-Dashboard-for-DB26J-to-Enable-HW-Tests
   - feat: add support for DB26J and Nvidia Jetson Orin in robot settings
