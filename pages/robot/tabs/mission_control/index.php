@@ -157,8 +157,13 @@ if ($load_mission) {
     for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
         foreach ($mission_control_grid['blocks'][$i]['args'] as $key => $value) {
             if (substr($value, 0, 1) === "~") {
-                // replace `~` with `vehicle_name`
-                $value = str_replace('~', '/' . $vehicle_name, $value);
+                // replace `~` with `/vehicle_name`, or with empty string when
+                // vehicle_name is unknown (e.g. dashboard accessed via
+                // `localhost` or an IP). Without the guard, `'/' . null` would
+                // leave a stray leading `/`, yielding topics like
+                // `//mavros/imu/data` that rosbridge rejects.
+                $replacement = !empty($vehicle_name) ? '/' . $vehicle_name : '';
+                $value = str_replace('~', $replacement, $value);
                 $mission_control_grid['blocks'][$i]['args'][$key] = $value;
             }
         }
