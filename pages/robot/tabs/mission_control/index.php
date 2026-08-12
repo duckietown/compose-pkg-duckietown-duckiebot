@@ -1,4 +1,9 @@
 <?php
+/**
+ * Mission Control tab - status bar / bridge pill chrome polish.
+ * Mission grid + ROS bridge behaviour unchanged. Status bar max-width aligned
+ * to 1040px with other robot tabs (see pages/robot/ui_features.php notes).
+ */
 use \system\classes\Core;
 use \system\classes\Database;
 use \system\packages\ros\ROS;
@@ -83,11 +88,11 @@ new MissionControlMenu(
 $load_mission = true;
 // check if the mission exists
 if ($db->size() == 0){
-  echo sprintf('<h3 class="text-center">%s</h3></div>', "No missions available!");
+  echo sprintf('<p class="robot-empty-state">%s</p>', "No missions available!");
   $load_mission = false;
 } elseif (is_null($mission_name) || !$db->key_exists($mission_name)) {
   $message = is_null($mission_name)? "No mission loaded!" : "Mission '$mission_name' not found!";
-  echo sprintf('<h3 class="text-center">%s</h3></div>', $message);
+  echo sprintf('<p class="robot-empty-state">%s</p>', htmlspecialchars($message));
   $load_mission = false;
 }
 $mission_control_grid = [];
@@ -116,40 +121,36 @@ for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
 $is_multi_robot_mission = count(array_unique($robots)) > 1;
 ?>
 
-<table style="width: 970px; margin: auto; margin-bottom: 12px">
-    <tr>
-      <?php
-      $_vehicle = ($is_multi_robot_mission)? 'Multi-robots' : $vehicle_name;
-      $_bridge_status = ($is_multi_robot_mission)?
-        '<i class="fa fa-square"></i> Multi-bridge' : '<i class="fa fa-spinner fa-pulse"></i> Connecting...';
-      ?>
-      <td class="text-left" style="width:25%; border-right: 1px solid lightgrey">
-        <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
-        <strong><?php echo $_vehicle ?></strong>
-      </td>
-      <td class="text-center" style="width:30%; border-right: 1px solid
-      lightgrey">
-        <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
-        <strong><?php echo is_null($mission_name)? '(none)' : $mission_name ?></strong>
-      </td>
-      <td class="text-center" style="width:30%; border-right: 1px solid
-      lightgrey">
-        <span id="vehicle_bridge_status">
-          <?php echo $_bridge_status ?>
-        </span>
-      </td>
-      <td class="text-right" style="width:15%">
-        <?php
-        new MissionControlConfiguration(
-          $grid_id,
-          $mission_db_package,
-          $mission_db,
-          $mission_name
-        );
-        ?>
-      </td>
-    </tr>
-</table>
+<?php
+$_vehicle = ($is_multi_robot_mission)? 'Multi-robots' : $vehicle_name;
+$_bridge_status = ($is_multi_robot_mission)?
+  '<i class="fa fa-square"></i> Multi-bridge' : '<i class="fa fa-spinner fa-pulse"></i> Connecting…';
+?>
+<div class="robot-status-bar">
+  <div class="robot-status-bar-item">
+    <i class="fa fa-car" aria-hidden="true"></i>
+    <strong><?php echo htmlspecialchars($_vehicle) ?></strong>
+  </div>
+  <div class="robot-status-bar-item">
+    <i class="fa fa-object-ungroup" aria-hidden="true"></i>
+    Mission: <strong><?php echo is_null($mission_name)? '(none)' : htmlspecialchars($mission_name) ?></strong>
+  </div>
+  <div class="robot-status-bar-item">
+    <span id="vehicle_bridge_status" class="robot-bridge-pill is-wait">
+      <?php echo $_bridge_status ?>
+    </span>
+  </div>
+  <div class="robot-status-bar-item">
+    <?php
+    new MissionControlConfiguration(
+      $grid_id,
+      $mission_db_package,
+      $mission_db,
+      $mission_name
+    );
+    ?>
+  </div>
+</div>
 
 <?php
 if ($load_mission) {
@@ -180,7 +181,16 @@ if ($load_mission) {
     );
     ?>
 
-    <div style="border-top: 1px solid lightgrey; border-bottom: 1px solid lightgrey; padding: 10px 0">
+    <style type="text/css">
+      .robot-mission-grid-frame {
+        max-width: var(--r-max, 1040px);
+        margin: 0 auto;
+        padding: var(--r-gap, 10px) 0;
+        border-top: 1px solid var(--r-border, #e6e8eb);
+        border-bottom: 1px solid var(--r-border, #e6e8eb);
+      }
+    </style>
+    <div class="robot-mission-grid-frame">
         <?php
         // render mission control grid
         $mission_control->create($opts);
@@ -194,23 +204,35 @@ if ($load_mission) {
 <script type="text/javascript">
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
     console.log('Connected to websocket server.');
-    $('#vehicle_bridge_status').html(
-      '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
-    );
+    if (typeof robot_set_bridge_status === 'function') {
+      robot_set_bridge_status('ok', '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> Bridge connected');
+    } else {
+      $('#vehicle_bridge_status').html(
+        '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
+      );
+    }
   });
 
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_ERROR) ?>', function(evt, error){
     console.log('Error connecting to websocket server: ', error);
-    $('#vehicle_bridge_status').html(
-      '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
-    );
+    if (typeof robot_set_bridge_status === 'function') {
+      robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span> Bridge error');
+    } else {
+      $('#vehicle_bridge_status').html(
+        '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
+      );
+    }
   });
 
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CLOSED) ?>', function(evt){
     console.log('Connection to websocket server closed.');
-    $('#vehicle_bridge_status').html(
-      '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
-    );
+    if (typeof robot_set_bridge_status === 'function') {
+      robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-off" aria-hidden="true"></span> Bridge closed');
+    } else {
+      $('#vehicle_bridge_status').html(
+        '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
+      );
+    }
   });
 
   $(document).ready(function() {

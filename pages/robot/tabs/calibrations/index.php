@@ -16,28 +16,80 @@ $closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
 ROS::connect($ros_hostname);
 ?>
 
-<table style="width: 970px; margin: auto; margin-bottom: 12px">
-    <tr>
-        <td class="text-left" style="width:33%">
-            <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
-            <strong><?php echo $robot_name ?></strong>
-        </td>
-        <td class="text-center"
-            style="width:33%; border-left: 1px solid lightgrey; border-right: 1px solid lightgrey">
-            Calibrations
-        </td>
-        <td class="text-center" style="width:33%; text-align: right">
-        <span id="vehicle_bridge_status">
-          <i class="fa fa-spinner fa-pulse"></i> Connecting...
-        </span>
-        </td>
-    </tr>
-</table>
+<style type="text/css">
+    .robot-calibrations {
+        max-width: var(--r-max, 1040px);
+        margin: 0 auto;
+    }
+    .robot-calibrations #calibrations_accordion {
+        margin-bottom: 0;
+    }
+    .robot-calibrations .panel {
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: var(--r-radius-md, 10px) !important;
+        overflow: hidden;
+        box-shadow: none;
+        margin-bottom: var(--r-gap, 10px);
+        transition: border-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease);
+    }
+    .robot-calibrations .panel + .panel {
+        margin-top: 0;
+    }
+    .robot-calibrations .panel:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+    }
+    .robot-calibrations .panel-heading {
+        background: var(--r-surface, #f8f9fb);
+        border-bottom: 1px solid var(--r-border, #e6e8eb);
+        padding: 10px 14px;
+        border-radius: 0;
+    }
+    .robot-calibrations .panel-title {
+        font-size: var(--r-fs-xl, 15px);
+        font-weight: var(--r-fw-semibold, 600);
+    }
+    .robot-calibrations .panel-title > a {
+        color: var(--r-text, #111827);
+        text-decoration: none;
+        display: inline-block;
+        transition: color var(--r-ease, 160ms ease);
+    }
+    .robot-calibrations .panel-title > a:hover {
+        color: var(--r-fill, #2c5686);
+    }
+    .robot-calibrations .panel-body {
+        padding: 14px;
+        font-size: var(--r-fs-lg, 13px);
+    }
+    .robot-calibrations .label {
+        border-radius: var(--r-radius-pill, 999px);
+        font-weight: var(--r-fw-semibold, 600);
+        padding: 3px 8px;
+    }
+    .robot-calibrations .table {
+        border-radius: var(--r-radius-sm, 6px);
+        overflow: hidden;
+    }
+</style>
 
-<br/>
-<h5>Use the collapsable panels below to check, backup, restore, and test your robot's
-    calibrations.</h5>
-<br/>
+<div class="robot-calibrations">
+<div class="robot-status-bar">
+    <div class="robot-status-bar-item">
+        <i class="fa fa-car" aria-hidden="true"></i>
+        <strong><?php echo htmlspecialchars($robot_name) ?></strong>
+    </div>
+    <div class="robot-status-bar-item">
+        Calibrations
+    </div>
+    <div class="robot-status-bar-item">
+        <span id="vehicle_bridge_status" class="robot-bridge-pill is-wait">
+          <i class="fa fa-spinner fa-pulse"></i> Connecting…
+        </span>
+    </div>
+</div>
+
+<p class="robot-hint">Use the panels below to check, backup, restore, and test your robot&rsquo;s calibrations.</p>
 
 <?php
 $calibrations = [
@@ -189,28 +241,41 @@ $open_calibration = "camera_intrinsic";
     }
     ?>
 </div>
+</div><!-- /.robot-calibrations -->
 
 
 <script type="text/javascript">
     $(document).on("<?php echo $connected_evt ?>", function (evt) {
         console.log('Connected to websocket server.');
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
-        );
+        if (typeof robot_set_bridge_status === 'function') {
+            robot_set_bridge_status('ok', '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> Bridge connected');
+        } else {
+            $('#vehicle_bridge_status').html(
+                '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
+            );
+        }
     });
 
     $(document).on("<?php echo $error_evt ?>", function (evt, error) {
         console.log('Error connecting to websocket server: ', error);
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
-        );
+        if (typeof robot_set_bridge_status === 'function') {
+            robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span> Bridge error');
+        } else {
+            $('#vehicle_bridge_status').html(
+                '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
+            );
+        }
     });
 
     $(document).on("<?php echo $closed_evt ?>", function (evt) {
         console.log('Connection to websocket server closed.');
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
-        );
+        if (typeof robot_set_bridge_status === 'function') {
+            robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-off" aria-hidden="true"></span> Bridge closed');
+        } else {
+            $('#vehicle_bridge_status').html(
+                '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
+            );
+        }
     });
     
     let _backup_row = `
@@ -228,7 +293,7 @@ $open_calibration = "camera_intrinsic";
                 {date}
             </td>
             <td class="text-center">
-                <button class="btn btn-warning btn-xs" onclick="_restore_backup('{calib_type}', '{origin}')">Restore</button>
+                <button class="robot-btn robot-btn-warn robot-btn-xs" onclick="_restore_backup('{calib_type}', '{origin}')">Restore</button>
             </td>
         </tr>
     `;

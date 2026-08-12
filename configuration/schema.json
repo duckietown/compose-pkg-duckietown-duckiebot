@@ -77,6 +77,45 @@
             "__form__": {
                 "title": "ROS API"
             }
+        },
+        "robot_ui" : {
+            "details" : "Feature flags for the simplified Robot page UI. Prefer toggling these over deleting UI code. See pages/robot/ui_features.php.",
+            "type" : "object",
+            "_data" : {
+                "show_power_controls" : {
+                    "type" : "boolean",
+                    "default" : false,
+                    "details" : "Show Shutdown/Reboot Power dropdown in the robot header (default hidden)."
+                },
+                "power_requires_login" : {
+                    "type" : "boolean",
+                    "default" : true,
+                    "details" : "When Power controls are enabled, require a signed-in dashboard user."
+                },
+                "modern_overview" : {
+                    "type" : "boolean",
+                    "default" : true,
+                    "details" : "Use redesigned Overview meters. false → legacy Chart.js gauges (pages/robot/legacy/info_chartjs_overview.php)."
+                },
+                "modern_architecture" : {
+                    "type" : "boolean",
+                    "default" : true,
+                    "details" : "Use redesigned Architecture layout + rosbridge fallback. false → legacy full-bleed page."
+                },
+                "architecture_rosbridge_fallback" : {
+                    "type" : "boolean",
+                    "default" : true,
+                    "details" : "If /ros HTTP API is down, build Architecture graph via rosbridge /rosapi."
+                },
+                "simplify_robot_settings" : {
+                    "type" : "boolean",
+                    "default" : true,
+                    "details" : "Hide advanced Robot Settings groups unless core developer_mode is on."
+                }
+            },
+            "__form__": {
+                "title": "Robot UI flags"
+            }
         }
     }
 }

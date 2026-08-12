@@ -55,7 +55,7 @@ $update_hz = 1.0;
     }
     
     ._robot_software_module ._robot_software_module_icon i.fa{
-        font-size: 18pt;
+        font-size: var(--r-fs-icon, 24px);
     }
     
     ._robot_software_module ._robot_software_module_info{
@@ -102,7 +102,7 @@ $update_hz = 1.0;
     ._robot_software_module ._robot_software_module_status_desc {
         /*font-family: monospace;*/
         margin-top: -20px;
-        font-size: 9pt;
+        font-size: var(--r-fs-xs, 10px);
     }
 </style>
 
@@ -148,7 +148,7 @@ $update_hz = 1.0;
                                 <button type="button" class="btn btn-{btn_style}" {btn_html} onclick="update_module('{name}')">
                                     <i class="fa fa-{btn_icon}" aria-hidden="true"></i>&nbsp; {btn_label}
                                 </button>
-                                <button type="button" class="btn btn-{btn_style} dropdown-toggle" {btn_html} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="height: 34px">
+                                <button type="button" class="btn btn-{btn_style} dropdown-toggle" {btn_html} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="caret"></span>
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>

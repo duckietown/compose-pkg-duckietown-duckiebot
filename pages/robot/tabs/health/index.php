@@ -10,59 +10,95 @@ $dbot_hostname = Core::getSetting(
 $update_hz = 0.5;
 ?>
 
-<br/>
-<h4>Temperature</h4>
-<canvas id="_robot_temp_canvas" style="width:100%; height:250px"></canvas>
+<style type="text/css">
+    .robot-health {
+        max-width: var(--r-max, 1040px);
+        margin: 0 auto;
+    }
+    .robot-health-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--r-gap, 10px);
+    }
+    @media (min-width: 900px) {
+        .robot-health-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    .robot-health-card {
+        background: #fff;
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: var(--r-radius-md, 10px);
+        padding: 12px 14px;
+        transition: border-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease);
+    }
+    .robot-health-card:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+    }
+    .robot-health-card h4 {
+        margin: 0 0 8px 0;
+        font-size: var(--r-fs-md, 12px);
+        font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-muted, #6b7280);
+        text-transform: uppercase;
+        letter-spacing: var(--r-tracking-label, 0.04em);
+    }
+    .robot-health-card canvas {
+        width: 100% !important;
+        height: 220px !important;
+    }
+</style>
 
-
-<br/>
-<h4>CPU Frequency</h4>
-<canvas id="_robot_fcpu_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>CPU Usage</h4>
-<canvas id="_robot_pcpu_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>RAM Usage</h4>
-<canvas id="_robot_pmem_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>Swap Usage</h4>
-<canvas id="_robot_pswap_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>GPU Usage</h4>
-<canvas id="_robot_pgpu_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>GPU Memory</h4>
-<canvas id="_robot_mgpu_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>GPU Temperature</h4>
-<canvas id="_robot_tgpu_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>GPU Wattage</h4>
-<canvas id="_robot_wgpu_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>CPU Voltage</h4>
-<canvas id="_robot_cpu_voltage_canvas" style="width:100%; height:250px"></canvas>
-
-
-<br/>
-<h4>RAM Voltage</h4>
-<canvas id="_robot_ram_voltage_canvas" style="width:100%; height:250px"></canvas>
+<div class="robot-health">
+    <p class="robot-hint">Live telemetry history (last ~60 samples). Hover a card for focus; values update automatically.</p>
+    <div class="robot-health-grid">
+        <div class="robot-health-card">
+            <h4>Temperature</h4>
+            <canvas id="_robot_temp_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>CPU Frequency</h4>
+            <canvas id="_robot_fcpu_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>CPU Usage</h4>
+            <canvas id="_robot_pcpu_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>RAM Usage</h4>
+            <canvas id="_robot_pmem_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>Swap Usage</h4>
+            <canvas id="_robot_pswap_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>GPU Usage</h4>
+            <canvas id="_robot_pgpu_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>GPU Memory</h4>
+            <canvas id="_robot_mgpu_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>GPU Temperature</h4>
+            <canvas id="_robot_tgpu_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>GPU Wattage</h4>
+            <canvas id="_robot_wgpu_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>CPU Voltage</h4>
+            <canvas id="_robot_cpu_voltage_canvas"></canvas>
+        </div>
+        <div class="robot-health-card">
+            <h4>RAM Voltage</h4>
+            <canvas id="_robot_ram_voltage_canvas"></canvas>
+        </div>
+    </div>
+</div>
 
 
 <script type="text/javascript">
