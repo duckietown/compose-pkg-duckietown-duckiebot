@@ -739,6 +739,38 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     line-height: var(--r-lh);
 }
 
+.robot-auth-gate {
+    max-width: 480px;
+    margin: 40px auto 24px;
+    padding: 28px 28px 24px;
+    border: 1px solid var(--r-border);
+    border-radius: var(--r-radius-md);
+    background: #fff;
+    text-align: center;
+}
+.robot-auth-gate-icon {
+    font-size: 28px;
+    line-height: 1;
+    color: var(--r-fill);
+    margin-bottom: 10px;
+}
+.robot-auth-gate h3 {
+    margin: 0 0 8px;
+    font-size: var(--r-fs-title);
+    font-weight: var(--r-fw-semibold);
+    letter-spacing: var(--r-tracking-tight);
+    color: var(--r-text);
+}
+.robot-auth-gate p {
+    margin: 0 0 18px;
+    font-size: var(--r-fs-lg);
+    color: var(--r-muted);
+    line-height: var(--r-lh);
+}
+.robot-auth-gate .robot-btn .fa {
+    margin-right: 6px;
+}
+
 /* Full-height embeds for File Manager / Portainer tabs */
 .robot-embed {
     position: relative;
