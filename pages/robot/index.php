@@ -16,6 +16,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
 $dbot_name = Duckiebot::getDuckiebotName();
 $user_logged_in = Core::isUserLoggedIn();
 $display_name = $dbot_name ?: $dbot_hostname;
+$navbar_title = trim((string) Core::getSetting('navbar_title'));
+$repeat_page_title = (strcasecmp($display_name, $navbar_title) !== 0);
 
 // Primary robot-operation tabs first; secondary / deeper tools after.
 // (Former label "Info" was renamed to "Overview" for operator clarity.)
@@ -26,7 +28,7 @@ $tabs = [
     ],
     'mission_control' => [
         'name' => 'Mission Control',
-        'icon' => 'dashboard'
+        'icon' => 'th-large'
     ],
     'components' => [
         'name' => 'Components',
@@ -34,7 +36,7 @@ $tabs = [
     ],
     'health' => [
         'name' => 'Health',
-        'icon' => 'medkit'
+        'icon' => 'heartbeat'
     ],
     'architecture' => [
         'name' => 'Architecture',
@@ -42,7 +44,15 @@ $tabs = [
     ],
     'calibrations' => [
         'name' => 'Calibrations',
-        'icon' => 'dot-circle-o'
+        'icon' => 'crosshairs'
+    ],
+    'file_manager' => [
+        'name' => 'File Manager',
+        'icon' => 'folder'
+    ],
+    'portainer' => [
+        'name' => 'Portainer',
+        'icon' => 'cubes'
     ],
     'settings' => [
         'name' => 'Robot Settings',
@@ -156,8 +166,10 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     align-items: center;
     justify-content: space-between;
     gap: var(--r-gap-lg);
-    margin: 0 0 6px 0;
-    padding-bottom: 6px;
+    max-width: var(--r-max);
+    width: 100%;
+    margin: 0 auto 8px auto;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--r-border);
 }
 .robot-page-header h2 {
@@ -169,19 +181,21 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 }
 .robot-page-header .robot-page-subtitle {
     display: block;
-    margin-top: 1px;
+    margin-top: 4px;
     font-size: var(--r-fs-sm);
     font-weight: var(--r-fw-normal);
     color: var(--r-muted);
 }
 #_robot_tab_btns {
+    max-width: var(--r-max);
+    width: 100%;
+    margin: 0 auto;
     border-bottom: 1px solid var(--r-border);
-    margin-bottom: 0;
 }
 #_robot_tab_btns > li > a {
     color: #555;
     border-radius: var(--r-radius-sm) var(--r-radius-sm) 0 0;
-    padding: 6px 11px;
+    padding: 7px 10px;
     font-size: var(--r-fs-md);
     font-weight: var(--r-fw-normal);
     transition: color var(--r-ease), background-color var(--r-ease), border-color var(--r-ease);
@@ -203,10 +217,21 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     outline-offset: 1px;
 }
 #_robot_tab_btns > li > a > i.fa {
-    opacity: 0.7;
-    font-size: var(--r-fs-md);
+    display: inline-block;
+    width: 1.15em;
+    margin-right: 2px;
+    text-align: center;
+    opacity: 0.55;
+    font-size: 12px;
+    line-height: 1;
+}
+#_robot_tab_btns > li.active > a > i.fa {
+    opacity: 0.85;
 }
 #_logs_tab_container {
+    max-width: var(--r-max);
+    width: 100%;
+    margin: 0 auto;
     padding-top: var(--r-gap-lg) !important;
 }
 
@@ -236,6 +261,11 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-status-bar .robot-status-bar-item strong {
     color: var(--r-text);
     font-weight: var(--r-fw-semibold);
+}
+.robot-status-bar .robot-status-bar-tools {
+    margin-left: auto;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 .robot-status-bar .robot-bridge-pill,
 .robot-bridge-pill {
@@ -708,15 +738,37 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     color: var(--r-muted);
     line-height: var(--r-lh);
 }
+
+/* Full-height embeds for File Manager / Portainer tabs */
+.robot-embed {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 210px);
+    min-height: 480px;
+    border: 1px solid var(--r-border);
+    border-radius: var(--r-radius-md);
+    overflow: hidden;
+    background: #fff;
+}
+.robot-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
 </style>
 
 <div class="robot-page">
+<?php if ($repeat_page_title || $show_power) { ?>
 <div class="robot-page-header">
     <div>
+        <?php if ($repeat_page_title) { ?>
         <h2 class="page-title-static" style="border:0; margin:0; padding:0;">
             <?php echo htmlspecialchars($display_name) ?>
             <span class="robot-page-subtitle"><?php echo htmlspecialchars($dbot_hostname) ?></span>
         </h2>
+        <?php } ?>
     </div>
     <?php
     /*
@@ -732,19 +784,19 @@ $show_power = RobotUIFeatures::should_render_power_controls();
         <div class="btn-group" role="group">
             <button type="button" class="robot-btn robot-btn-warn robot-btn-sm dropdown-toggle" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false">
-                <span class="glyphicon glyphicon-flash" aria-hidden="true"></span> Power
+                <i class="fa fa-bolt" aria-hidden="true"></i> Power
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-right">
                 <li>
                     <a href="#" class="robot_power_btn" data-trigger="shutdown">
-                        <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                        <i class="fa fa-power-off" aria-hidden="true"></i>
                         &nbsp; Shutdown
                     </a>
                 </li>
                 <li>
                     <a href="#" class="robot_power_btn" data-trigger="reboot">
-                        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                        <i class="fa fa-refresh" aria-hidden="true"></i>
                         &nbsp; Reboot
                     </a>
                 </li>
@@ -755,6 +807,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     }
     ?>
 </div>
+<?php } ?>
 
 <!-- Nav tabs -->
 <ul class="nav nav-tabs" id="_robot_tab_btns" role="tablist">

@@ -74,8 +74,8 @@ if ($db->size() > 0 && is_null($mission_name)) {
   }
 }
 
-// create a mission control menu to the left
-new MissionControlMenu(
+// create mission tools (modals + JS); toolbar is rendered in the status bar
+$mc_menu = new MissionControlMenu(
   $grid_id,
   'left',
   $mission_db_package,
@@ -132,16 +132,16 @@ $_bridge_status = ($is_multi_robot_mission)?
     <strong><?php echo htmlspecialchars($_vehicle) ?></strong>
   </div>
   <div class="robot-status-bar-item">
-    <i class="fa fa-object-ungroup" aria-hidden="true"></i>
-    Mission: <strong><?php echo is_null($mission_name)? '(none)' : htmlspecialchars($mission_name) ?></strong>
+    Mission <strong><?php echo is_null($mission_name)? '(none)' : htmlspecialchars($mission_name) ?></strong>
   </div>
   <div class="robot-status-bar-item">
     <span id="vehicle_bridge_status" class="robot-bridge-pill is-wait">
       <?php echo $_bridge_status ?>
     </span>
   </div>
-  <div class="robot-status-bar-item">
+  <div class="robot-status-bar-item robot-status-bar-tools">
     <?php
+    $mc_menu->render_toolbar();
     new MissionControlConfiguration(
       $grid_id,
       $mission_db_package,
@@ -185,9 +185,7 @@ if ($load_mission) {
       .robot-mission-grid-frame {
         max-width: var(--r-max, 1040px);
         margin: 0 auto;
-        padding: var(--r-gap, 10px) 0;
-        border-top: 1px solid var(--r-border, #e6e8eb);
-        border-bottom: 1px solid var(--r-border, #e6e8eb);
+        padding: 4px 0 0;
       }
     </style>
     <div class="robot-mission-grid-frame">
@@ -205,10 +203,10 @@ if ($load_mission) {
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
     console.log('Connected to websocket server.');
     if (typeof robot_set_bridge_status === 'function') {
-      robot_set_bridge_status('ok', '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> Bridge connected');
+      robot_set_bridge_status('ok', '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge connected');
     } else {
       $('#vehicle_bridge_status').html(
-        '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
+        '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge: <strong>Connected</strong>'
       );
     }
   });
@@ -216,10 +214,10 @@ if ($load_mission) {
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_ERROR) ?>', function(evt, error){
     console.log('Error connecting to websocket server: ', error);
     if (typeof robot_set_bridge_status === 'function') {
-      robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span> Bridge error');
+      robot_set_bridge_status('bad', '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge error');
     } else {
       $('#vehicle_bridge_status').html(
-        '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
+        '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge: <strong>Error</strong>'
       );
     }
   });
@@ -227,10 +225,10 @@ if ($load_mission) {
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CLOSED) ?>', function(evt){
     console.log('Connection to websocket server closed.');
     if (typeof robot_set_bridge_status === 'function') {
-      robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-off" aria-hidden="true"></span> Bridge closed');
+      robot_set_bridge_status('bad', '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge closed');
     } else {
       $('#vehicle_bridge_status').html(
-        '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
+        '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge: <strong>Closed</strong>'
       );
     }
   });

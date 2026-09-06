@@ -267,10 +267,10 @@ ROS::connect($ros_hostname);
     $(document).on("<?php echo $connected_evt ?>", function (evt) {
         console.log('Connected to websocket server.');
         if (typeof robot_set_bridge_status === 'function') {
-            robot_set_bridge_status('ok', '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> Bridge connected');
+            robot_set_bridge_status('ok', '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge connected');
         } else {
             $('#vehicle_bridge_status').html(
-                '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
+                '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge: <strong>Connected</strong>'
             );
         }
     });
@@ -278,10 +278,10 @@ ROS::connect($ros_hostname);
     $(document).on("<?php echo $error_evt ?>", function (evt, error) {
         console.log('Error connecting to websocket server: ', error);
         if (typeof robot_set_bridge_status === 'function') {
-            robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span> Bridge error');
+            robot_set_bridge_status('bad', '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge error');
         } else {
             $('#vehicle_bridge_status').html(
-                '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
+                '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge: <strong>Error</strong>'
             );
         }
     });
@@ -289,10 +289,10 @@ ROS::connect($ros_hostname);
     $(document).on("<?php echo $closed_evt ?>", function (evt) {
         console.log('Connection to websocket server closed.');
         if (typeof robot_set_bridge_status === 'function') {
-            robot_set_bridge_status('bad', '<span class="glyphicon glyphicon-off" aria-hidden="true"></span> Bridge closed');
+            robot_set_bridge_status('bad', '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge closed');
         } else {
             $('#vehicle_bridge_status').html(
-                '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
+                '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge: <strong>Closed</strong>'
             );
         }
     });

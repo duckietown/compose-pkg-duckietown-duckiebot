@@ -145,6 +145,21 @@ class RobotUIFeatures
     }
 
     /**
+     * Allow turning off anonymous usage stats.
+     * Review: stats stay on unless the operator has a premium subscription.
+     * There is no premium detector in this dashboard yet; default locked on.
+     * Enable this flag (or ROBOT_UI_ALLOW_DISABLE_ANONYMOUS_USAGE) to unlock.
+     */
+    public static function allow_disable_anonymous_usage()
+    {
+        return self::flag(
+            'ALLOW_DISABLE_ANONYMOUS_USAGE',
+            'allow_disable_anonymous_usage',
+            false
+        );
+    }
+
+    /**
      * Whether Power controls should render for the current request.
      */
     public static function should_render_power_controls()

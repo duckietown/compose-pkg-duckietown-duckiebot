@@ -111,6 +111,11 @@
                     "type" : "boolean",
                     "default" : true,
                     "details" : "Hide advanced Robot Settings groups unless core developer_mode is on."
+                },
+                "allow_disable_anonymous_usage" : {
+                    "type" : "boolean",
+                    "default" : false,
+                    "details" : "Allow turning off anonymous usage stats. Default off (locked on) until a premium subscription unlocks it."
                 }
             },
             "__form__": {

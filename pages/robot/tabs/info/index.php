@@ -2,8 +2,8 @@
 /**
  * Modern Overview tab (default).
  *
- * Redesigned temperature thermometer + horizontal CPU/RAM/Disk/Battery meters.
- * Legacy Chart.js version is preserved at:
+ * Shared meter + chip + strip language for temperature, CPU/RAM/Disk,
+ * battery, connection, and power/thermal. Legacy Chart.js version:
  *   pages/robot/legacy/info_chartjs_overview.php
  * Toggle via RobotUIFeatures::modern_overview() / robot_ui/modern_overview.
  *
@@ -15,52 +15,68 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 $update_hz = 0.5;
 
 $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
+$network_snapshot = Duckiebot::getNetworkSnapshot();
+$dbot_hostname = Duckiebot::getDuckiebotHostname();
 ?>
 
 <style type="text/css">
     .robot-overview {
         max-width: var(--r-max, 1040px);
         margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .robot-overview-identity {
         display: flex;
         flex-wrap: wrap;
         gap: 6px 18px;
-        align-items: center;
-        padding: 8px 12px;
-        margin-bottom: var(--r-gap-lg, 12px);
+        align-items: baseline;
+        padding: 10px 12px;
         background: var(--r-surface, #f8f9fb);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
-        font-size: var(--r-fs-md, 12px);
+        font-size: var(--r-fs-xs, 10px);
+        font-weight: var(--r-fw-semibold, 600);
+        text-transform: uppercase;
+        letter-spacing: var(--r-tracking-label, 0.04em);
         color: var(--r-muted, #6b7280);
     }
     .robot-overview-identity .meta-item strong {
         color: var(--r-text, #111827);
+        font-size: var(--r-fs-md, 12px);
         font-weight: var(--r-fw-semibold, 600);
+        letter-spacing: 0;
+        text-transform: none;
         margin-left: 4px;
     }
 
     .robot-overview-layout {
         display: grid;
-        grid-template-columns: minmax(220px, 280px) 1fr;
-        gap: var(--r-gap-lg, 12px);
-        align-items: start;
+        grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+        gap: 12px;
+        align-items: stretch;
     }
     @media (max-width: 820px) {
         .robot-overview-layout {
             grid-template-columns: 1fr;
+        }
+        .robot-overview-thumb {
+            max-width: 280px;
+            margin: 0 auto;
+            width: 100%;
         }
     }
 
     .robot-overview-thumb {
         position: relative;
         aspect-ratio: 1 / 1;
-        background: #fafbfc;
+        background: #fff;
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         overflow: hidden;
+        min-height: 0;
     }
     .robot-overview-thumb img {
         position: absolute;
@@ -74,11 +90,15 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     .robot-metrics {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: var(--r-gap, 10px);
+        grid-template-rows: 1fr 1fr;
+        gap: 12px;
+        min-height: 0;
+        height: 100%;
     }
     @media (max-width: 560px) {
         .robot-metrics {
             grid-template-columns: 1fr;
+            grid-template-rows: none;
         }
     }
 
@@ -87,37 +107,26 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         padding: 12px 14px;
-        min-height: 88px;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 8px;
-        transition: border-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease), transform var(--r-ease, 160ms ease);
-    }
-    .robot-metric:hover {
-        border-color: #d1d5db;
-        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
-    }
-    .robot-metric.is-wide {
-        grid-column: 1 / -1;
+        gap: 10px;
     }
     .robot-metric-head {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
         gap: 8px;
+        flex: 0 0 auto;
     }
     .robot-metric-label {
         margin: 0;
-        font-size: var(--r-fs-md, 12px);
+        font-size: var(--r-fs-xs, 10px);
         font-weight: var(--r-fw-semibold, 600);
         color: var(--r-muted, #6b7280);
         text-transform: uppercase;
         letter-spacing: var(--r-tracking-label, 0.04em);
-    }
-    .robot-metric-label i {
-        margin-right: 4px;
-        opacity: 0.8;
     }
     .robot-metric-value {
         font-size: var(--r-fs-value, 22px);
@@ -128,6 +137,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         font-variant-numeric: tabular-nums;
     }
     .robot-metric-sub {
+        margin-left: 6px;
         font-size: var(--r-fs-sm, 11px);
         color: var(--r-muted, #6b7280);
         font-weight: var(--r-fw-medium, 500);
@@ -138,6 +148,7 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         background: var(--r-track, #eef0f3);
         border-radius: var(--r-radius-pill, 999px);
         overflow: hidden;
+        flex: 0 0 auto;
     }
     .robot-meter > span {
         display: block;
@@ -152,29 +163,34 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     .robot-meter.is-bad > span { background: var(--r-bad, #b91c1c); }
 
     .robot-temp-gauge {
-        position: relative;
-        margin-top: 4px;
+        flex: 0 0 auto;
+        margin-top: auto;
     }
     .robot-temp-track {
         position: relative;
         display: flex;
-        height: 14px;
+        height: 8px;
         border-radius: var(--r-radius-pill, 999px);
-        overflow: hidden;
+        overflow: visible;
         background: var(--r-track, #eef0f3);
     }
-    .robot-temp-zone {
+    .robot-temp-track-fill {
+        display: flex;
+        width: 100%;
         height: 100%;
+        border-radius: var(--r-radius-pill, 999px);
+        overflow: hidden;
     }
+    .robot-temp-zone { height: 100%; }
     .robot-temp-zone.z-cool { width: 50%; background: #60a5fa; }
     .robot-temp-zone.z-ok   { width: 20%; background: #34d399; }
     .robot-temp-zone.z-warm { width: 15%; background: #fbbf24; }
     .robot-temp-zone.z-hot  { width: 15%; background: #f87171; }
     .robot-temp-marker {
         position: absolute;
-        top: -5px;
+        top: -4px;
         width: 3px;
-        height: 24px;
+        height: 16px;
         margin-left: -1.5px;
         background: #111827;
         border-radius: 2px;
@@ -182,12 +198,13 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         transition: left 0.35s ease;
         left: 0%;
         z-index: 2;
+        pointer-events: none;
     }
     .robot-temp-scale {
         position: relative;
         height: 14px;
-        margin-top: 6px;
-        font-size: var(--r-fs-xs, 10px);
+        margin-top: 4px;
+        font-size: 9px;
         color: var(--r-muted, #6b7280);
         font-variant-numeric: tabular-nums;
     }
@@ -199,70 +216,145 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     }
     .robot-temp-scale > span:first-child { transform: translateX(0); }
     .robot-temp-scale > span:last-child { transform: translateX(-100%); }
-    .robot-metric.is-cool .robot-metric-value { color: #2563eb; }
-    .robot-metric.is-ok .robot-metric-value { color: var(--r-ok, #047857); }
-    .robot-metric.is-warn .robot-metric-value { color: var(--r-warn, #b45309); }
-    .robot-metric.is-bad .robot-metric-value { color: var(--r-bad, #b91c1c); }
+    .robot-metric-sub.is-cool { color: #2563eb; }
+    .robot-metric-sub.is-ok { color: var(--r-ok, #047857); }
+    .robot-metric-sub.is-warn { color: var(--r-warn, #b45309); }
+    .robot-metric-sub.is-bad { color: var(--r-bad, #b91c1c); }
 
-    .robot-health-bits-subtle {
-        margin-top: var(--r-gap-lg, 12px);
+    .robot-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: var(--r-radius-pill, 999px);
+        border: 1px solid var(--r-border, #e6e8eb);
+        background: var(--r-surface, #f8f9fb);
+        color: var(--r-text, #111827);
+        font-size: var(--r-fs-sm, 11px);
+        font-weight: var(--r-fw-semibold, 600);
+        line-height: 1.2;
+    }
+    .robot-chip.is-ok {
+        border-color: var(--r-ok-border, #bbf7d0);
+        background: var(--r-ok-bg, #ecfdf3);
+        color: var(--r-ok, #047857);
+    }
+    .robot-chip.is-warn {
+        border-color: var(--r-warn-border, #fde68a);
+        background: var(--r-warn-bg, #fffbeb);
+        color: var(--r-warn, #b45309);
+    }
+    .robot-chip.is-bad {
+        border-color: var(--r-bad-border, #fecaca);
+        background: var(--r-bad-bg, #fef2f2);
+        color: var(--r-bad, #b91c1c);
+    }
+    .robot-chip.is-hidden {
+        display: none;
+    }
+
+    .robot-strip {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 6px;
-        padding: 10px 0 0;
-        border-top: 1px solid var(--r-border, #e6e8eb);
-        min-height: 28px;
-    }
-    .robot-health-bits-subtle .bits-label {
-        font-size: var(--r-fs-xs, 10px);
+        gap: 8px 14px;
+        padding: 10px 12px;
+        background: var(--r-surface, #f8f9fb);
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: var(--r-radius-md, 10px);
+        font-size: var(--r-fs-md, 12px);
         color: var(--r-muted, #6b7280);
+    }
+    .robot-strip .strip-label {
+        font-size: var(--r-fs-xs, 10px);
+        font-weight: var(--r-fw-semibold, 600);
         text-transform: uppercase;
         letter-spacing: var(--r-tracking-label, 0.04em);
-        margin-right: 4px;
     }
-    .robot-health-bits-subtle .pt-chip {
-        position: relative;
+    .robot-strip .strip-item {
         display: inline-flex;
-        align-items: center;
+        align-items: baseline;
         gap: 4px;
-        font-size: var(--r-fs-sm, 11px);
+        white-space: nowrap;
+    }
+    .robot-strip .strip-item[hidden] {
+        display: none !important;
+    }
+    .robot-strip .strip-item strong {
+        color: var(--r-text, #111827);
         font-weight: var(--r-fw-semibold, 600);
-        padding: 4px 10px;
-        border-radius: var(--r-radius-pill, 999px);
-        border: 1px solid transparent;
-        background: #f3f4f6;
-        color: var(--r-muted, #6b7280);
-        line-height: 1.2;
-        user-select: none;
     }
-    .robot-health-bits-subtle .pt-chip.is-ok {
-        background: var(--r-ok-bg, #ecfdf3);
-        color: #15803d;
-        border-color: var(--r-ok-border, #bbf7d0);
+
+    .robot-batt-diag {
+        padding: 12px 14px;
+        background: #fff;
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: var(--r-radius-md, 10px);
     }
-    .robot-health-bits-subtle .pt-chip.is-warn {
-        background: var(--r-warn-bg, #fffbeb);
-        color: #b45309;
-        border-color: var(--r-warn-border, #fde68a);
+    .robot-batt-diag-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin-bottom: 10px;
     }
-    .robot-health-bits-subtle .pt-chip.is-bad {
-        background: var(--r-bad-bg, #fef2f2);
-        color: #b91c1c;
-        border-color: var(--r-bad-border, #fecaca);
-    }
-    .robot-health-bits-subtle .pt-chip.is-hidden {
-        display: none;
-    }
-    .robot-health-bits-subtle .pt-chip .fa-info-circle {
-        opacity: 0.55;
+    .robot-batt-diag-head .batt-diag-label {
         font-size: var(--r-fs-xs, 10px);
+        font-weight: var(--r-fw-semibold, 600);
+        text-transform: uppercase;
+        letter-spacing: var(--r-tracking-label, 0.04em);
+        color: var(--r-muted, #6b7280);
+    }
+    .robot-batt-diag-head .robot-metric-value {
+        margin-left: auto;
+    }
+    .robot-batt-diag .robot-meter {
+        margin: 0 0 12px;
+    }
+    .robot-batt-diag-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--r-border, #e6e8eb);
+    }
+    @media (max-width: 720px) {
+        .robot-batt-diag-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 420px) {
+        .robot-batt-diag-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .robot-batt-diag-item span {
+        display: block;
+        font-size: var(--r-fs-xs, 10px);
+        font-weight: var(--r-fw-semibold, 600);
+        text-transform: uppercase;
+        letter-spacing: var(--r-tracking-label, 0.04em);
+        color: var(--r-muted, #6b7280);
+        margin-bottom: 2px;
+    }
+    .robot-batt-diag-item strong {
+        display: block;
+        font-size: var(--r-fs-lg, 13px);
+        font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-text, #111827);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: var(--r-tracking-tight, -0.02em);
+    }
+    .robot-batt-diag.is-missing .robot-batt-diag-grid,
+    .robot-batt-diag.is-missing .robot-meter {
+        opacity: 0.45;
     }
 </style>
 
 
 <div class="robot-overview">
     <div class="robot-overview-identity robot-info-container">
+        <span class="meta-item">Host<strong><?php echo htmlspecialchars($dbot_hostname) ?></strong></span>
         <span class="meta-item">Type<strong id="robot_type"><img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height:12px"></strong></span>
         <span class="meta-item">Config<strong id="robot_configuration"><img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height:12px"></strong></span>
         <span class="meta-item">Board<strong id="hardware_board"><img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="" style="height:12px"></strong></span>
@@ -276,30 +368,26 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         </div>
 
         <div class="robot-metrics">
-            <div class="robot-metric is-wide robot-tip robot-interactive" id="metric_temp" tabindex="0" role="button" aria-expanded="false">
-                <div class="robot-tip-bubble">
-                    <strong>Board temperature</strong>
-                    Cool &lt;50°C · Normal 50–70°C · Warm 70–85°C · Hot ≥85°C. Sustained heat can trigger throttling.
-                </div>
+            <div class="robot-metric" id="metric_temp">
                 <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">
-                        <i class="fa fa-thermometer-half" aria-hidden="true"></i> Temperature
-                    </h4>
+                    <h4 class="robot-metric-label">CPU temperature</h4>
                     <div>
-                        <span class="robot-metric-value" id="_robot_temp_value">—</span>
+                        <span class="robot-metric-value" id="_robot_temp_value">-</span>
                         <span class="robot-metric-sub" id="_robot_temp_status"></span>
                     </div>
                 </div>
                 <div class="robot-temp-gauge">
                     <div class="robot-temp-track">
-                        <span class="robot-temp-zone z-cool"></span>
-                        <span class="robot-temp-zone z-ok"></span>
-                        <span class="robot-temp-zone z-warm"></span>
-                        <span class="robot-temp-zone z-hot"></span>
+                        <div class="robot-temp-track-fill">
+                            <span class="robot-temp-zone z-cool"></span>
+                            <span class="robot-temp-zone z-ok"></span>
+                            <span class="robot-temp-zone z-warm"></span>
+                            <span class="robot-temp-zone z-hot"></span>
+                        </div>
                         <span class="robot-temp-marker" id="_robot_temp_marker"></span>
                     </div>
                     <div class="robot-temp-scale">
-                        <span style="left:0%">0°C</span>
+                        <span style="left:0%">0</span>
                         <span style="left:50%">50</span>
                         <span style="left:70%">70</span>
                         <span style="left:85%">85</span>
@@ -308,124 +396,82 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
                 </div>
             </div>
 
-            <div class="robot-metric robot-tip robot-interactive" id="metric_cpu" tabindex="0" role="button" aria-expanded="false">
-                <div class="robot-tip-bubble">
-                    <strong>CPU usage</strong>
-                    Average processor load. High sustained usage can raise temperature and reduce headroom for autonomy.
-                </div>
+            <div class="robot-metric" id="metric_cpu">
                 <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">
-                        <i class="fa fa-server" aria-hidden="true"></i> CPU
-                    </h4>
-                    <span class="robot-metric-value" id="_robot_pcpu_value">—</span>
+                    <h4 class="robot-metric-label">CPU</h4>
+                    <span class="robot-metric-value" id="_robot_pcpu_value">-</span>
                 </div>
                 <div class="robot-meter" id="_robot_pcpu_meter"><span></span></div>
             </div>
 
-            <div class="robot-metric robot-tip robot-interactive" id="metric_ram" tabindex="0" role="button" aria-expanded="false">
-                <div class="robot-tip-bubble">
-                    <strong>Memory usage</strong>
-                    RAM currently in use. Very high usage can slow processes or cause swapping.
-                </div>
+            <div class="robot-metric" id="metric_ram">
                 <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">
-                        <i class="fa fa-microchip" aria-hidden="true"></i> RAM
-                    </h4>
-                    <span class="robot-metric-value" id="_robot_ram_value">—</span>
+                    <h4 class="robot-metric-label">RAM</h4>
+                    <span class="robot-metric-value" id="_robot_ram_value">-</span>
                 </div>
                 <div class="robot-meter" id="_robot_ram_meter"><span></span></div>
             </div>
 
-            <div class="robot-metric robot-tip robot-interactive" id="metric_disk" tabindex="0" role="button" aria-expanded="false">
-                <div class="robot-tip-bubble">
-                    <strong>Disk usage</strong>
-                    Storage filled on the robot. Keep free space for logs, maps, and container images.
-                </div>
+            <div class="robot-metric" id="metric_disk">
                 <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">
-                        <i class="fa fa-hdd-o" aria-hidden="true"></i> Disk
-                    </h4>
-                    <span class="robot-metric-value" id="_robot_disk_value">—</span>
+                    <h4 class="robot-metric-label">Disk</h4>
+                    <span class="robot-metric-value" id="_robot_disk_value">-</span>
                 </div>
                 <div class="robot-meter" id="_robot_disk_meter"><span></span></div>
-            </div>
-
-            <div class="robot-metric robot-tip robot-interactive" id="metric_batt" tabindex="0" role="button" aria-expanded="false">
-                <div class="robot-tip-bubble">
-                    <strong>Battery</strong>
-                    Charge remaining when a battery sensor is available. ND means not detected on this configuration.
-                </div>
-                <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">
-                        <i class="fa fa-battery-three-quarters" aria-hidden="true"></i> Battery
-                    </h4>
-                    <div style="text-align:right">
-                        <span class="robot-metric-value" id="_robot_batt_value">—</span>
-                        <div class="robot-metric-sub" id="_robot_battery_details"></div>
-                    </div>
-                </div>
-                <div class="robot-meter" id="_robot_batt_meter"><span></span></div>
             </div>
         </div>
     </div>
 
-    <div class="robot-health-bits-container robot-health-bits-subtle" id="robot_power_thermal" aria-live="polite">
-        <span class="bits-label">Power / thermal</span>
-        <span class="pt-chip is-ok robot-tip robot-interactive" id="pt_summary_ok" tabindex="0" role="button" aria-expanded="false">
+    <div class="robot-batt-diag" id="robot_battery_diag" aria-live="polite">
+        <div class="robot-batt-diag-head">
+            <span class="batt-diag-label">Battery</span>
+            <span class="robot-chip" id="batt_diag_present"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
+            <span class="robot-chip" id="batt_diag_charging">-</span>
+            <span class="robot-metric-value" id="_robot_batt_value">-</span>
+        </div>
+        <div class="robot-meter" id="_robot_batt_meter"><span></span></div>
+        <div class="robot-batt-diag-grid" id="metric_batt">
+            <div class="robot-batt-diag-item"><span>Cell</span><strong id="batt_diag_cell">-</strong></div>
+            <div class="robot-batt-diag-item"><span>Input</span><strong id="batt_diag_input">-</strong></div>
+            <div class="robot-batt-diag-item"><span>Current</span><strong id="batt_diag_current">-</strong></div>
+            <div class="robot-batt-diag-item"><span>Pack temp</span><strong id="batt_diag_temp">-</strong></div>
+            <div class="robot-batt-diag-item"><span>USB 1</span><strong id="batt_diag_usb1">-</strong></div>
+            <div class="robot-batt-diag-item"><span>USB 2</span><strong id="batt_diag_usb2">-</strong></div>
+            <div class="robot-batt-diag-item"><span>Cycles</span><strong id="batt_diag_cycles">-</strong></div>
+            <div class="robot-batt-diag-item"><span>Time left</span><strong id="batt_diag_tte">-</strong></div>
+        </div>
+    </div>
+
+    <div class="robot-strip" id="robot_network" aria-live="polite">
+        <span class="strip-label">Connection</span>
+        <span class="robot-chip" id="net_status"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
+        <span class="strip-item">Link <strong id="net_kind">-</strong></span>
+        <span class="strip-item" id="net_ssid_item" hidden>SSID <strong id="net_name">-</strong></span>
+        <span class="strip-item">Network IP <strong id="net_ip">-</strong></span>
+    </div>
+
+    <div class="robot-strip robot-health-bits-container" id="robot_power_thermal" aria-live="polite">
+        <span class="strip-label">Power / thermal</span>
+        <span class="robot-chip is-ok" id="pt_summary_ok">
             <i class="fa fa-check-circle" aria-hidden="true"></i> Power &amp; thermal OK
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>All clear</strong>
-                No under-voltage, CPU frequency capping, or thermal throttling since the last check. Click any chip for details when issues appear.
-            </span>
         </span>
-        <span class="pt-chip is-bad is-hidden robot-tip robot-interactive" id="under-voltage-now" tabindex="0" role="button" aria-expanded="false" data-pt-key="under-voltage-now">
+        <span class="robot-chip is-bad is-hidden" id="under-voltage-now" data-pt-key="under-voltage-now">
             Under-voltage
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>Under-voltage (now)</strong>
-                Supply voltage is too low right now. Check the battery charge, PSU, and power cable / HAT connection.
-            </span>
         </span>
-        <span class="pt-chip is-bad is-hidden robot-tip robot-interactive" id="freq-capped-now" tabindex="0" role="button" aria-expanded="false" data-pt-key="freq-capped-now">
+        <span class="robot-chip is-bad is-hidden" id="freq-capped-now" data-pt-key="freq-capped-now">
             CPU capped
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>CPU frequency capped (now)</strong>
-                The CPU is limited below its max clock — often from heat or power limits. Reduce load or improve cooling / power.
-            </span>
         </span>
-        <span class="pt-chip is-bad is-hidden robot-tip robot-interactive" id="throttling-now" tabindex="0" role="button" aria-expanded="false" data-pt-key="throttling-now">
+        <span class="robot-chip is-bad is-hidden" id="throttling-now" data-pt-key="throttling-now">
             Throttling
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>Thermal throttling (now)</strong>
-                The board is actively slowing itself to cool down. Improve airflow or lower CPU/GPU load.
-            </span>
         </span>
-        <span class="pt-chip is-warn is-hidden robot-tip robot-interactive" id="under-voltage-occurred" tabindex="0" role="button" aria-expanded="false" data-pt-key="under-voltage-occurred">
+        <span class="robot-chip is-warn is-hidden" id="under-voltage-occurred" data-pt-key="under-voltage-occurred">
             Under-voltage (earlier)
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>Under-voltage (since boot)</strong>
-                Voltage dipped earlier in this boot. Not active now, but check power delivery if it keeps happening.
-            </span>
         </span>
-        <span class="pt-chip is-warn is-hidden robot-tip robot-interactive" id="freq-capped-occurred" tabindex="0" role="button" aria-expanded="false" data-pt-key="freq-capped-occurred">
+        <span class="robot-chip is-warn is-hidden" id="freq-capped-occurred" data-pt-key="freq-capped-occurred">
             CPU capped (earlier)
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>CPU capped (since boot)</strong>
-                Frequency was limited earlier this boot. Cleared now; watch temperature and power if it returns.
-            </span>
         </span>
-        <span class="pt-chip is-warn is-hidden robot-tip robot-interactive" id="throttling-occurred" tabindex="0" role="button" aria-expanded="false" data-pt-key="throttling-occurred">
+        <span class="robot-chip is-warn is-hidden" id="throttling-occurred" data-pt-key="throttling-occurred">
             Throttling (earlier)
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <span class="robot-tip-bubble">
-                <strong>Throttling (since boot)</strong>
-                Thermal throttling happened earlier this boot. Not active now; improve cooling if it recurs.
-            </span>
         </span>
     </div>
 </div>
@@ -441,6 +487,8 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         'freq-capped-occurred',
         'throttling-occurred'
     ];
+
+    const NETWORK_BOOT = <?php echo json_encode($network_snapshot, JSON_UNESCAPED_SLASHES); ?>;
 
     function _meter_level(pct) {
         if (pct >= 90) return 'is-bad';
@@ -461,10 +509,10 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
     }
 
     function _temp_status(temp) {
-        if (temp < 50) return { label: 'Cool', cls: 'is-cool', color: '#2563eb' };
-        if (temp < 70) return { label: 'Normal', cls: 'is-ok', color: '#047857' };
-        if (temp < 85) return { label: 'Warm', cls: 'is-warn', color: '#b45309' };
-        return { label: 'Hot', cls: 'is-bad', color: '#b91c1c' };
+        if (temp < 50) return { label: 'Cool', cls: 'is-cool' };
+        if (temp < 70) return { label: 'Normal', cls: 'is-ok' };
+        if (temp < 85) return { label: 'Warm', cls: 'is-warn' };
+        return { label: 'Hot', cls: 'is-bad' };
     }
 
     function _update_power_thermal(throttling) {
@@ -480,6 +528,143 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
         $('#pt_summary_ok').toggleClass('is-hidden', anyIssue);
     }
 
+    function formatHardwareModel(raw, robot_configuration, memory_bytes) {
+        if (raw === undefined || raw === null) raw = '';
+        var s = String(raw).trim();
+        if (/nano\s*4\s*gb/i.test(s)) return 'Nano 4GB';
+        if (/nano\s*2\s*gb/i.test(s)) return 'Nano 2GB';
+        if (/orin\s*nano/i.test(s)) return s.replace(/nvidia\s+/i, '');
+        var mem = Number(memory_bytes);
+        var is_nano = /^nano$/i.test(s) || /jetson\s*nano/i.test(s) || /tegra210/i.test(s);
+        if (is_nano) {
+            if (/2\s*gb/i.test(s) || (isFinite(mem) && mem > 0 && mem < 3000000000)) return 'Nano 2GB';
+            return 'Nano 4GB';
+        }
+        var cfg = String(robot_configuration || '').toUpperCase();
+        if (cfg === 'DB21J' || cfg === 'DB21M' || cfg === 'DB19') {
+            return 'Nano 4GB';
+        }
+        return s || '-';
+    }
+
+    function formatBatteryCurrent(raw) {
+        var n = Number(raw);
+        if (!isFinite(n)) return '';
+        var amps = Math.abs(n) > 20 ? n / 1000 : n;
+        var sign = amps > 0 ? '+' : '';
+        return sign + amps.toFixed(2) + ' A';
+    }
+
+    function formatBatteryVoltage(raw) {
+        var n = Number(raw);
+        if (!isFinite(n)) return '-';
+        return n.toFixed(2) + ' V';
+    }
+
+    function formatBatteryTimeToEmpty(seconds, charging) {
+        if (charging) return '-';
+        var n = Number(seconds);
+        if (!isFinite(n) || n <= 0 || n > 7 * 24 * 3600) return '-';
+        if (typeof humanTime === 'function') {
+            return humanTime(n, true, 'm');
+        }
+        var mins = Math.round(n / 60);
+        if (mins < 60) return mins + 'm';
+        return Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm';
+    }
+
+    function isBatteryCharging(battery) {
+        if (!battery || typeof battery !== 'object') return false;
+        if (battery.charging === true || battery.charging === 'true' || battery.charging === 1) {
+            return true;
+        }
+        var vin = Number(battery.input_voltage);
+        var cur = Number(battery.current);
+        return isFinite(vin) && vin > 2.5 && isFinite(cur) && cur > 0;
+    }
+
+    function isBatteryPresent(battery) {
+        if (!battery || typeof battery !== 'object') return false;
+        if (battery.present === false || battery.present === 'false' || battery.present === 0) {
+            return false;
+        }
+        if (battery.percentage === 'ND') return false;
+        if (battery.present === true || battery.present === 'true' || battery.present === 1) {
+            return true;
+        }
+        return battery.percentage !== undefined && battery.percentage !== null;
+    }
+
+    function applyBatteryDiagnostics(battery) {
+        var present = isBatteryPresent(battery);
+        var charging = present && isBatteryCharging(battery);
+        var panel = $('#robot_battery_diag');
+        var presentChip = $('#batt_diag_present');
+        var chargeChip = $('#batt_diag_charging');
+        panel.toggleClass('is-missing', !present);
+        presentChip
+            .toggleClass('is-ok', present)
+            .toggleClass('is-bad', !present)
+            .html(present
+                ? '<i class="fa fa-check-circle" aria-hidden="true"></i> Present'
+                : '<i class="fa fa-times-circle" aria-hidden="true"></i> Not detected'
+            );
+        chargeChip
+            .toggleClass('is-ok', charging)
+            .toggleClass('is-warn', present && !charging)
+            .html(present
+                ? (charging
+                    ? '<i class="fa fa-plug" aria-hidden="true"></i> Charging'
+                    : '<i class="fa fa-battery-three-quarters" aria-hidden="true"></i> Discharging')
+                : '-'
+            );
+        if (!present || !battery) {
+            $('#batt_diag_cell, #batt_diag_input, #batt_diag_current, #batt_diag_temp, #batt_diag_usb1, #batt_diag_usb2, #batt_diag_cycles, #batt_diag_tte').text('-');
+            return;
+        }
+        $('#batt_diag_cell').text(formatBatteryVoltage(battery.cell_voltage));
+        $('#batt_diag_input').text(formatBatteryVoltage(battery.input_voltage));
+        $('#batt_diag_current').text(formatBatteryCurrent(battery.current) || '-');
+        var temp = Number(battery.temperature);
+        $('#batt_diag_temp').text(isFinite(temp) ? temp.toFixed(1) + ' °C' : '-');
+        $('#batt_diag_usb1').text(formatBatteryVoltage(battery.usb_out_1_voltage));
+        $('#batt_diag_usb2').text(formatBatteryVoltage(battery.usb_out_2_voltage));
+        var cycles = Number(battery.cycle_count);
+        $('#batt_diag_cycles').text(isFinite(cycles) ? String(Math.round(cycles)) : '-');
+        $('#batt_diag_tte').text(formatBatteryTimeToEmpty(battery.time_to_empty, charging));
+    }
+
+    function applyNetworkSnapshot(net) {
+        net = net || {};
+        var connected = !!net.connected;
+        var kind = net.kind || net.type || net.iface || '';
+        var name = net.ssid || net.name || net.network || '';
+        var ip = net.ip || net.address || net.ipv4 || '';
+        if (ip === '127.0.0.1' || ip.indexOf('127.') === 0) {
+            ip = '';
+        }
+        var status = $('#net_status');
+        status.toggleClass('is-ok', connected).toggleClass('is-bad', !connected);
+        status.html(
+            connected
+                ? '<i class="fa fa-check-circle" aria-hidden="true"></i> Connected'
+                : '<i class="fa fa-times-circle" aria-hidden="true"></i> Offline'
+        );
+        var kindLabel = '-';
+        if (/wifi|wlan/i.test(String(kind))) kindLabel = 'Wi-Fi';
+        else if (/eth|ethernet|wired/i.test(String(kind))) kindLabel = 'Ethernet';
+        else if (kind) kindLabel = String(kind);
+        $('#net_kind').text(kindLabel);
+        if (name) {
+            $('#net_name').text(name);
+            $('#net_ssid_item').removeAttr('hidden');
+        } else {
+            $('#net_name').text('-');
+            $('#net_ssid_item').attr('hidden', 'hidden');
+        }
+        $('#net_ip').text(ip || '-');
+    }
+
     function update_overview() {
         let url = get_api_url("health");
         callExternalAPI(url, 'GET', 'text', false, false, function(raw){
@@ -491,19 +676,21 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
                 return;
             }
             if (!data || typeof data !== 'object') return;
+            applyNetworkSnapshot($.extend({}, NETWORK_BOOT, data.network || data.net || {}, {
+                connected: true
+            }));
 
             try {
                 let temp = Number(data.temperature);
                 if (!isFinite(temp)) {
-                    $('#_robot_temp_value').text('—');
-                    $('#_robot_temp_status').text('');
+                    $('#_robot_temp_value').text('-');
+                    $('#_robot_temp_status').text('').removeClass('is-cool is-ok is-warn is-bad');
+                    $('#_robot_temp_marker').css('left', '0%');
                 } else {
-                    let temp_pct = Math.max(0, Math.min(100, temp));
                     let tstat = _temp_status(temp);
                     $('#_robot_temp_value').text(temp.toFixed(0) + ' °C');
-                    $('#_robot_temp_status').text(tstat.label).css('color', tstat.color);
-                    $('#_robot_temp_marker').css('left', temp_pct.toFixed(1) + '%');
-                    $('#metric_temp').removeClass('is-cool is-ok is-warn is-bad').addClass(tstat.cls);
+                    $('#_robot_temp_status').text(tstat.label).removeClass('is-cool is-ok is-warn is-bad').addClass(tstat.cls);
+                    $('#_robot_temp_marker').css('left', Math.max(0, Math.min(100, temp)).toFixed(1) + '%');
                 }
 
                 let cpu = Number(data.cpu && data.cpu.percentage);
@@ -522,25 +709,17 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
                     _set_meter('#_robot_disk_meter', disk, false);
                 }
 
-                let battery_details = $('#_robot_battery_details');
                 let batt_raw = data.battery && data.battery.percentage;
+                applyBatteryDiagnostics(data.battery);
                 if (batt_raw !== undefined && batt_raw !== null && batt_raw !== 'ND') {
                     let batt = Number(batt_raw);
                     if (isFinite(batt)) {
                         $('#_robot_batt_value').text(batt.toFixed(1) + '%');
                         _set_meter('#_robot_batt_meter', batt, true);
-                        if (Number(data.battery.input_voltage) > 2.5 && Number(data.battery.current) > 0) {
-                            battery_details.html('<i class="fa fa-plug" aria-hidden="true"></i> Charging');
-                        } else if (data.battery.time_to_empty != null) {
-                            battery_details.text(humanTime(data.battery.time_to_empty, true, 'm') + ' left');
-                        } else {
-                            battery_details.text('');
-                        }
                     }
                 } else if (batt_raw === 'ND') {
                     $('#_robot_batt_value').text('ND');
                     _set_meter('#_robot_batt_meter', 0, true);
-                    battery_details.text('');
                 }
 
                 if (data.hardware) {
@@ -548,8 +727,20 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
                         $('.robot-info-container #hardware_board').text(data.hardware.board);
                     }
                     if (data.hardware.model) {
-                        $('.robot-info-container #hardware_model').text(data.hardware.model);
+                        let cfg = $('.robot-info-container #robot_configuration').text();
+                        $('.robot-info-container #hardware_model').text(
+                            formatHardwareModel(
+                                data.hardware.model,
+                                cfg,
+                                data.hardware.memory
+                            )
+                        );
                     }
+                }
+                if (data.network || data.net) {
+                    applyNetworkSnapshot($.extend({}, NETWORK_BOOT, data.network || data.net, {
+                        connected: true
+                    }));
                 }
                 if (data.software && data.software.date && data.software.version) {
                     let firmware = '{month}/{day}/{year}'.format(data.software.date);
@@ -579,9 +770,13 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             let template = '<?php echo $image_template ?>';
             $('.robot-thumbnail-container img').attr('src', template.format(robot_configuration));
             $('.robot-info-container #robot_configuration').html(robot_configuration.capitalize());
+            let modelEl = $('.robot-info-container #hardware_model');
+            let currentModel = modelEl.find('img').length ? '' : modelEl.text();
+            modelEl.text(formatHardwareModel(currentModel, robot_configuration));
         }, true, true);
 
         update_overview();
+        applyNetworkSnapshot(NETWORK_BOOT);
         setInterval(update_overview, <?php echo 1000 / $update_hz ?>);
     });
 

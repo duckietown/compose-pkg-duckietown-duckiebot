@@ -26,6 +26,7 @@ $api_action = 'set';
 
 $developer_mode = (bool) Core::getSetting('developer_mode', 'core', false);
 $simplify_settings = RobotUIFeatures::simplify_robot_settings();
+$lock_anonymous_usage = !RobotUIFeatures::allow_disable_anonymous_usage();
 
 // load API
 RESTfulAPI::init();
@@ -41,6 +42,12 @@ if ($simplify_settings && !$developer_mode) {
     foreach (['system', 'robot', 'autolab'] as $hidden_group) {
         unset($action_params[$hidden_group]);
     }
+}
+
+if ($lock_anonymous_usage
+    && isset($action_params['permissions']['_data']['allow_push_stats_data'])) {
+    $action_params['permissions']['_data']['allow_push_stats_data']['__form__']['disabled'] = true;
+    $action_params['permissions']['_data']['allow_push_stats_data']['default'] = true;
 }
 
 $form_schema = [
@@ -127,7 +134,7 @@ $form_schema = [
         grid-template-columns: 1fr auto;
         grid-template-areas:
             "label control"
-            "details default";
+            "details details";
         column-gap: 16px;
         row-gap: 4px;
         align-items: center;
@@ -181,24 +188,10 @@ $form_schema = [
         opacity: 0.85;
     }
     .robot-settings .compose-form-atom .help-block-default {
-        grid-area: default;
-        float: none;
-        margin: 0;
-        justify-self: end;
-        font-size: var(--r-fs-xs, 10px);
-        font-weight: var(--r-fw-medium, 500);
-        color: var(--r-muted, #6b7280);
-        font-family: inherit;
-        letter-spacing: var(--r-tracking-label, 0.04em);
-        text-transform: uppercase;
-        line-height: var(--r-lh, 1.4);
-        white-space: nowrap;
+        display: none !important;
     }
     .robot-settings .compose-form-atom .help-block-default span {
-        font-family: inherit;
-        font-weight: var(--r-fw-semibold, 600);
-        text-transform: none;
-        letter-spacing: 0;
+        display: none !important;
     }
 
     /* Boolean fields: On / Off radios (replaces bootstrap-toggle) */
@@ -290,6 +283,13 @@ $form_schema = [
     foreach ($data as $key => &$res) {
         $data[$key] = $res['success']? $res['data'] : [];
     }
+    unset($res);
+    if ($lock_anonymous_usage) {
+        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
+            $data['permissions'] = [];
+        }
+        $data['permissions']['allow_push_stats_data'] = true;
+    }
     // create form
     $form = new SmartForm($form_schema, $data);
     // render form
@@ -300,7 +300,7 @@ $form_schema = [
     <div class="robot-settings-actions">
     <?php if (Core::isUserLoggedIn()) { ?>
     <button type="button" class="robot-btn robot-btn-primary" id="robot-settings-save-button">
-        <span class="glyphicon glyphicon-floppy-open" aria-hidden="true"></span> Save and Apply
+        <i class="fa fa-check" aria-hidden="true"></i> Save and Apply
     </button>
     <?php } else { ?>
     <p class="text-muted">
@@ -365,6 +365,23 @@ $form_schema = [
             });
         }
 
+        function lockAnonymousUsage($root) {
+            if (!<?php echo $lock_anonymous_usage ? 'true' : 'false' ?>) {
+                return;
+            }
+            $root.find('.compose-form-atom').each(function() {
+                var title = $(this).find('.input-group-addon').first().text().replace(/\s+/g, ' ').trim();
+                if (title.toLowerCase().indexOf('anonymous usage') === -1) {
+                    return;
+                }
+                var $input = $(this).find('input[type="checkbox"].compose-smart-form-input');
+                $input.prop('checked', true).prop('disabled', true);
+                $(this).find('.robot-settings-radios input[type="radio"]')
+                    .prop('disabled', true)
+                    .filter('[value="1"]').prop('checked', true);
+            });
+        }
+
         function enhanceWhenReady(attempt) {
             var $root = $('.robot-settings #' + formId);
             if (!$root.length) {
@@ -372,6 +389,7 @@ $form_schema = [
             }
             if ($root.find('input[type="checkbox"].compose-smart-form-input').length) {
                 convertBooleansToRadios($root);
+                lockAnonymousUsage($root);
                 return;
             }
             if ((attempt || 0) < 40) {

@@ -7,6 +7,8 @@
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
+require_once __DIR__ . '/../../../../../pages/robot/ui_features.php';
+
 
 function execute(&$service, &$actionName, &$arguments) {
     $action = $service['actions'][$actionName];
@@ -23,6 +25,9 @@ function execute(&$service, &$actionName, &$arguments) {
             }
             // robot permissions
             if (array_key_exists('permissions', $arguments)) {
+                if (!RobotUIFeatures::allow_disable_anonymous_usage()) {
+                    $arguments['permissions']['allow_push_stats_data'] = true;
+                }
                 foreach ($arguments['permissions'] as $key => $value) {
                     $res = Duckiebot::setDuckiebotPermission($key, $value);
                     if (!$res['success']) {
