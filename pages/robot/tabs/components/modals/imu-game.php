@@ -19,9 +19,9 @@ use system\classes\Core;
                 <li>Once you're satisfied, you can close this window and resume back to the verification results reporting.</li>
             </ul>
             
-            <button id="connect_to_duckiebot" class="btn cursor-pointer"></button>
+            <button id="connect_to_duckiebot" class="robot-btn robot-btn-primary cursor-pointer"></button>
             <div id="imu-game" style="padding-top: 10px">
-                <button id="reset" class="float-right btn btn-danger btn-sm" style="bottom: 40px">
+                <button id="reset" class="float-right robot-btn robot-btn-danger robot-btn-sm" style="bottom: 40px">
                     Restart
                 </button>
             </div>

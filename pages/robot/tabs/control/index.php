@@ -6,7 +6,7 @@ use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
-<span style="float: right; font-size: 12pt">Take over&nbsp;
+<span class="robot-muted" style="float: right;">Take over&nbsp;
   <input type="checkbox"
       data-toggle="toggle"
       data-onstyle="primary"
