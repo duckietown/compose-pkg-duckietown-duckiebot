@@ -15,7 +15,9 @@ $dbot_name = Duckiebot::getDuckiebotName();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
 $update_hz = 0.5;
 
-$image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
+$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown');
+$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown');
+$image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 ?>
 
 <style type="text/css">
@@ -362,8 +364,16 @@ $image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown
             try {
                 robot_configuration = data.split('\n')[0].trim();
             } catch (e) {}
-            let template = '<?php echo $image_template ?>';
-            $('.robot-thumbnail-container img').attr('src', template.format(robot_configuration));
+            let png = '<?php echo $image_template_png ?>'.format(robot_configuration);
+            let pngDark = '<?php echo $image_template_png_dark ?>'.format(robot_configuration);
+            let jpg = '<?php echo $image_template_jpg ?>'.format(robot_configuration);
+            let dark = document.documentElement.getAttribute('data-dt-theme') === 'dark';
+            let $thumb = $('.robot-thumbnail-container img');
+            $thumb.off('error.robot-thumb').on('error.robot-thumb', function () {
+                $(this).off('error.robot-thumb');
+                this.src = dark ? png : jpg;
+            });
+            $thumb.attr('src', dark ? pngDark : png);
             $('.robot-info-container #robot_configuration').html(robot_configuration.capitalize());
         }, true, true);
         // create health plots

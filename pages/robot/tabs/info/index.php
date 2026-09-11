@@ -2,8 +2,9 @@
 /**
  * Modern Overview tab (default).
  *
- * Shared meter + chip + strip language for temperature, CPU/RAM/Disk,
- * battery, connection, and power/thermal. Legacy Chart.js version:
+ * Shared meter + chip + strip language for temperature, CPU/RAM/Disk
+ * utilization (clustered vertical columns), battery, connection, and
+ * power/thermal. Legacy Chart.js version:
  *   pages/robot/legacy/info_chartjs_overview.php
  * Toggle via RobotUIFeatures::modern_overview() / robot_ui/modern_overview.
  *
@@ -14,7 +15,9 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $update_hz = 0.5;
 
-$image_template = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
+$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown');
+$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown');
+$image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 $network_snapshot = Duckiebot::getNetworkSnapshot();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
 ?>
@@ -78,19 +81,36 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         overflow: hidden;
         min-height: 0;
     }
+    .robot-overview-thumb .robot-thumb-spinner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--r-muted, #6b7280);
+        font-size: 28px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .robot-overview-thumb.is-ready .robot-thumb-spinner {
+        display: none;
+    }
     .robot-overview-thumb img {
         position: absolute;
         inset: 0;
-        margin: auto;
-        max-width: 92%;
-        max-height: 92%;
+        width: 100%;
+        height: 100%;
         object-fit: contain;
+        opacity: 0;
+    }
+    .robot-overview-thumb.is-ready img {
+        opacity: 1;
     }
 
     .robot-metrics {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+        grid-template-rows: 1fr;
         gap: 12px;
         min-height: 0;
         height: 100%;
@@ -162,60 +182,202 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-meter.is-warn > span { background: var(--r-warn, #b45309); }
     .robot-meter.is-bad > span { background: var(--r-bad, #b91c1c); }
 
-    .robot-temp-gauge {
+    /* Clustered vertical columns: CPU / RAM / Disk share a 0–100% scale but
+       must not stack — they are independent capacities, not parts of one whole. */
+    .robot-util-chart {
+        min-height: 0;
+    }
+    .robot-util-plot {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        flex: 1 1 auto;
+        min-height: 148px;
+    }
+    .robot-util-yaxis {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex: 0 0 28px;
+        padding: 2px 0 40px;
+        font-size: 9px;
+        line-height: 1;
+        color: var(--r-muted, #6b7280);
+        font-variant-numeric: tabular-nums;
+    }
+    .robot-util-stage {
+        position: relative;
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        align-items: stretch;
+    }
+    .robot-util-grid {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 2px;
+        bottom: 40px;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .robot-util-grid i {
+        position: absolute;
+        left: 0;
+        right: 0;
+        border-top: 1px dashed var(--r-border, #e6e8eb);
+    }
+    .robot-util-grid i.is-warn {
+        border-top-style: dotted;
+        border-top-color: var(--r-warn, #b45309);
+        opacity: 0.55;
+    }
+    .robot-util-grid i.is-bad {
+        border-top-style: dotted;
+        border-top-color: var(--r-bad, #b91c1c);
+        opacity: 0.55;
+    }
+    .robot-util-bars {
+        position: relative;
+        z-index: 1;
+        flex: 1 1 auto;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        align-items: stretch;
+        min-width: 0;
+    }
+    .robot-util-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+    }
+    .robot-util-col .robot-metric-value {
+        font-size: var(--r-fs-lg, 13px);
+        margin-top: 2px;
         flex: 0 0 auto;
-        margin-top: auto;
+    }
+    .robot-meter-v {
+        flex: 1 1 auto;
+        width: 36px;
+        max-width: 100%;
+        min-height: 72px;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    .robot-meter-v > span {
+        width: 100%;
+        height: 0%;
+        border-radius: 6px 6px 2px 2px;
+        transition: height 0.35s ease, background-color 0.35s ease;
+    }
+    .robot-util-col .robot-metric-label {
+        margin-top: 8px;
+        flex: 0 0 auto;
+        text-align: center;
+    }
+
+    .robot-temp-body {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 16px;
+        flex: 1 1 auto;
+        min-height: 148px;
+    }
+    .robot-temp-readout {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        flex: 1 1 auto;
+        gap: 6px;
+    }
+    .robot-temp-readout .robot-metric-value {
+        font-size: 28px;
+    }
+    .robot-temp-readout .robot-metric-sub {
+        margin-left: 0;
+        font-size: var(--r-fs-md, 12px);
+        font-weight: var(--r-fw-semibold, 600);
+        text-transform: uppercase;
+        letter-spacing: var(--r-tracking-label, 0.04em);
+    }
+    .robot-temp-gauge {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 8px;
+        flex: 0 0 auto;
+        margin-top: 0;
+        min-height: 0;
     }
     .robot-temp-track {
         position: relative;
         display: flex;
-        height: 8px;
-        border-radius: var(--r-radius-pill, 999px);
+        flex-direction: column;
+        width: 18px;
+        height: auto;
+        min-height: 120px;
+        border-radius: 9px;
         overflow: visible;
         background: var(--r-track, #eef0f3);
     }
     .robot-temp-track-fill {
         display: flex;
+        flex-direction: column;
         width: 100%;
         height: 100%;
-        border-radius: var(--r-radius-pill, 999px);
+        border-radius: 9px;
         overflow: hidden;
     }
-    .robot-temp-zone { height: 100%; }
-    .robot-temp-zone.z-cool { width: 50%; background: #60a5fa; }
-    .robot-temp-zone.z-ok   { width: 20%; background: #34d399; }
-    .robot-temp-zone.z-warm { width: 15%; background: #fbbf24; }
-    .robot-temp-zone.z-hot  { width: 15%; background: #f87171; }
+    .robot-temp-zone { width: 100%; flex-shrink: 0; }
+    .robot-temp-zone.z-hot  { flex: 0 0 15%; background: #f87171; }
+    .robot-temp-zone.z-warm { flex: 0 0 15%; background: #fbbf24; }
+    .robot-temp-zone.z-ok   { flex: 0 0 20%; background: #34d399; }
+    .robot-temp-zone.z-cool { flex: 0 0 50%; background: #60a5fa; }
     .robot-temp-marker {
         position: absolute;
-        top: -4px;
-        width: 3px;
-        height: 16px;
-        margin-left: -1.5px;
+        left: -5px;
+        width: 28px;
+        height: 3px;
+        bottom: 0%;
+        top: auto;
+        margin-left: 0;
         background: var(--r-text, #111827);
         border-radius: 2px;
         box-shadow: 0 0 0 2px var(--r-card, #fff), 0 1px 2px rgba(0,0,0,0.25);
-        transition: left 0.35s ease;
-        left: 0%;
+        transition: bottom 0.35s ease;
         z-index: 2;
         pointer-events: none;
     }
     .robot-temp-scale {
         position: relative;
-        height: 14px;
-        margin-top: 4px;
+        width: 34px;
+        height: auto;
+        margin-top: 0;
         font-size: 9px;
         color: var(--r-muted, #6b7280);
         font-variant-numeric: tabular-nums;
     }
     .robot-temp-scale > span {
         position: absolute;
-        top: 0;
-        transform: translateX(-50%);
+        left: 0;
+        bottom: 0;
+        transform: translateY(50%);
         white-space: nowrap;
     }
-    .robot-temp-scale > span:first-child { transform: translateX(0); }
-    .robot-temp-scale > span:last-child { transform: translateX(-100%); }
+    .robot-temp-scale > span:first-child { transform: translateY(0); }
+    .robot-temp-scale > span:last-child { transform: translateY(100%); }
     .robot-metric-sub.is-cool { color: var(--r-info, #2563eb); }
     .robot-metric-sub.is-ok { color: var(--r-ok, #047857); }
     .robot-metric-sub.is-warn { color: var(--r-warn, #b45309); }
@@ -364,60 +526,85 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
 
     <div class="robot-overview-layout">
         <div class="robot-overview-thumb robot-thumbnail-container">
-            <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt="">
+            <span class="robot-thumb-spinner" aria-hidden="true">
+                <i class="fa fa-spinner fa-pulse"></i>
+            </span>
+            <img alt="Robot thumbnail">
         </div>
 
         <div class="robot-metrics">
             <div class="robot-metric" id="metric_temp">
                 <div class="robot-metric-head">
                     <h4 class="robot-metric-label">CPU temperature</h4>
-                    <div>
+                    <span class="robot-metric-sub">°C</span>
+                </div>
+                <div class="robot-temp-body">
+                    <div class="robot-temp-readout">
                         <span class="robot-metric-value" id="_robot_temp_value">-</span>
                         <span class="robot-metric-sub" id="_robot_temp_status"></span>
                     </div>
-                </div>
-                <div class="robot-temp-gauge">
-                    <div class="robot-temp-track">
-                        <div class="robot-temp-track-fill">
-                            <span class="robot-temp-zone z-cool"></span>
-                            <span class="robot-temp-zone z-ok"></span>
-                            <span class="robot-temp-zone z-warm"></span>
-                            <span class="robot-temp-zone z-hot"></span>
+                    <div class="robot-temp-gauge" role="meter" aria-label="CPU temperature" aria-valuemin="0" aria-valuemax="100">
+                        <div class="robot-temp-track">
+                            <div class="robot-temp-track-fill">
+                                <span class="robot-temp-zone z-hot"></span>
+                                <span class="robot-temp-zone z-warm"></span>
+                                <span class="robot-temp-zone z-ok"></span>
+                                <span class="robot-temp-zone z-cool"></span>
+                            </div>
+                            <span class="robot-temp-marker" id="_robot_temp_marker"></span>
                         </div>
-                        <span class="robot-temp-marker" id="_robot_temp_marker"></span>
+                        <div class="robot-temp-scale" aria-hidden="true">
+                            <span style="bottom:0%">0</span>
+                            <span style="bottom:50%">50</span>
+                            <span style="bottom:70%">70</span>
+                            <span style="bottom:85%">85</span>
+                            <span style="bottom:100%">100</span>
+                        </div>
                     </div>
-                    <div class="robot-temp-scale">
-                        <span style="left:0%">0</span>
-                        <span style="left:50%">50</span>
-                        <span style="left:70%">70</span>
-                        <span style="left:85%">85</span>
-                        <span style="left:100%">100°C</span>
+                </div>
+            </div>
+
+            <div class="robot-metric robot-util-chart" id="metric_util">
+                <div class="robot-metric-head">
+                    <h4 class="robot-metric-label">Utilization</h4>
+                    <span class="robot-metric-sub">% of capacity</span>
+                </div>
+                <div class="robot-util-plot" role="group" aria-label="CPU, RAM, and disk utilization">
+                    <div class="robot-util-yaxis" aria-hidden="true">
+                        <span>100</span>
+                        <span>75</span>
+                        <span>50</span>
+                        <span>25</span>
+                        <span>0</span>
+                    </div>
+                    <div class="robot-util-stage">
+                        <div class="robot-util-grid" aria-hidden="true">
+                            <i style="top:0%"></i>
+                            <i class="is-bad" style="top:10%" title="90% critical"></i>
+                            <i class="is-warn" style="top:25%" title="75% warning"></i>
+                            <i style="top:50%"></i>
+                            <i style="top:75%"></i>
+                            <i style="top:100%"></i>
+                        </div>
+                        <div class="robot-util-bars">
+                            <div class="robot-util-col">
+                                <div class="robot-meter robot-meter-v" id="_robot_pcpu_meter" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+                                <h4 class="robot-metric-label">CPU</h4>
+                                <span class="robot-metric-value" id="_robot_pcpu_value">-</span>
+                            </div>
+                            <div class="robot-util-col">
+                                <div class="robot-meter robot-meter-v" id="_robot_ram_meter" role="meter" aria-label="RAM" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+                                <h4 class="robot-metric-label">RAM</h4>
+                                <span class="robot-metric-value" id="_robot_ram_value">-</span>
+                            </div>
+                            <div class="robot-util-col">
+                                <div class="robot-meter robot-meter-v" id="_robot_disk_meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+                                <h4 class="robot-metric-label">Disk</h4>
+                                <span class="robot-metric-value" id="_robot_disk_value">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="robot-metric" id="metric_cpu">
-                <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">CPU</h4>
-                    <span class="robot-metric-value" id="_robot_pcpu_value">-</span>
-                </div>
-                <div class="robot-meter" id="_robot_pcpu_meter"><span></span></div>
-            </div>
-
-            <div class="robot-metric" id="metric_ram">
-                <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">RAM</h4>
-                    <span class="robot-metric-value" id="_robot_ram_value">-</span>
-                </div>
-                <div class="robot-meter" id="_robot_ram_meter"><span></span></div>
-            </div>
-
-            <div class="robot-metric" id="metric_disk">
-                <div class="robot-metric-head">
-                    <h4 class="robot-metric-label">Disk</h4>
-                    <span class="robot-metric-value" id="_robot_disk_value">-</span>
-                </div>
-                <div class="robot-meter" id="_robot_disk_meter"><span></span></div>
             </div>
         </div>
     </div>
@@ -504,8 +691,15 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             else if (pct >= 20) level = 'is-warn';
             else level = 'is-bad';
         }
+        let clamped = Math.max(0, Math.min(100, pct));
+        let fill = clamped.toFixed(1) + '%';
         el.removeClass('is-ok is-warn is-bad').addClass(level);
-        el.children('span').css('width', Math.max(0, Math.min(100, pct)).toFixed(1) + '%');
+        el.attr('aria-valuenow', clamped.toFixed(1));
+        if (el.hasClass('robot-meter-v')) {
+            el.children('span').css({ height: fill, width: '100%' });
+        } else {
+            el.children('span').css({ width: fill, height: '100%' });
+        }
     }
 
     function _temp_status(temp) {
@@ -685,12 +879,13 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 if (!isFinite(temp)) {
                     $('#_robot_temp_value').text('-');
                     $('#_robot_temp_status').text('').removeClass('is-cool is-ok is-warn is-bad');
-                    $('#_robot_temp_marker').css('left', '0%');
+                    $('#_robot_temp_marker').css('bottom', '0%');
                 } else {
                     let tstat = _temp_status(temp);
                     $('#_robot_temp_value').text(temp.toFixed(0) + ' °C');
                     $('#_robot_temp_status').text(tstat.label).removeClass('is-cool is-ok is-warn is-bad').addClass(tstat.cls);
-                    $('#_robot_temp_marker').css('left', Math.max(0, Math.min(100, temp)).toFixed(1) + '%');
+                    $('#_robot_temp_marker').css('bottom', Math.max(0, Math.min(100, temp)).toFixed(1) + '%');
+                    $('.robot-temp-gauge').attr('aria-valuenow', temp.toFixed(0));
                 }
 
                 let cpu = Number(data.cpu && data.cpu.percentage);
@@ -763,17 +958,51 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             $('.robot-info-container #robot_type').html(robot_type.capitalize());
         }, true, true);
 
+        let robot_configuration = null;
+        let png_tpl = '<?php echo $image_template_png ?>';
+        let png_dark_tpl = '<?php echo $image_template_png_dark ?>';
+        let jpg_tpl = '<?php echo $image_template_jpg ?>';
+
+        function isDarkTheme() {
+            return document.documentElement.getAttribute('data-dt-theme') === 'dark';
+        }
+
+        function applyRobotThumbnail() {
+            if (!robot_configuration) return;
+            let png = png_tpl.format(robot_configuration);
+            let pngDark = png_dark_tpl.format(robot_configuration);
+            let jpg = jpg_tpl.format(robot_configuration);
+            let primary = isDarkTheme() ? pngDark : png;
+            let fallbacks = isDarkTheme() ? [png, jpg] : [jpg];
+            let $box = $('.robot-thumbnail-container');
+            let $thumb = $box.find('img');
+            if ($thumb.attr('src') === primary) return;
+            $thumb.off('error.robot-thumb load.robot-thumb')
+                .on('load.robot-thumb', function () {
+                    $box.addClass('is-ready');
+                })
+                .on('error.robot-thumb', function () {
+                    if (fallbacks.length) {
+                        this.src = fallbacks.shift();
+                    } else {
+                        $(this).off('error.robot-thumb');
+                    }
+                })
+                .attr('src', primary);
+        }
+
         url = get_api_url("files", "data/config/robot_configuration");
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
-            let robot_configuration = 'unknown';
+            robot_configuration = 'unknown';
             try { robot_configuration = data.split('\n')[0].trim(); } catch (e) {}
-            let template = '<?php echo $image_template ?>';
-            $('.robot-thumbnail-container img').attr('src', template.format(robot_configuration));
+            applyRobotThumbnail();
             $('.robot-info-container #robot_configuration').html(robot_configuration.capitalize());
             let modelEl = $('.robot-info-container #hardware_model');
             let currentModel = modelEl.find('img').length ? '' : modelEl.text();
             modelEl.text(formatHardwareModel(currentModel, robot_configuration));
         }, true, true);
+
+        document.documentElement.addEventListener('dt-theme-change', applyRobotThumbnail);
 
         update_overview();
         applyNetworkSnapshot(NETWORK_BOOT);
