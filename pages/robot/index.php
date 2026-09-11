@@ -83,53 +83,13 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 
 <style type="text/css">
 /*
- * Shared robot dashboard design tokens + chrome.
+ * Shared robot dashboard chrome.
+ * Color tokens inherit from the modern theme design_system.css (:root /
+ * html[data-dt-theme]) so light and dark both apply. Do not redeclare them here.
  * Type scale (px only, no pt):
  *   xs 10 | sm 11 | md 12 | lg 13 | xl 15 | title 18 | value 22
  */
 .robot-page {
-    --r-radius-sm: 6px;
-    --r-radius-md: 10px;
-    --r-radius-pill: 999px;
-    --r-border: #e6e8eb;
-    --r-surface: #f8f9fb;
-    --r-text: #111827;
-    --r-muted: #6b7280;
-    --r-gap: 10px;
-    --r-gap-lg: 12px;
-    --r-max: 1040px;
-    /* Status text colors darkened for AA on soft chip backgrounds */
-    --r-ok: #047857;
-    --r-ok-bg: #ecfdf3;
-    --r-ok-border: #bbf7d0;
-    --r-warn: #b45309;
-    --r-warn-bg: #fffbeb;
-    --r-warn-border: #fde68a;
-    --r-bad: #b91c1c;
-    --r-bad-bg: #fef2f2;
-    --r-bad-border: #fecaca;
-    --r-fill: #2c5686;
-    --r-track: #eef0f3;
-    --r-control-border: #8b929e;
-    --r-ease: 160ms ease;
-    /* Typography */
-    --r-fs-xs: 10px;
-    --r-fs-sm: 11px;
-    --r-fs-md: 12px;
-    --r-fs-lg: 13px;
-    --r-fs-xl: 15px;
-    --r-fs-title: 18px;
-    --r-fs-value: 22px;
-    --r-fs-icon: 24px;
-    --r-fs-icon-lg: 40px;
-    --r-fw-normal: 400;
-    --r-fw-medium: 500;
-    --r-fw-semibold: 600;
-    --r-fw-bold: 700;
-    --r-lh-tight: 1.15;
-    --r-lh: 1.4;
-    --r-tracking-label: 0.04em;
-    --r-tracking-tight: -0.02em;
     color: var(--r-text);
     font-size: var(--r-fs-md);
     font-weight: var(--r-fw-normal);
@@ -193,7 +153,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     border-bottom: 1px solid var(--r-border);
 }
 #_robot_tab_btns > li > a {
-    color: #555;
+    color: var(--r-muted);
     border-radius: var(--r-radius-sm) var(--r-radius-sm) 0 0;
     padding: 7px 10px;
     font-size: var(--r-fs-md);
@@ -209,7 +169,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 #_robot_tab_btns > li.active > a:focus {
     color: var(--r-text);
     font-weight: var(--r-fw-semibold);
-    background: #fff;
+    background: var(--r-card);
     border-color: var(--r-border) var(--r-border) transparent;
 }
 #_robot_tab_btns > li > a:focus-visible {
@@ -274,7 +234,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     gap: 6px;
     padding: 4px 10px;
     border-radius: var(--r-radius-pill);
-    background: #fff;
+    background: var(--r-card);
     border: 1px solid var(--r-border);
     font-size: var(--r-fs-md);
     font-weight: var(--r-fw-semibold);
@@ -302,8 +262,8 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     transition: border-color var(--r-ease), box-shadow var(--r-ease), transform var(--r-ease), background-color var(--r-ease);
 }
 .robot-page .robot-interactive:hover {
-    border-color: #d1d5db;
-    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
+    border-color: var(--r-border-strong);
+    box-shadow: var(--r-shadow);
 }
 .robot-page .robot-interactive:active {
     transform: scale(0.985);
@@ -330,7 +290,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     padding: 7px 12px;
     border: 1px solid var(--r-border);
     border-radius: var(--r-radius-sm);
-    background: #fff;
+    background: var(--r-card);
     color: var(--r-text);
     font-size: var(--r-fs-md);
     font-weight: var(--r-fw-semibold);
@@ -349,7 +309,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .btn:hover,
 .robot-page .btn:focus {
     background: var(--r-surface);
-    border-color: #d1d5db;
+    border-color: var(--r-border-strong);
     color: var(--r-text);
     text-decoration: none;
     outline: none;
@@ -382,20 +342,20 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .btn-primary {
     background: var(--r-fill);
     border-color: var(--r-fill);
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-primary:hover,
 .robot-page .robot-btn-primary:focus,
 .robot-page .btn-primary:hover,
 .robot-page .btn-primary:focus {
-    background: #244a74;
-    border-color: #244a74;
-    color: #fff;
+    background: var(--r-fill-hover);
+    border-color: var(--r-fill-hover);
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-ghost,
 .robot-page .btn-default,
 .robot-page .btn-link {
-    background: #fff;
+    background: var(--r-card);
     border-color: var(--r-border);
     color: var(--r-text);
     box-shadow: none;
@@ -404,7 +364,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .btn-default:hover,
 .robot-page .btn-link:hover {
     background: var(--r-surface);
-    border-color: #d1d5db;
+    border-color: var(--r-border-strong);
     color: var(--r-text);
     text-decoration: none;
 }
@@ -417,55 +377,55 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .btn-link:focus {
     background: var(--r-surface);
     border-color: transparent;
-    color: #244a74;
+    color: var(--r-fill-hover);
 }
 .robot-page .robot-btn-ok,
 .robot-page .btn-success {
     background: var(--r-ok);
     border-color: var(--r-ok);
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-ok:hover,
 .robot-page .btn-success:hover {
     background: #065f46;
     border-color: #065f46;
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-warn,
 .robot-page .btn-warning {
     background: var(--r-warn);
     border-color: var(--r-warn);
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-warn:hover,
 .robot-page .btn-warning:hover {
     background: #92400e;
     border-color: #92400e;
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-danger,
 .robot-page .btn-danger {
     background: var(--r-bad);
     border-color: var(--r-bad);
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-danger:hover,
 .robot-page .btn-danger:hover {
     background: #991b1b;
     border-color: #991b1b;
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-accent,
 .robot-page .btn-info {
     background: #0e7490;
     border-color: #0e7490;
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .robot-btn-accent:hover,
 .robot-page .btn-info:hover {
     background: #155e75;
     border-color: #155e75;
-    color: #fff;
+    color: var(--r-on-fill);
 }
 
 /* Sizes */
@@ -536,7 +496,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     padding-right: 20px;
     background: var(--r-fill);
     border-color: var(--r-fill);
-    color: #fff;
+    color: var(--r-on-fill);
 }
 .robot-page .toggle-off.btn {
     left: 50%;
@@ -556,11 +516,11 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     border-style: solid;
     border-color: var(--r-border);
     border-radius: 0;
-    background: #fff;
+    background: var(--r-card);
 }
 .robot-page .toggle.btn-primary,
 .robot-page .toggle.btn-warning {
-    background: #fff;
+    background: var(--r-card);
     color: inherit;
 }
 
@@ -584,7 +544,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .block_renderer_menu_icon .btn:focus,
 .robot-page .block_renderer_header a.btn.dropdown-toggle:hover,
 .robot-page .block_renderer_header a.btn.dropdown-toggle:focus {
-    background: rgba(17, 24, 39, 0.08);
+    background: var(--r-overlay-hover);
     border-color: transparent;
     color: inherit;
     box-shadow: none;
@@ -593,7 +553,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .block_renderer_menu_icon .btn:active,
 .robot-page .block_renderer_header a.btn.dropdown-toggle:active,
 .robot-page .block_renderer_header a.btn.dropdown-toggle.active {
-    background: rgba(17, 24, 39, 0.12);
+    background: var(--r-overlay-hover);
     transform: none;
 }
 
@@ -611,9 +571,9 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     margin: 0;
     padding: 4px 8px;
     border-radius: var(--r-radius-sm) !important;
-    border: 1px solid #d1d5db;
-    background: #fff;
-    color: #374151;
+    border: 1px solid var(--r-border-strong);
+    background: var(--r-card);
+    color: var(--r-text);
     font-size: var(--r-fs-sm);
     font-weight: var(--r-fw-semibold);
     box-shadow: none;
@@ -621,9 +581,9 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 }
 .robot-page .robot-seg .robot-seg-item:hover,
 .robot-page .btn-group[data-toggle="buttons"] > .btn:hover {
-    border-color: #9ca3af;
-    background: #fff;
-    color: #111827;
+    border-color: var(--r-border-strong);
+    background: var(--r-card);
+    color: var(--r-text);
 }
 .robot-page .robot-seg .robot-seg-item.active,
 .robot-page .robot-seg .robot-seg-item:active,
@@ -631,7 +591,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 .robot-page .btn-group[data-toggle="buttons"] > .btn:active {
     background: var(--r-fill);
     border-color: var(--r-fill);
-    color: #fff;
+    color: var(--r-on-fill);
     box-shadow: none;
     transform: scale(0.98);
 }
@@ -700,7 +660,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     display: block;
     margin-bottom: 2px;
     font-size: var(--r-fs-sm);
-    color: #fff;
+    color: var(--r-on-fill);
 }
 
 .robot-section {
@@ -709,9 +669,10 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     width: 100%;
 }
 .robot-card {
-    background: #fff;
+    background: var(--r-card);
     border: 1px solid var(--r-border);
     border-radius: var(--r-radius-md);
+    box-shadow: var(--r-shadow);
     padding: 12px 14px;
     box-sizing: border-box;
 }
@@ -745,7 +706,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     padding: 28px 28px 24px;
     border: 1px solid var(--r-border);
     border-radius: var(--r-radius-md);
-    background: #fff;
+    background: var(--r-card);
     text-align: center;
 }
 .robot-auth-gate-icon {
@@ -780,7 +741,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     border: 1px solid var(--r-border);
     border-radius: var(--r-radius-md);
     overflow: hidden;
-    background: #fff;
+    background: var(--r-card);
 }
 .robot-embed iframe {
     position: absolute;

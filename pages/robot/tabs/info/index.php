@@ -72,7 +72,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-overview-thumb {
         position: relative;
         aspect-ratio: 1 / 1;
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         overflow: hidden;
@@ -103,7 +103,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
 
     .robot-metric {
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         padding: 12px 14px;
@@ -192,9 +192,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         width: 3px;
         height: 16px;
         margin-left: -1.5px;
-        background: #111827;
+        background: var(--r-text, #111827);
         border-radius: 2px;
-        box-shadow: 0 0 0 2px #fff, 0 1px 2px rgba(0,0,0,0.25);
+        box-shadow: 0 0 0 2px var(--r-card, #fff), 0 1px 2px rgba(0,0,0,0.25);
         transition: left 0.35s ease;
         left: 0%;
         z-index: 2;
@@ -216,7 +216,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-temp-scale > span:first-child { transform: translateX(0); }
     .robot-temp-scale > span:last-child { transform: translateX(-100%); }
-    .robot-metric-sub.is-cool { color: #2563eb; }
+    .robot-metric-sub.is-cool { color: var(--r-info, #2563eb); }
     .robot-metric-sub.is-ok { color: var(--r-ok, #047857); }
     .robot-metric-sub.is-warn { color: var(--r-warn, #b45309); }
     .robot-metric-sub.is-bad { color: var(--r-bad, #b91c1c); }
@@ -287,7 +287,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
 
     .robot-batt-diag {
         padding: 12px 14px;
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
     }

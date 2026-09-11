@@ -36,7 +36,7 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
     #_graph_canvas {
         width: 100%;
         height: <?php echo $height_px ?>px;
-        border: 1px solid lightgray;
+        border: 1px solid var(--r-border, lightgray);
     }
 
     #_architecture_table {
@@ -57,7 +57,7 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
     }
 
     #_architecture_table #_architecture_container #_graph_canvas {
-        background-color: white;
+        background-color: var(--r-card, white);
     }
     
     #_architecture_toolbox,

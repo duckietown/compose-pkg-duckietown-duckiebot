@@ -26,7 +26,7 @@ $update_hz = 0.5;
         }
     }
     .robot-health-card {
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         padding: 12px 14px;
@@ -101,6 +101,9 @@ $update_hz = 0.5;
     }
 
     function _robot_health_create_plot(canvas_id, data, title, y_label, tick_cb, color, min, max) {
+        let css = window.getComputedStyle(document.documentElement);
+        let tick_color = (css.getPropertyValue('--r-muted') || '').trim() || '#6b7280';
+        let card_color = (css.getPropertyValue('--r-card') || '').trim() || '#fff';
         let chart_config = {
             type: 'line',
             data: {
@@ -112,34 +115,40 @@ $update_hz = 0.5;
                         data: data,
                         borderColor: Chart.helpers.color(color).alpha(0.6).rgbString(),
                         pointRadius: 3,
-                        pointBackgroundColor: '#fff',
+                        pointBackgroundColor: card_color,
                         borderWidth: 2,
                         fill: true
                     }
                 ]
             },
             options: {
+                legend: {
+                    labels: { fontColor: tick_color }
+                },
                 scales: {
                     yAxes: [
                         {
                             ticks: {
                                 callback: tick_cb,
                                 min: min,
-                                max: max
+                                max: max,
+                                fontColor: tick_color
                             },
                             gridLines: {
                                 display: false
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: y_label
+                                labelString: y_label,
+                                fontColor: tick_color
                             }
                         }
                     ],
                     xAxes: [
                         {
                             ticks: {
-                                callback: format_time
+                                callback: format_time,
+                                fontColor: tick_color
                             }
                         }
                     ]

@@ -66,7 +66,7 @@ $form_schema = [
         color: var(--r-text, #111827);
     }
     .robot-settings-card {
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         padding: 4px 4px 8px;
@@ -221,14 +221,14 @@ $form_schema = [
         margin: 0;
         border: 1.5px solid var(--r-control-border, #8b929e);
         border-radius: 50%;
-        background: #fff;
+        background: var(--r-card, #fff);
         box-shadow: none;
         cursor: pointer;
         flex: 0 0 auto;
         transition: border-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease);
     }
     .robot-settings-radio input[type="radio"]:hover {
-        border-color: #767d8a;
+        border-color: var(--r-control-border, #8b929e);
     }
     .robot-settings-radio input[type="radio"]:focus {
         outline: none;
@@ -241,7 +241,7 @@ $form_schema = [
         border-color: var(--r-fill, #2c5686);
         background:
             radial-gradient(circle, var(--r-fill, #2c5686) 0 45%, transparent 48%),
-            #fff;
+            var(--r-card, #fff);
     }
     .robot-settings-radio input[type="radio"]:disabled {
         opacity: 0.55;

@@ -6,7 +6,7 @@ use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
-<span class="robot-muted" style="float: right;">Take over&nbsp;
+<span class="robot-muted" style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">Take over
   <input type="checkbox"
       data-toggle="toggle"
       data-onstyle="primary"
@@ -108,12 +108,11 @@ $omega_gain *= $sensitivity;
 
   $('#vehicle_driving_mode_toggle').change(function(){
     if ($(this).prop('checked')){
-      // change the page background
-      $('body').css('background-image', 'linear-gradient(to top, #F7F7F6, #FFC800, #F7F7F6)');
+      document.documentElement.classList.add('dt-manual-drive');
       $('#vehicle_driving_mode_status').html('Manual');
       window.mission_control_Mode = 'manual';
     }else{
-      $('body').css('background-image', 'none');
+      document.documentElement.classList.remove('dt-manual-drive');
       $('#vehicle_driving_mode_status').html('Autonomous');
       window.mission_control_Mode = 'autonomous';
     }

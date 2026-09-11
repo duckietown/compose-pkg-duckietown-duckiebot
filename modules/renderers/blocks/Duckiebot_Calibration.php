@@ -152,9 +152,15 @@ class Duckiebot_Calibration extends BlockRenderer{
       });
     </script>
 
+    <?php
+    $block_bg = isset($args['background_color']) ? trim($args['background_color']) : '#fff';
+    if (preg_match('/^(#fff|#ffffff|white)$/i', $block_bg)) {
+      $block_bg = 'var(--r-card)';
+    }
+    ?>
     <style type="text/css">
       #<?php echo $id ?>{
-        background-color: <?php echo $args['background_color'] ?>;
+        background-color: <?php echo $block_bg ?>;
       }
 
       #<?php echo $id ?> #slide_container {
@@ -182,8 +188,8 @@ class Duckiebot_Calibration extends BlockRenderer{
       }
 
       #<?php echo $id ?> #slide_container table tr:nth-child(2) td {
-        border-left: 1px solid grey;
-        border-right: 1px solid grey;
+        border-left: 1px solid var(--r-border, grey);
+        border-right: 1px solid var(--r-border, grey);
       }
 
       #<?php echo $id ?> #slide_container .slider {
@@ -191,7 +197,7 @@ class Duckiebot_Calibration extends BlockRenderer{
         width: 100%;
         height: 15px;
         border-radius: 5px;
-        background: #d3d3d3;
+        background: var(--r-track, #d3d3d3);
         outline: none;
         -webkit-transition: .2s;
         transition: opacity .2s;

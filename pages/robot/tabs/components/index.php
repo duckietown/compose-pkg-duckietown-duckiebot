@@ -49,7 +49,7 @@ ROS::connect($ros_hostname);
         transition: border-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease);
     }
     ._robot_component_container:hover {
-        border-color: #d1d5db;
+        border-color: var(--r-border-strong, #d1d5db);
         box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
     }
     
@@ -100,7 +100,7 @@ ROS::connect($ros_hostname);
     
     ._robot_component ._robot_component_icon i.fa{
         font-size: var(--r-fs-icon, 24px);
-        color: #555;
+        color: var(--r-muted, #6b7280);
     }
     
     ._robot_overall_status_icon i.fa{
@@ -148,14 +148,14 @@ ROS::connect($ros_hostname);
         padding: 2px 8px;
         border-radius: var(--r-radius-pill, 999px);
         border: 1px solid var(--r-border, #e6e8eb);
-        background: #fff;
+        background: var(--r-card, #fff);
         font-size: var(--r-fs-sm, 11px);
         font-weight: var(--r-fw-medium, 500);
-        color: #555;
+        color: var(--r-muted, #6b7280);
         transition: border-color var(--r-ease, 160ms ease), transform var(--r-ease, 160ms ease);
     }
     ._robot_component ._robot_component_stats .status-chip:hover {
-        border-color: #d1d5db;
+        border-color: var(--r-border-strong, #d1d5db);
     }
     
     ._robot_component ._robot_component_connector {
@@ -394,19 +394,20 @@ ROS::connect($ros_hostname);
 
     function status_chip(label, value, strict, passive) {
         let icon;
-        let tone = '#555';
+        let css = window.getComputedStyle(document.documentElement);
+        let tone = (css.getPropertyValue('--r-muted') || '').trim() || '#555';
         let title = passive || label;
         if (value === true) {
             icon = 'glyphicon-ok-sign';
-            tone = '#2e7d32';
+            tone = (css.getPropertyValue('--r-ok') || '').trim() || '#2e7d32';
             title = 'Yes';
         } else if (strict) {
             icon = 'glyphicon-remove-sign';
-            tone = '#c62828';
+            tone = (css.getPropertyValue('--r-bad') || '').trim() || '#c62828';
             title = 'No';
         } else {
             icon = 'glyphicon-minus-sign';
-            tone = '#9e9e9e';
+            tone = (css.getPropertyValue('--r-muted') || '').trim() || '#9e9e9e';
         }
         return '<span class="status-chip" title="{3}"><span class="glyphicon {0}" aria-hidden="true" style="color:{1}"></span>{2}</span>'.format(
             icon, tone, label, title
@@ -619,7 +620,7 @@ ROS::connect($ros_hostname);
 
                         if (!result.success) {
                             // alert("Not successful");
-                            $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>");
+                            $('#' + output_id).html("<h4 class='text-danger'>The test run was not successful!</h4>");
                             return;
                         }
 
@@ -763,7 +764,7 @@ ROS::connect($ros_hostname);
             status: (missing.length > 0)? 'Some components were not detected' : 'Healthy',
             icon: (missing.length > 0)? 'exclamation-circle' : 'check-circle-o',
             style: (missing.length > 0)? 'bad' : 'good',
-            color: (missing.length > 0)? 'darkred' : 'darkgreen',
+            color: (missing.length > 0)? 'var(--r-bad)' : 'var(--r-ok)',
             explanation: (missing.length > 0)? _overall_failure_nav.format({
                     missing: missing.join(", ")
                 }) :

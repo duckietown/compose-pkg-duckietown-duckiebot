@@ -36,7 +36,7 @@ ROS::connect($ros_hostname);
         margin-top: 0;
     }
     .robot-calibrations .panel:hover {
-        border-color: #d1d5db;
+        border-color: var(--r-border-strong, #d1d5db);
         box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
     }
     .robot-calibrations .panel-heading {

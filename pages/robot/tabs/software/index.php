@@ -17,7 +17,7 @@ $update_hz = 1.0;
     }
     
     ._robot_software_module_container {
-        background-color: #eaeaea;
+        background-color: var(--r-surface, #eaeaea);
         border-radius: 4px;
         margin: 30px 0;
         height: 100px;
@@ -25,7 +25,7 @@ $update_hz = 1.0;
     }
     
     ._robot_software_module_container > i.fa-spinner {
-        color: darkgrey;
+        color: var(--r-muted, darkgrey);
         margin-top: 30px;
     }
     
@@ -51,7 +51,7 @@ $update_hz = 1.0;
     ._robot_software_module ._robot_software_module_icon{
         min-width: 100px;
         max-width: 100px;
-        border-right: 1px solid lightgrey;
+        border-right: 1px solid var(--r-border, lightgrey);
     }
     
     ._robot_software_module ._robot_software_module_icon i.fa{
@@ -101,7 +101,7 @@ $update_hz = 1.0;
     
     ._robot_software_module ._robot_software_module_status_desc {
         /*font-family: monospace;*/
-        margin-top: -20px;
+        margin-top: 0;
         font-size: var(--r-fs-xs, 10px);
     }
 </style>

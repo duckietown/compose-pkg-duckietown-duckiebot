@@ -82,7 +82,7 @@ $height_px = 560;
     }
 
     .robot-architecture-panel {
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         overflow: hidden;
@@ -139,17 +139,101 @@ $height_px = 560;
 
     #_architecture_canvas_wrap {
         position: relative;
-        background: #fff;
+        background: var(--r-card, #fff);
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: var(--r-radius-md, 10px);
         overflow: hidden;
         min-height: <?php echo $height_px ?>px;
         height: <?php echo $height_px ?>px;
     }
-    #_graph_canvas {
+    #_graph_canvas,
+    #_graph_canvas .vis-network,
+    #_graph_canvas canvas {
         width: 100%;
         height: 100%;
-        background: #fff;
+        background: var(--r-card, #fff) !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        background-color: var(--r-surface, #f4f6fa);
+        background-image: none !important;
+        box-shadow: 0 0 0 1px var(--r-border, #dde1ea);
+        opacity: 1;
+        color: var(--r-text, #1a1d26);
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button::before {
+        position: absolute;
+        inset: 0;
+        font-family: FontAwesome;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 36px;
+        text-align: center;
+        color: var(--r-text, #1a1d26);
+        pointer-events: none;
+    }
+    html[data-dt-theme="dark"] #_graph_canvas div.vis-network div.vis-navigation div.vis-button {
+        background-color: var(--r-hover, #353e52);
+        box-shadow: 0 0 0 1px var(--r-border-strong, #5b6580);
+        color: var(--r-text, #f5f7fb);
+        filter: none;
+    }
+    html[data-dt-theme="dark"] #_graph_canvas div.vis-network div.vis-navigation div.vis-button::before {
+        color: var(--r-text, #f5f7fb);
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button:hover,
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button:active {
+        background-color: var(--r-surface, #f4f6fa);
+        box-shadow: 0 0 0 2px var(--r-fill, #2c5686) !important;
+    }
+    html[data-dt-theme="dark"] #_graph_canvas div.vis-network div.vis-navigation div.vis-button:hover,
+    html[data-dt-theme="dark"] #_graph_canvas div.vis-network div.vis-navigation div.vis-button:active {
+        background-color: var(--r-border, #3e475c);
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button:hover::before,
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button:active::before {
+        color: var(--r-fill, #2c5686);
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-up::before { content: "\f062"; }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-down::before { content: "\f063"; }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-left::before { content: "\f060"; }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-right::before { content: "\f061"; }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-zoomIn::before { content: "\f067"; }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-zoomOut::before { content: "\f068"; }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends::before { content: "\f065"; }
+    /* Even D-pad (left) and zoom cluster (right): 36px buttons, 8px gap, 12px inset */
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-left {
+        left: 12px !important;
+        bottom: 12px !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-down {
+        left: 56px !important;
+        bottom: 12px !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-right {
+        left: 100px !important;
+        bottom: 12px !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-up {
+        left: 56px !important;
+        bottom: 56px !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-zoomIn {
+        right: 12px !important;
+        bottom: 12px !important;
+        left: auto !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-zoomOut {
+        right: 56px !important;
+        bottom: 12px !important;
+        left: auto !important;
+    }
+    #_graph_canvas div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
+        right: 34px !important;
+        bottom: 56px !important;
+        left: auto !important;
     }
     #_architecture_empty {
         display: none;
@@ -160,9 +244,13 @@ $height_px = 560;
         justify-content: center;
         text-align: center;
         padding: 24px;
-        background: rgba(255,255,255,0.92);
+        background: var(--r-card, #fff);
         color: var(--r-muted, #6b7280);
         font-size: var(--r-fs-lg, 13px);
+    }
+    html[data-dt-theme="dark"] #_architecture_empty {
+        background: rgba(35, 42, 57, 0.92);
+        color: var(--r-muted, #c5cddc);
     }
     #_architecture_empty.is-visible {
         display: flex;
@@ -387,6 +475,11 @@ $height_px = 560;
     window._architecture_graph._loaded_ok = false;
 
     window._architecture_graph.container = document.getElementById('_graph_canvas');
+    var _archDark = document.documentElement.getAttribute('data-dt-theme') === 'dark';
+    var _archMuted = _archDark ? '#c5cddc' : '#6b7280';
+    var _archBorder = _archDark ? '#3e475c' : '#dde1ea';
+    var _archSurface = _archDark ? '#2b3344' : '#f4f6fa';
+    var _archHover = _archDark ? '#353e52' : '#eef1f7';
     window._architecture_graph.options = {
         layout: {
             hierarchical: {
@@ -421,7 +514,7 @@ $height_px = 560;
                 roundness: 0.4
             },
             arrows: "to",
-            color: { color: "gray" },
+            color: { color: _archMuted },
             font: { size: 16 },
             width: 2
         },
@@ -433,11 +526,11 @@ $height_px = 560;
             ros_node: { color: {} },
             ros_topic: {
                 color: {
-                    border: "gray",
-                    background: "#F0F0F0",
+                    border: _archBorder,
+                    background: _archSurface,
                     highlight: {
-                        border: "darkgray",
-                        background: "#C8C8C8"
+                        border: _archMuted,
+                        background: _archHover
                     }
                 }
             }
@@ -454,6 +547,85 @@ $height_px = 560;
         window._architecture_graph.data,
         window._architecture_graph.options
     );
+
+    function agraph_css_token(name, fallback) {
+        try {
+            return (getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim() || fallback;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    function agraph_is_dark() {
+        return document.documentElement.getAttribute('data-dt-theme') === 'dark';
+    }
+
+    function agraph_apply_theme() {
+        var dark = agraph_is_dark();
+        var text = agraph_css_token('--r-text', dark ? '#f5f7fb' : '#1a1d26');
+        var muted = agraph_css_token('--r-muted', dark ? '#c5cddc' : '#6b7280');
+        var border = agraph_css_token('--r-border', dark ? '#3e475c' : '#dde1ea');
+        var surface = agraph_css_token('--r-surface', dark ? '#2b3344' : '#f4f6fa');
+        var hover = agraph_css_token('--r-hover', dark ? '#353e52' : '#eef1f7');
+        var net = window._architecture_graph.network;
+        if (!net || typeof net.setOptions !== 'function') return;
+        net.setOptions({
+            edges: {
+                color: { color: muted, highlight: text, hover: text },
+                font: { color: muted, strokeWidth: 0 }
+            },
+            nodes: {
+                font: { color: text, strokeWidth: 0 }
+            },
+            groups: {
+                ros_topic: {
+                    color: {
+                        border: border,
+                        background: surface,
+                        highlight: {
+                            border: muted,
+                            background: hover
+                        }
+                    }
+                }
+            }
+        });
+        net.redraw();
+    }
+
+    function agraph_fit() {
+        var net = window._architecture_graph.network;
+        if (!net || typeof net.fit !== 'function') return;
+        try {
+            net.fit({ animation: false });
+        } catch (e) {}
+    }
+
+    window._architecture_graph.network.on('beforeDrawing', function (ctx) {
+        var net = window._architecture_graph.network;
+        var fill = agraph_css_token('--r-card', agraph_is_dark() ? '#232a39' : '#ffffff');
+        var canvas = ctx.canvas;
+        var w = canvas.clientWidth || canvas.width;
+        var h = canvas.clientHeight || canvas.height;
+        var tl, br;
+        if (net && typeof net.DOMtoCanvas === 'function') {
+            tl = net.DOMtoCanvas({ x: 0, y: 0 });
+            br = net.DOMtoCanvas({ x: w, y: h });
+            ctx.fillStyle = fill;
+            ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+            return;
+        }
+        ctx.save();
+        if (ctx.setTransform) ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = fill;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    });
+    agraph_apply_theme();
+    document.documentElement.addEventListener('dt-theme-change', function () {
+        agraph_apply_theme();
+        agraph_fit();
+    });
 
     function agraph_set_status(state, message) {
         let el = $('#_architecture_status');
@@ -1001,6 +1173,7 @@ $height_px = 560;
     function agraph_redraw() {
         window._architecture_graph.network.setData(window._architecture_graph.data);
         window._architecture_graph.network.redraw();
+        agraph_fit();
         agraph_refresh_inspector();
     }
 
