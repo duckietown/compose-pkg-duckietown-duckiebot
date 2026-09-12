@@ -59,12 +59,9 @@ class Duckiebot {
             $first_setup_db = new Database('core', 'first_setup');
             if (!$first_setup_db->key_exists('step1')) {
                 $first_setup_db->write('no_admin', null);
-                // enable developer mode
-                $res = Core::setSetting('core', 'developer_mode', true);
+                // Operator chrome is the default. Developers can enable
+                // developer_mode from Dashboard Settings → Dashboard.
                 // confirm step1 and step2
-                if (!$res['success']) {
-                    Core::throwError($res['data']);
-                }
                 // mark the first two steps as completed
                 $first_setup_db->write('step1', null);
                 $first_setup_db->write('step2', null);
@@ -138,6 +135,155 @@ class Duckiebot {
         if (!$res['success']) return null;
         return $res['data'];
     }//getRobotConfiguration
+
+    /**
+     * True for a unicast IPv4 the operator would recognize as the robot on the LAN.
+     * Rejects loopback, link-local, and typical Docker/bridge pools.
+     */
+    private static function isLanIpv4($ip): bool {
+        if (!is_string($ip) || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return false;
+        }
+        if ($ip === '0.0.0.0' || strpos($ip, '127.') === 0 || strpos($ip, '169.254.') === 0) {
+            return false;
+        }
+        if (strpos($ip, '172.17.') === 0 || strpos($ip, '172.18.') === 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Robot LAN IPv4. gethostbyname(vehicle) is wrong here: /etc/hosts maps
+     * akshet / akshet.local to 127.0.0.1. Prefer UP wifi/ethernet addresses.
+     */
+    private static function getPrimaryIpv4(): string {
+        $http_host = isset($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : '';
+        if (self::isLanIpv4($http_host)) {
+            return $http_host;
+        }
+
+        $ranked = [];
+        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
+        if (is_string($out) && $out !== '') {
+            foreach (explode("\n", trim($out)) as $line) {
+                if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
+                    continue;
+                }
+                $iface = preg_replace('/@.*$/', '', $m[1]);
+                $ip = $m[2];
+                if (!self::isLanIpv4($ip)) {
+                    continue;
+                }
+                if (preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface)) {
+                    continue;
+                }
+                $rank = 50;
+                if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                    $rank = 0;
+                } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                    $rank = 1;
+                }
+                $ranked[] = ['rank' => $rank, 'ip' => $ip];
+            }
+            if ($ranked) {
+                usort($ranked, function ($a, $b) {
+                    return $a['rank'] - $b['rank'];
+                });
+                return $ranked[0]['ip'];
+            }
+        }
+
+        if (function_exists('socket_create')) {
+            $sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+            if ($sock !== false) {
+                @socket_connect($sock, '8.8.8.8', 53);
+                $addr = null;
+                @socket_getsockname($sock, $addr);
+                @socket_close($sock);
+                if (self::isLanIpv4($addr)) {
+                    return $addr;
+                }
+            }
+        }
+
+        $hosts = @shell_exec('hostname -I 2>/dev/null');
+        if (is_string($hosts)) {
+            foreach (preg_split('/\s+/', trim($hosts)) as $ip) {
+                if (self::isLanIpv4($ip)) {
+                    return $ip;
+                }
+            }
+        }
+
+        $resolved = @gethostbyname(self::getDuckiebotHostname());
+        return self::isLanIpv4($resolved) ? $resolved : '';
+    }
+
+    /**
+     * Compact connection snapshot for the Overview widget.
+     * Best-effort: hostname/IP always; wifi vs ethernet and SSID when visible.
+     */
+    public static function getNetworkSnapshot(): array {
+        $host = self::getDuckiebotHostname();
+        $ip = self::getPrimaryIpv4();
+        $kind = null;
+        $ssid = null;
+        $connected = false;
+        $sys = '/sys/class/net';
+        if (is_dir($sys)) {
+            $ifaces = @scandir($sys);
+            if (is_array($ifaces)) {
+                foreach ($ifaces as $iface) {
+                    if ($iface === '.' || $iface === '..' || $iface === 'lo') {
+                        continue;
+                    }
+                    if (preg_match('/^(docker|br-|veth|cni)/i', $iface)) {
+                        continue;
+                    }
+                    $state = @trim((string) @file_get_contents($sys . '/' . $iface . '/operstate'));
+                    if ($state !== 'up') {
+                        continue;
+                    }
+                    $connected = true;
+                    if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                        $kind = 'wifi';
+                    } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                        $kind = $kind ?: 'ethernet';
+                    } else if ($kind === null) {
+                        $kind = 'ethernet';
+                    }
+                }
+            }
+        }
+        $wireless = @file_get_contents('/proc/net/wireless');
+        if (is_string($wireless) && preg_match('/^\s*([^\s:]+):/m', $wireless)) {
+            $kind = 'wifi';
+            $connected = true;
+        }
+        foreach (['/data/config/network/ssid', '/data/config/wifi/ssid'] as $ssid_path) {
+            if (is_readable($ssid_path)) {
+                $val = trim((string) file_get_contents($ssid_path));
+                if ($val !== '') {
+                    $ssid = $val;
+                    break;
+                }
+            }
+        }
+        if ($ssid === null || $ssid === '') {
+            $iw = @trim((string) @shell_exec('iwgetid -r 2>/dev/null'));
+            if ($iw !== '') {
+                $ssid = $iw;
+            }
+        }
+        return [
+            'hostname' => $host,
+            'ip' => $ip,
+            'connected' => $connected || ($ip !== ''),
+            'kind' => $kind,
+            'ssid' => $ssid,
+        ];
+    }
     
     public static function getDuckiebotHostname(): string {
         $duckiebot_name = Core::getSetting('duckiebot_hostname', 'duckietown_duckiebot');
@@ -185,7 +331,22 @@ class Duckiebot {
         if (!in_array($key, self::$PERMISSION_KEYS))
             return ['success' => false, 'data' => "Permission key `$key` not recognized."];
         $fpath = sprintf(self::$PERMISSION_LOCATION, $key);
-        return self::readFileFromDisk($fpath);
+        $res = self::readFileFromDisk($fpath);
+        if ($res['success']) {
+            $raw = is_string($res['data']) ? trim($res['data']) : $res['data'];
+            if ($raw === '1' || $raw === 1 || $raw === true || $raw === 'true') {
+                $res['data'] = true;
+            } else if ($raw === '0' || $raw === 0 || $raw === false || $raw === 'false' || $raw === '') {
+                $res['data'] = false;
+            }
+            return $res;
+        }
+        $defaults = [
+            'allow_push_logs_data' => false,
+            'allow_push_stats_data' => true,
+            'allow_push_config_data' => true,
+        ];
+        return ['success' => true, 'data' => $defaults[$key] ?? false];
     }//getDuckiebotPermission
     
     public static function getDuckiebotConfiguration($key): array {

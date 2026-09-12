@@ -27,8 +27,8 @@ $desktop_api_url = sprintf("http://%s:%s", $dbot_hostname, $desktop_api_port);
         left: 0;
         bottom: 0;
         right: 0;
-        border-top: 1px solid black;
-        border-left: 1px solid black;
+        border-top: 1px solid var(--r-border, #dde1ea);
+        border-left: 1px solid var(--r-border, #dde1ea);
     }
     
     #desktop_iframe {
