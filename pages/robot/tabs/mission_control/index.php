@@ -1,8 +1,7 @@
 <?php
 /**
  * Mission Control tab - status bar / bridge pill chrome polish.
- * Mission grid + ROS bridge behaviour unchanged. Status bar max-width aligned
- * to 1040px with other robot tabs (see pages/robot/ui_features.php notes).
+ * Grid fills the content pane so 8-column blocks (camera) span the row.
  */
 use \system\classes\Core;
 use \system\classes\Database;
@@ -172,6 +171,15 @@ if ($load_mission) {
 
     // load mission options
     $opts = MissionControlConfiguration::get_options($mission_db_package, $mission_db, $mission_name);
+    $max_cols = 1;
+    foreach ($sizes as $sz) {
+        $max_cols = max($max_cols, intval($sz[1]));
+    }
+    // Duckiebot blocks top out at 8 columns; Compose defaults to 10, which
+    // left an empty strip beside the camera (8/10 of a 970px canvas).
+    if (intval($opts['resolution']) > $max_cols) {
+        $opts['resolution'] = $max_cols;
+    }
 
     // create mission control grid
     $mission_control = new MissionControl(
@@ -182,9 +190,13 @@ if ($load_mission) {
     ?>
 
     <style type="text/css">
+      .robot-status-bar {
+        max-width: none;
+      }
       .robot-mission-grid-frame {
-        max-width: var(--r-max, 1040px);
-        margin: 0 auto;
+        max-width: none;
+        width: 100%;
+        margin: 0;
         padding: 4px 0 0;
       }
     </style>

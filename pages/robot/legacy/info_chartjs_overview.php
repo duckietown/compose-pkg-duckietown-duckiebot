@@ -15,8 +15,8 @@ $dbot_name = Duckiebot::getDuckiebotName();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
 $update_hz = 0.5;
 
-$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown');
-$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown');
+$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown_duckiebot');
+$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown_duckiebot');
 $image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 ?>
 

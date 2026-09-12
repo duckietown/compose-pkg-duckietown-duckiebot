@@ -15,8 +15,8 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $update_hz = 0.5;
 
-$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown');
-$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown');
+$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown_duckiebot');
+$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown_duckiebot');
 $image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 $network_snapshot = Duckiebot::getNetworkSnapshot();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
@@ -189,37 +189,38 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-util-plot {
         position: relative;
-        display: flex;
-        align-items: stretch;
-        gap: 8px;
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        grid-template-rows: minmax(108px, 1fr) auto;
+        gap: 0 8px;
         flex: 1 1 auto;
         min-height: 148px;
+        align-items: stretch;
     }
     .robot-util-yaxis {
+        grid-column: 1;
+        grid-row: 1;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         align-items: flex-end;
-        flex: 0 0 28px;
-        padding: 2px 0 40px;
+        padding: 0;
         font-size: 9px;
         line-height: 1;
         color: var(--r-muted, #6b7280);
         font-variant-numeric: tabular-nums;
     }
     .robot-util-stage {
+        grid-column: 2;
+        grid-row: 1;
         position: relative;
-        flex: 1 1 auto;
         min-width: 0;
         display: flex;
         align-items: stretch;
     }
     .robot-util-grid {
         position: absolute;
-        left: 0;
-        right: 0;
-        top: 2px;
-        bottom: 40px;
+        inset: 0;
         pointer-events: none;
         z-index: 0;
     }
@@ -228,6 +229,10 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         left: 0;
         right: 0;
         border-top: 1px dashed var(--r-border, #e6e8eb);
+    }
+    .robot-util-grid i.is-zero {
+        border-top-style: solid;
+        border-top-color: var(--r-border-strong, #c9ced8);
     }
     .robot-util-grid i.is-warn {
         border-top-style: dotted;
@@ -248,42 +253,48 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         gap: 8px;
         align-items: stretch;
         min-width: 0;
+        height: 100%;
     }
-    .robot-util-col {
+    .robot-util-legend {
+        grid-column: 2;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding-top: 8px;
+    }
+    .robot-util-legend .robot-util-col {
         display: flex;
         flex-direction: column;
         align-items: center;
         min-width: 0;
-        min-height: 0;
-        height: 100%;
     }
-    .robot-util-col .robot-metric-value {
+    .robot-util-legend .robot-metric-label {
+        margin: 0;
+        text-align: center;
+    }
+    .robot-util-legend .robot-metric-value {
         font-size: var(--r-fs-lg, 13px);
         margin-top: 2px;
-        flex: 0 0 auto;
     }
     .robot-meter-v {
-        flex: 1 1 auto;
         width: 36px;
         max-width: 100%;
-        min-height: 72px;
-        height: auto;
+        min-height: 0;
+        height: 100%;
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
         overflow: hidden;
-        border-radius: 8px;
+        border-radius: 6px 6px 0 0;
+        background: var(--r-track, #eef0f3);
     }
     .robot-meter-v > span {
         width: 100%;
         height: 0%;
-        border-radius: 6px 6px 2px 2px;
+        border-radius: 6px 6px 0 0;
         transition: height 0.35s ease, background-color 0.35s ease;
-    }
-    .robot-util-col .robot-metric-label {
-        margin-top: 8px;
-        flex: 0 0 auto;
-        text-align: center;
     }
 
     .robot-temp-body {
@@ -584,24 +595,26 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                             <i class="is-warn" style="top:25%" title="75% warning"></i>
                             <i style="top:50%"></i>
                             <i style="top:75%"></i>
-                            <i style="top:100%"></i>
+                            <i class="is-zero" style="top:100%"></i>
                         </div>
                         <div class="robot-util-bars">
-                            <div class="robot-util-col">
-                                <div class="robot-meter robot-meter-v" id="_robot_pcpu_meter" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
-                                <h4 class="robot-metric-label">CPU</h4>
-                                <span class="robot-metric-value" id="_robot_pcpu_value">-</span>
-                            </div>
-                            <div class="robot-util-col">
-                                <div class="robot-meter robot-meter-v" id="_robot_ram_meter" role="meter" aria-label="RAM" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
-                                <h4 class="robot-metric-label">RAM</h4>
-                                <span class="robot-metric-value" id="_robot_ram_value">-</span>
-                            </div>
-                            <div class="robot-util-col">
-                                <div class="robot-meter robot-meter-v" id="_robot_disk_meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
-                                <h4 class="robot-metric-label">Disk</h4>
-                                <span class="robot-metric-value" id="_robot_disk_value">-</span>
-                            </div>
+                            <div class="robot-meter robot-meter-v" id="_robot_pcpu_meter" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+                            <div class="robot-meter robot-meter-v" id="_robot_ram_meter" role="meter" aria-label="RAM" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+                            <div class="robot-meter robot-meter-v" id="_robot_disk_meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+                        </div>
+                    </div>
+                    <div class="robot-util-legend">
+                        <div class="robot-util-col">
+                            <h4 class="robot-metric-label">CPU</h4>
+                            <span class="robot-metric-value" id="_robot_pcpu_value">-</span>
+                        </div>
+                        <div class="robot-util-col">
+                            <h4 class="robot-metric-label">RAM</h4>
+                            <span class="robot-metric-value" id="_robot_ram_value">-</span>
+                        </div>
+                        <div class="robot-util-col">
+                            <h4 class="robot-metric-label">Disk</h4>
+                            <span class="robot-metric-value" id="_robot_disk_value">-</span>
                         </div>
                     </div>
                 </div>
@@ -979,6 +992,12 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             if ($thumb.attr('src') === primary) return;
             $thumb.off('error.robot-thumb load.robot-thumb')
                 .on('load.robot-thumb', function () {
+                    // image.php serves Compose's 88x100 placeholder with HTTP 200
+                    // when the file is missing, so onerror never runs.
+                    if (this.naturalWidth < 200 && fallbacks.length) {
+                        this.src = fallbacks.shift();
+                        return;
+                    }
                     $box.addClass('is-ready');
                 })
                 .on('error.robot-thumb', function () {
