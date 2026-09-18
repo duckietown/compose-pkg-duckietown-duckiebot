@@ -15,8 +15,8 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $update_hz = 0.5;
 
-$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png', 'duckietown_duckiebot');
-$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png', 'duckietown_duckiebot');
+$image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png');
+$image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png');
 $image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 $network_snapshot = Duckiebot::getNetworkSnapshot();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
@@ -646,8 +646,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         <span class="strip-label">Connection</span>
         <span class="robot-chip" id="net_status"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
         <span class="strip-item">Link <strong id="net_kind">-</strong></span>
-        <span class="strip-item" id="net_ssid_item" hidden>SSID <strong id="net_name">-</strong></span>
-        <span class="strip-item">Network IP <strong id="net_ip">-</strong></span>
+        <span class="strip-item" id="net_ssid_item">SSID <strong id="net_name"><?php echo htmlspecialchars((string) ($network_snapshot['ssid'] ?? '') ?: '-'); ?></strong></span>
+        <span class="strip-item">Network IP <strong id="net_ip"><?php echo htmlspecialchars((string) ($network_snapshot['ip'] ?? '') ?: '-'); ?></strong></span>
     </div>
 
     <div class="robot-strip robot-health-bits-container" id="robot_power_thermal" aria-live="polite">
@@ -841,6 +841,16 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         $('#batt_diag_tte').text(formatBatteryTimeToEmpty(battery.time_to_empty, charging));
     }
 
+    function mergeNetworkSnapshot(extra, connected) {
+        extra = extra || {};
+        var merged = $.extend({}, NETWORK_BOOT, extra);
+        if (connected) merged.connected = true;
+        if (!merged.ssid && NETWORK_BOOT && NETWORK_BOOT.ssid) {
+            merged.ssid = NETWORK_BOOT.ssid;
+        }
+        return merged;
+    }
+
     function applyNetworkSnapshot(net) {
         net = net || {};
         var connected = !!net.connected;
@@ -862,13 +872,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         else if (/eth|ethernet|wired/i.test(String(kind))) kindLabel = 'Ethernet';
         else if (kind) kindLabel = String(kind);
         $('#net_kind').text(kindLabel);
-        if (name) {
-            $('#net_name').text(name);
-            $('#net_ssid_item').removeAttr('hidden');
-        } else {
-            $('#net_name').text('-');
-            $('#net_ssid_item').attr('hidden', 'hidden');
-        }
+        $('#net_name').text(name || '-');
+        $('#net_ssid_item').removeAttr('hidden');
         $('#net_ip').text(ip || '-');
     }
 
@@ -883,9 +888,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 return;
             }
             if (!data || typeof data !== 'object') return;
-            applyNetworkSnapshot($.extend({}, NETWORK_BOOT, data.network || data.net || {}, {
-                connected: true
-            }));
+            applyNetworkSnapshot(mergeNetworkSnapshot(data.network || data.net || {}, true));
 
             try {
                 let temp = Number(data.temperature);
@@ -946,9 +949,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                     }
                 }
                 if (data.network || data.net) {
-                    applyNetworkSnapshot($.extend({}, NETWORK_BOOT, data.network || data.net, {
-                        connected: true
-                    }));
+                    applyNetworkSnapshot(mergeNetworkSnapshot(data.network || data.net, true));
                 }
                 if (data.software && data.software.date && data.software.version) {
                     let firmware = '{month}/{day}/{year}'.format(data.software.date);

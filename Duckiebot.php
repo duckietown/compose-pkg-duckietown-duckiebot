@@ -228,7 +228,6 @@ class Duckiebot {
         $host = self::getDuckiebotHostname();
         $ip = self::getPrimaryIpv4();
         $kind = null;
-        $ssid = null;
         $connected = false;
         $sys = '/sys/class/net';
         if (is_dir($sys)) {
@@ -261,21 +260,7 @@ class Duckiebot {
             $kind = 'wifi';
             $connected = true;
         }
-        foreach (['/data/config/network/ssid', '/data/config/wifi/ssid'] as $ssid_path) {
-            if (is_readable($ssid_path)) {
-                $val = trim((string) file_get_contents($ssid_path));
-                if ($val !== '') {
-                    $ssid = $val;
-                    break;
-                }
-            }
-        }
-        if ($ssid === null || $ssid === '') {
-            $iw = @trim((string) @shell_exec('iwgetid -r 2>/dev/null'));
-            if ($iw !== '') {
-                $ssid = $iw;
-            }
-        }
+        $ssid = self::getWifiSsid();
         return [
             'hostname' => $host,
             'ip' => $ip,
@@ -283,6 +268,51 @@ class Duckiebot {
             'kind' => $kind,
             'ssid' => $ssid,
         ];
+    }
+
+    /**
+     * Current Wi-Fi SSID. Dashboard containers often lack `iwgetid`; ioctl
+     * against wlan* still works with host networking.
+     */
+    private static function getWifiSsid(): ?string {
+        $iw = @trim((string) @shell_exec('iwgetid -r 2>/dev/null'));
+        if ($iw !== '') {
+            return $iw;
+        }
+        $script = implode("\n", [
+            'import array,fcntl,os,socket,struct,sys',
+            'SIOCGIWESSID=0x8B1B',
+            'ifaces=[i for i in os.listdir("/sys/class/net") if i.startswith(("wlan","wlp","wlx","wifi"))]',
+            'for iface in ifaces:',
+            '    try:',
+            '        s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)',
+            '        buff=array.array("B", b"\\0"*32)',
+            '        addr,length=buff.buffer_info()',
+            '        packed=struct.pack("16sPHH", iface.encode(), addr, length, 0)',
+            '        fcntl.ioctl(s.fileno(), SIOCGIWESSID, packed)',
+            '        ssid=buff.tobytes().split(b"\\x00",1)[0].decode("utf-8","replace").strip()',
+            '        s.close()',
+            '        if ssid:',
+            '            sys.stdout.write(ssid)',
+            '            raise SystemExit(0)',
+            '    except SystemExit:',
+            '        raise',
+            '    except Exception:',
+            '        pass',
+        ]);
+        $ioctl = @trim((string) @shell_exec('python3 -c ' . escapeshellarg($script) . ' 2>/dev/null'));
+        if ($ioctl !== '') {
+            return $ioctl;
+        }
+        foreach (['/data/config/network/ssid', '/data/config/wifi/ssid'] as $ssid_path) {
+            if (is_readable($ssid_path)) {
+                $val = trim((string) file_get_contents($ssid_path));
+                if ($val !== '') {
+                    return $val;
+                }
+            }
+        }
+        return null;
     }
     
     public static function getDuckiebotHostname(): string {
