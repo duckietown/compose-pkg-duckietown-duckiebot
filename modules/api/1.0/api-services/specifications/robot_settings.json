@@ -17,7 +17,7 @@
                 "optional": {
                     "system": {
                         "type": "object",
-                        "details": "System settings",
+                        "details": "Robot hostname",
                         "_data": {
                             "hostname": {
                                 "type": "text",
@@ -43,15 +43,15 @@
                             },
                             "allow_push_stats_data": {
                                 "type": "boolean",
-                                "default": false,
-                                "details": "Automatically send usage statistics and crash reports to Duckietown.",
+                                "default": true,
+                                "details": "Automatically send usage statistics and crash reports to Duckietown. Required except on a premium subscription.",
                                 "__form__": {
                                     "title": "Share anonymous usage data with Duckietown"
                                 }
                             },
                             "allow_push_config_data": {
                                 "type": "boolean",
-                                "default": false,
+                                "default": true,
                                 "details": "Automatically backup robot's configuration to the Duckietown Cloud Storage Service (DCSS).",
                                 "__form__": {
                                     "title": "Backup robot configuration to the cloud"
@@ -61,7 +61,7 @@
                     },
                     "robot": {
                         "type": "object",
-                        "details": "Robot settings",
+                        "details": "Robot type and hardware",
                         "_data": {
                             "type": {
                                 "type": "enum",
@@ -136,7 +136,7 @@
                     },
                     "autolab": {
                         "type": "object",
-                        "details": "Autolab settings",
+                        "details": "Autolab city and tag",
                         "_data": {
                             "map_name": {
                                 "type": "text",

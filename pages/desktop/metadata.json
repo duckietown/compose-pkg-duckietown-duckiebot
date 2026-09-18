@@ -2,7 +2,7 @@
     "name" : "Desktop",
     "package" : "duckietown",
     "menu_entry" : {
-        "order" : 1,
+        "order" : 20,
         "icon" : {
             "class" : "fa",
             "name" : "desktop"
