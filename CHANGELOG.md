@@ -1,3 +1,8 @@
+## 1.5.5 (September 29, 2026)
+  - Merge pull request #11 from duckietown/DTSW-8395-Expand-networking-support-for-robot-address-entry
+  - feat: expand networking support by introducing getBrowserRobotHostname method
+  - Merge pull request #9 from duckietown/fix/DTSW-7781-mission-control-empty-vehicle-name
+
 ## 1.5.4 (April 21, 2026)
   - fix(DTSW-7781): guard `~` substitution when vehicle_name is empty
 
