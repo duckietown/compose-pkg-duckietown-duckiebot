@@ -6,7 +6,7 @@
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
-$dbot_hostname = Duckiebot::getDuckiebotHostname();
+$dbot_hostname = Duckiebot::getBrowserRobotHostname();
 $update_hz = 1.0;
 $vnc_module_name = 'dt-gui-tools';
 $vnc_container_name = 'desktop-environment';
