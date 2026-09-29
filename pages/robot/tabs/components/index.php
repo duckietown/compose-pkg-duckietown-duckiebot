@@ -5,7 +5,7 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 use \system\classes\Database;
 
 // TODO: these might not be needed anymore
-$dbot_hostname = Duckiebot::getDuckiebotHostname();
+$dbot_hostname = Duckiebot::getBrowserRobotHostname();
 
 $robot_name = Duckiebot::getDuckiebotName();
 $robot_type = Duckiebot::getRobotType();

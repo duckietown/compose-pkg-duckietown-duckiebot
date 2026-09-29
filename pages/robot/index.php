@@ -1,9 +1,6 @@
 <?php
 use \system\classes\Core;
 use \system\classes\Configuration;
-use \system\packages\duckietown_duckiebot\Duckiebot;
-
-$dbot_hostname = Duckiebot::getDuckiebotHostname();
 
 $tabs = [
     'info' => [
@@ -113,7 +110,7 @@ if (!array_key_exists($ACTIVE_TAB, $tabs)){
 
 <script type="text/javascript">
 
-    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{path}";
+    let api_url = window.location.origin + "/{api}/{path}";
 
     function get_api_url(api, action="", resources=[], qs=null) {
         let path = [action, ...resources];
