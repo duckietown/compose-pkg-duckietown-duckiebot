@@ -271,6 +271,27 @@ class Duckiebot {
     }
 
     /**
+     * URL for the robot-hosted keyboard controller (dt-duckietown-viewer).
+     * Default port 8090; override with KEYBOARD_CONTROLLER_PORT.
+     */
+    public static function getKeyboardControllerUrl(): string {
+        $host_header = $_SERVER['HTTP_HOST'] ?? '';
+        $hostname = $host_header !== ''
+            ? preg_replace('/:\d+$/', '', $host_header)
+            : self::getDuckiebotHostname();
+        if ($hostname === '' || $hostname === null) {
+            $hostname = 'localhost';
+        }
+        $port = getenv('KEYBOARD_CONTROLLER_PORT');
+        if ($port === false || $port === '') {
+            $port = '8090';
+        }
+        $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $scheme = $https ? 'https' : 'http';
+        return sprintf('%s://%s:%s/app/', $scheme, $hostname, $port);
+    }
+
+    /**
      * Current Wi-Fi SSID. Dashboard containers often lack `iwgetid`; ioctl
      * against wlan* still works with host networking.
      */

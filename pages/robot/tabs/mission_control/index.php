@@ -96,6 +96,18 @@ if ($db->size() == 0){
 }
 $mission_control_grid = [];
 if ($load_mission) {
+  // Ensure package block renderers are available even when Compose's
+  // package-module cache predates newly added files.
+  $kc_renderer = join_path(
+    Core::getPackageRootDir('duckietown_duckiebot'),
+    'modules',
+    'renderers',
+    'blocks',
+    'Duckiebot_KeyboardController.php'
+  );
+  if (is_string($kc_renderer) && file_exists($kc_renderer)) {
+    require_once $kc_renderer;
+  }
   // read mission details
   $res = $db->read($mission_name);
   if( !$res['success'] ){
@@ -141,6 +153,17 @@ $_bridge_status = ($is_multi_robot_mission)?
   <div class="robot-status-bar-item robot-status-bar-tools">
     <?php
     $mc_menu->render_toolbar();
+    $keyboard_controller_url = Duckiebot::getKeyboardControllerUrl();
+    ?>
+    <a class="robot-btn robot-btn-ghost robot-btn-sm"
+       id="mission-control-keyboard-controller-btn"
+       href="<?php echo htmlspecialchars($keyboard_controller_url) ?>"
+       target="_blank"
+       rel="noopener noreferrer"
+       title="Open keyboard controller">
+      <i class="fa fa-gamepad" aria-hidden="true"></i> Keyboard
+    </a>
+    <?php
     new MissionControlConfiguration(
       $grid_id,
       $mission_db_package,
