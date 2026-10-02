@@ -72,6 +72,10 @@ class Duckiebot {
                 Data::set_public_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
                 Data::set_guest_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME, true, true);
             }
+            // Mission Control saves/loads missions through the Data API. Guests
+            // need explicit r/w on these public DBs or Add block / Save fail
+            // with 401, so the page looks broken until someone signs in.
+            self::ensureMissionDatabasesGuestAccess();
             //
             self::$initialized = true;
             return ['success' => true, 'data' => null];
@@ -104,6 +108,28 @@ class Duckiebot {
         // do stuff
         return ['success' => true, 'data' => null];
     }//close
+
+    /**
+     * Ensure Mission Control mission DBs are public with guest r/w.
+     * Existing installs shipped without a guest ACL, so unsigned-in
+     * operators could view the page (direct Database reads) but could not
+     * Save / Add block through the Data API.
+     */
+    private static function ensureMissionDatabasesGuestAccess(): void {
+        $mission_dbs = [
+            'duckietown_duckiebot_missions',
+            'duckietown_duckiebot_missions_opts',
+            'duckietown_watchtower_missions',
+            'duckietown_watchtower_missions_opts',
+        ];
+        foreach ($mission_dbs as $database_name) {
+            if (!Data::exists($database_name)) {
+                continue;
+            }
+            Data::set_public_access($database_name);
+            Data::set_guest_access($database_name, true, true);
+        }
+    }
     
     
     // =======================================================================================================

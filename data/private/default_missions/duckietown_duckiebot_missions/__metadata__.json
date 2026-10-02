@@ -4,6 +4,10 @@
 			"type": "public",
 			"owner": null,
 			"grant": [
+			],
+			"guest": [
+				"r",
+				"w"
 			]
 		}
 	},
