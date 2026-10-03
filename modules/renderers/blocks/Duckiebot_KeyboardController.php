@@ -18,7 +18,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
         "name" => "gamepad"
     ];
 
-    static protected $DEFAULT_SIZE = ['rows' => 4, 'cols' => 8];
+    static protected $DEFAULT_SIZE = ['rows' => 3, 'cols' => 8];
 
     static protected $ARGUMENTS = [
         "ros_hostname" => [
@@ -44,6 +44,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
 
         $prefix = !empty($vehicle) ? '/' . $vehicle : '';
         $joy_topic = $prefix . '/joy';
+        $imu_topic = $prefix . '/imu_node/raw';
+        $tof_topic = $prefix . '/front_center_tof_driver_node/range';
+        $wheels_topic = $prefix . '/wheels_driver_node/wheels_cmd_executed';
 
         $hz = isset($args['hz']) ? max(20, intval($args['hz'])) : 50;
         $viewer_url = Duckiebot::getKeyboardControllerUrl();
@@ -66,57 +69,132 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             </div>
 
             <div class="robot-kc-body">
-                <div class="robot-kc-pad" aria-label="D-pad">
-                    <button type="button" class="robot-kc-btn robot-kc-up" data-dir="up" title="Forward (W / up)">
-                        <i class="fa fa-arrow-up" aria-hidden="true"></i>
-                    </button>
-                    <button type="button" class="robot-kc-btn robot-kc-left" data-dir="left" title="Left (A / left)">
-                        <i class="fa fa-arrow-left" aria-hidden="true"></i>
-                    </button>
-                    <button type="button" class="robot-kc-btn robot-kc-center" disabled aria-hidden="true">
-                        <i class="fa fa-gamepad" aria-hidden="true"></i>
-                    </button>
-                    <button type="button" class="robot-kc-btn robot-kc-right" data-dir="right" title="Right (D / right)">
-                        <i class="fa fa-arrow-right" aria-hidden="true"></i>
-                    </button>
-                    <button type="button" class="robot-kc-btn robot-kc-down" data-dir="down" title="Back (S / down)">
-                        <i class="fa fa-arrow-down" aria-hidden="true"></i>
-                    </button>
+                <div class="robot-kc-col robot-kc-col-sensors" aria-label="IMU and left wheel">
+                    <div class="robot-kc-sensor-card">
+                        <div class="robot-kc-sensor-head">
+                            <span class="robot-kc-sensor-label">IMU accel</span>
+                            <span class="robot-kc-imu-readout">0.00 g</span>
+                        </div>
+                        <div class="robot-kc-imu" title="IMU linear acceleration (x/y)">
+                            <div class="robot-kc-imu-ring"></div>
+                            <div class="robot-kc-imu-dot"></div>
+                        </div>
+                    </div>
+                    <div class="robot-kc-sensor-card robot-kc-sensor-card-wheel">
+                        <div class="robot-kc-sensor-head">
+                            <span class="robot-kc-sensor-label">Left wheel</span>
+                            <span class="robot-kc-wheel-readout robot-kc-wheel-left-readout">0.00 m/s</span>
+                        </div>
+                        <div class="robot-kc-wheel" title="Left wheel command">
+                            <div class="robot-kc-wheel-track"></div>
+                            <div class="robot-kc-wheel-pos"></div>
+                            <div class="robot-kc-wheel-neg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="robot-kc-drive">
+                    <div class="robot-kc-pad" aria-label="D-pad">
+                        <button type="button" class="robot-kc-btn robot-kc-up" data-dir="up" title="Forward (W / up)">
+                            <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="robot-kc-btn robot-kc-left" data-dir="left" title="Left (A / left)">
+                            <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="robot-kc-btn robot-kc-center" disabled aria-hidden="true">
+                            <i class="fa fa-gamepad" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="robot-kc-btn robot-kc-right" data-dir="right" title="Right (D / right)">
+                            <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="robot-kc-btn robot-kc-down" data-dir="down" title="Back (S / down)">
+                            <i class="fa fa-arrow-down" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <p class="robot-kc-hint">WASD / arrows · Space stops</p>
+                </div>
+
+                <div class="robot-kc-col robot-kc-col-sensors" aria-label="ToF and right wheel">
+                    <div class="robot-kc-sensor-card">
+                        <div class="robot-kc-sensor-head">
+                            <span class="robot-kc-sensor-label">ToF range</span>
+                            <span class="robot-kc-tof-readout">— cm</span>
+                        </div>
+                        <div class="robot-kc-tof" title="Front ToF range">
+                            <div class="robot-kc-tof-bg"></div>
+                            <div class="robot-kc-tof-fill"></div>
+                        </div>
+                    </div>
+                    <div class="robot-kc-sensor-card robot-kc-sensor-card-wheel">
+                        <div class="robot-kc-sensor-head">
+                            <span class="robot-kc-sensor-label">Right wheel</span>
+                            <span class="robot-kc-wheel-readout robot-kc-wheel-right-readout">0.00 m/s</span>
+                        </div>
+                        <div class="robot-kc-wheel" title="Right wheel command">
+                            <div class="robot-kc-wheel-track"></div>
+                            <div class="robot-kc-wheel-pos"></div>
+                            <div class="robot-kc-wheel-neg"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="robot-kc-side">
-                    <label class="robot-kc-speed-label" for="robot_kc_speed_<?php echo htmlspecialchars($uid) ?>">Speed</label>
-                    <input id="robot_kc_speed_<?php echo htmlspecialchars($uid) ?>"
-                           class="robot-kc-speed"
-                           type="range" min="0.2" max="1" step="0.05" value="0.7" />
-                    <div class="robot-kc-speed-val">70%</div>
-                    <p class="robot-kc-hint">Enable drive, then hold D-pad or WASD. Space stops.</p>
+                    <div class="robot-kc-speed-head">
+                        <label class="robot-kc-speed-label" for="robot_kc_speed_<?php echo htmlspecialchars($uid) ?>">Speed</label>
+                        <div class="robot-kc-speed-val">70%</div>
+                    </div>
+                    <div class="robot-kc-speed-row">
+                        <input id="robot_kc_speed_<?php echo htmlspecialchars($uid) ?>"
+                               class="robot-kc-speed"
+                               type="range" min="0.2" max="1" step="0.05" value="0.7"
+                               orient="vertical"
+                               aria-orientation="vertical" />
+                    </div>
+                    <p class="robot-kc-hint robot-kc-hint-side">Enable, then hold D-pad / WASD. Space stops.</p>
                 </div>
             </div>
         </div>
 
         <style type="text/css">
-            #<?php echo htmlspecialchars($id) ?>.block_renderer_canvas { overflow: hidden; }
+            #<?php echo htmlspecialchars($id) ?>.block_renderer_canvas {
+                overflow: visible;
+            }
+            #<?php echo htmlspecialchars($id) ?> .block_renderer_header,
+            #<?php echo htmlspecialchars($id) ?> .block_renderer_menu_icon,
+            #<?php echo htmlspecialchars($id) ?> .block_renderer_menu_icon .btn-group {
+                overflow: visible;
+            }
+            #<?php echo htmlspecialchars($id) ?> .block_renderer_menu_icon .dropdown-menu {
+                right: 0;
+                left: auto;
+                z-index: 1050;
+            }
             #<?php echo htmlspecialchars($id) ?>.block_renderer_canvas > table {
                 height: 100%;
                 table-layout: fixed;
             }
-            #<?php echo htmlspecialchars($id) ?> .block_renderer_container,
+            #<?php echo htmlspecialchars($id) ?> .block_renderer_container {
+                height: 100%;
+                overflow: hidden;
+            }
             #<?php echo htmlspecialchars($id) ?> .block_renderer_container > td {
                 height: 100%;
                 vertical-align: top;
                 overflow: hidden;
+                position: relative;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc {
                 box-sizing: border-box;
+                position: absolute;
+                inset: 0;
                 display: flex;
                 flex-direction: column;
                 gap: 6px;
-                height: 100%;
-                padding: 4px 10px 6px;
+                padding: 4px 10px 8px;
                 outline: none;
                 user-select: none;
                 -webkit-user-select: none;
+                overflow: hidden;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc:focus {
                 box-shadow: inset 0 0 0 2px rgba(38, 164, 234, 0.45);
@@ -125,18 +203,22 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
-                gap: 8px 12px;
+                gap: 6px 10px;
+                flex: 0 0 auto;
+                padding-bottom: 4px;
+                border-bottom: 1px solid var(--r-border, #e6e8eb);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-enable {
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
+                gap: 6px;
                 margin: 0;
                 font-weight: 600;
+                font-size: 13px;
                 cursor: pointer;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status {
-                font-size: 12px;
+                font-size: 11px;
                 padding: 2px 8px;
                 border-radius: 999px;
                 background: var(--r-surface, #f1f3f5);
@@ -154,21 +236,178 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-size: 11px;
                 color: var(--r-muted, #6b7280);
+                margin-left: auto;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-body {
                 flex: 1 1 auto;
                 min-height: 0;
+                display: grid;
+                grid-template-columns: minmax(96px, 0.95fr) minmax(150px, 1.2fr) minmax(96px, 0.95fr) minmax(72px, 0.55fr);
+                gap: 8px 10px;
+                align-items: stretch;
+                justify-items: stretch;
+                overflow: hidden;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-col-sensors {
                 display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 0;
+                min-height: 0;
+                height: 100%;
+                overflow: hidden;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-card {
+                flex: 1 1 0;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding: 6px;
+                border: 1px solid var(--r-border, #e6e8eb);
+                border-radius: 8px;
+                background: var(--r-surface, #f8fafc);
+                overflow: hidden;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-card-wheel {
+                flex: 1.05 1 0;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-head {
+                width: 100%;
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 6px;
+                flex: 0 0 auto;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-label {
+                margin: 0;
+                font-size: 10px;
+                font-weight: 600;
+                color: var(--r-muted, #6b7280);
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-imu-readout,
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-tof-readout,
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-readout {
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--r-text, #1f2937);
+                margin: 0;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-imu,
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-tof {
+                position: relative;
+                flex: 1 1 auto;
+                min-height: 0;
+                width: auto;
+                max-width: 100%;
+                aspect-ratio: 1;
+                height: auto;
+                max-height: 100%;
+                align-self: center;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-imu-ring {
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: rgba(38, 164, 234, 0.18);
+                box-shadow: inset 0 0 0 1px rgba(38, 164, 234, 0.15);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-imu-dot {
+                position: absolute;
+                width: 16%;
+                height: 16%;
+                border-radius: 50%;
+                background: rgb(38, 164, 234);
+                left: 50%;
+                bottom: 50%;
+                transform: translate(-50%, 50%);
+                transition: left 0.08s linear, bottom 0.08s linear;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-tof-bg,
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-tof-fill {
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: conic-gradient(
+                    from 315deg,
+                    rgba(38, 164, 234, 0.22) 90deg,
+                    rgba(0, 0, 0, 0) 0deg
+                );
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-tof-fill {
+                inset: auto;
+                width: 100%;
+                height: 100%;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                background: conic-gradient(
+                    from 315deg,
+                    rgb(38, 164, 234) 90deg,
+                    rgba(0, 0, 0, 0) 0deg
+                );
+                transition: width 0.12s linear, height 0.12s linear;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel {
+                position: relative;
+                flex: 1 1 auto;
+                min-height: 0;
+                width: min(44px, 40%);
+                max-height: 100%;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-track {
+                position: absolute;
+                inset: 0;
+                border-radius: 6px;
+                background: rgba(38, 164, 234, 0.18);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-pos,
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-neg {
+                position: absolute;
+                left: 0;
+                width: 100%;
+                height: 0%;
+                background: rgb(38, 164, 234);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-pos {
+                bottom: 50%;
+                border-radius: 6px 6px 0 0;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-neg {
+                top: 50%;
+                border-radius: 0 0 6px 6px;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-drive {
+                display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 20px;
-                flex-wrap: wrap;
+                gap: 6px;
+                min-width: 0;
+                min-height: 0;
+                height: 100%;
+                padding: 6px;
+                border: 1px solid var(--r-border, #e6e8eb);
+                border-radius: 8px;
+                background: var(--r-surface, #f8fafc);
+                overflow: hidden;
+                container-type: size;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-pad {
                 display: grid;
-                grid-template-columns: 52px 52px 52px;
-                grid-template-rows: 52px 52px 52px;
-                gap: 5px;
+                flex: 0 0 auto;
+                width: min(100%, calc(100cqh - 26px));
+                max-width: 100%;
+                aspect-ratio: 1;
+                height: auto;
+                grid-template-columns: 1fr 1fr 1fr;
+                grid-template-rows: 1fr 1fr 1fr;
+                gap: 6px;
                 grid-template-areas:
                     ". up ."
                     "left center right"
@@ -181,11 +420,13 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-kc-down { grid-area: down; }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-btn {
                 margin: 0;
+                width: 100%;
+                height: 100%;
                 border: 2px solid #1f2937;
-                border-radius: 8px;
-                background: #f8fafc;
+                border-radius: 10px;
+                background: #fff;
                 color: #1f2937;
-                font-size: 18px;
+                font-size: clamp(14px, 2.2cqw, 22px);
                 line-height: 1;
                 cursor: pointer;
                 touch-action: none;
@@ -201,32 +442,120 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 color: #fff;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-side {
-                min-width: 180px;
-                max-width: 260px;
+                min-width: 0;
+                min-height: 0;
+                height: 100%;
                 display: flex;
                 flex-direction: column;
+                align-items: center;
                 gap: 6px;
+                padding: 8px 6px;
+                border: 1px solid var(--r-border, #e6e8eb);
+                border-radius: 8px;
+                background: var(--r-surface, #f8fafc);
+                overflow: hidden;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-head {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                flex: 0 0 auto;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-label {
                 margin: 0;
                 font-weight: 600;
-                font-size: 13px;
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+                color: var(--r-muted, #6b7280);
             }
-            #<?php echo htmlspecialchars($id) ?> .robot-kc-speed { width: 100%; }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-row {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                flex: 1 1 auto;
+                min-height: 0;
+                width: 100%;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-speed {
+                width: 28px;
+                height: 100%;
+                min-height: 64px;
+                margin: 0;
+                writing-mode: vertical-lr;
+                direction: rtl;
+                appearance: slider-vertical;
+                -webkit-appearance: slider-vertical;
+            }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-val {
                 font-variant-numeric: tabular-nums;
-                color: var(--r-muted, #6b7280);
-                font-size: 12px;
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                font-weight: 700;
+                color: var(--r-text, #1f2937);
+                font-size: 15px;
+                line-height: 1.1;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-hint {
-                margin: 8px 0 0;
-                font-size: 12px;
-                line-height: 1.35;
+                margin: 0;
+                font-size: 11px;
+                line-height: 1.3;
                 color: var(--r-muted, #6b7280);
+                text-align: center;
+                flex: 0 0 auto;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-hint-side {
+                text-align: center;
+                font-size: 10px;
+                max-width: 9em;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc.is-disabled .robot-kc-btn[data-dir] {
                 opacity: 0.45;
                 pointer-events: none;
+            }
+            @media (max-width: 900px) {
+                #<?php echo htmlspecialchars($id) ?> .robot-kc {
+                    position: relative;
+                    inset: auto;
+                    height: 100%;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-body {
+                    grid-template-columns: 1fr 1fr;
+                    grid-template-rows: auto auto;
+                    overflow: auto;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-drive {
+                    grid-column: 1 / -1;
+                    min-height: 200px;
+                    container-type: normal;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-pad {
+                    width: min(100%, 220px);
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-side {
+                    grid-column: 1 / -1;
+                    flex-direction: row;
+                    align-items: center;
+                    min-height: 64px;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-row {
+                    flex: 1 1 auto;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-speed {
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                    appearance: auto;
+                    -webkit-appearance: auto;
+                    width: 100%;
+                    height: 28px;
+                    min-height: 0;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-hint-side {
+                    max-width: none;
+                    text-align: left;
+                }
             }
         </style>
 
@@ -248,8 +577,25 @@ class Duckiebot_KeyboardController extends BlockRenderer {
 
             var rosHost = <?php echo json_encode($ros_hostname) ?>;
             var joyTopicName = <?php echo json_encode($joy_topic) ?>;
+            var imuTopicName = <?php echo json_encode($imu_topic) ?>;
+            var tofTopicName = <?php echo json_encode($tof_topic) ?>;
+            var wheelsTopicName = <?php echo json_encode($wheels_topic) ?>;
             var periodMs = <?php echo json_encode(intval(1000 / $hz)) ?>;
             var smoothAlpha = 0.28;
+            var tofMaxM = 1.2;
+            var wheelMaxMs = 0.4;
+            var sensorsBound = false;
+
+            var imuDot = root.querySelector('.robot-kc-imu-dot');
+            var imuReadout = root.querySelector('.robot-kc-imu-readout');
+            var tofFill = root.querySelector('.robot-kc-tof-fill');
+            var tofReadout = root.querySelector('.robot-kc-tof-readout');
+            var leftWheelPos = root.querySelectorAll('.robot-kc-col-sensors')[0].querySelector('.robot-kc-wheel-pos');
+            var leftWheelNeg = root.querySelectorAll('.robot-kc-col-sensors')[0].querySelector('.robot-kc-wheel-neg');
+            var leftWheelReadout = root.querySelector('.robot-kc-wheel-left-readout');
+            var rightWheelPos = root.querySelectorAll('.robot-kc-col-sensors')[1].querySelector('.robot-kc-wheel-pos');
+            var rightWheelNeg = root.querySelectorAll('.robot-kc-col-sensors')[1].querySelector('.robot-kc-wheel-neg');
+            var rightWheelReadout = root.querySelector('.robot-kc-wheel-right-readout');
 
             var Keys = { UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39, W: 87, A: 65, S: 83, D: 68, SPACE: 32 };
             var pressed = { up: false, down: false, left: false, right: false };
@@ -334,6 +680,76 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 curSteer *= 0.25;
             }
 
+            function setWheelBar(posEl, negEl, readoutEl, vel) {
+                var v = Number(vel) || 0;
+                var pct = Math.min(100, Math.abs(v) / wheelMaxMs * 100);
+                posEl.style.height = (v > 0 ? pct : 0) + '%';
+                negEl.style.height = (v < 0 ? pct : 0) + '%';
+                readoutEl.textContent = v.toFixed(2) + ' m/s';
+            }
+
+            function bindSensors() {
+                var ros = getRos();
+                if (!ros || typeof ROSLIB === 'undefined' || sensorsBound) return false;
+                sensorsBound = true;
+
+                var imuSub = new ROSLIB.Topic({
+                    ros: ros,
+                    name: imuTopicName,
+                    messageType: 'sensor_msgs/Imu',
+                    queue_size: 1,
+                    throttle_rate: 100
+                });
+                imuSub.subscribe(function (msg) {
+                    var ax = Number(msg.linear_acceleration && msg.linear_acceleration.x) || 0;
+                    var ay = Number(msg.linear_acceleration && msg.linear_acceleration.y) || 0;
+                    var radius = Math.min(Math.sqrt(ax * ax + ay * ay), 9.81);
+                    var angle = Math.atan2(ay, ax);
+                    var x = radius * Math.cos(angle);
+                    var y = radius * Math.sin(angle);
+                    var left = 37.5 * x / 9.81 + 50;
+                    var bottom = 37.5 * y / 9.81 + 50;
+                    imuDot.style.left = left + '%';
+                    imuDot.style.bottom = bottom + '%';
+                    imuReadout.textContent = (radius / 9.81).toFixed(2) + ' g';
+                });
+
+                var tofSub = new ROSLIB.Topic({
+                    ros: ros,
+                    name: tofTopicName,
+                    messageType: 'sensor_msgs/Range',
+                    queue_size: 1,
+                    throttle_rate: 100
+                });
+                tofSub.subscribe(function (msg) {
+                    var range = Number(msg.range);
+                    if (!isFinite(range) || range < 0) {
+                        tofReadout.textContent = '— cm';
+                        tofFill.style.width = '100%';
+                        tofFill.style.height = '100%';
+                        return;
+                    }
+                    var scale = Math.max(0.12, Math.min(1, range / tofMaxM));
+                    var pct = (scale * 100).toFixed(1) + '%';
+                    tofFill.style.width = pct;
+                    tofFill.style.height = pct;
+                    tofReadout.textContent = (range * 100).toFixed(0) + ' cm';
+                });
+
+                var wheelsSub = new ROSLIB.Topic({
+                    ros: ros,
+                    name: wheelsTopicName,
+                    messageType: 'duckietown_msgs/WheelsCmdStamped',
+                    queue_size: 1,
+                    throttle_rate: 100
+                });
+                wheelsSub.subscribe(function (msg) {
+                    setWheelBar(leftWheelPos, leftWheelNeg, leftWheelReadout, msg.vel_left);
+                    setWheelBar(rightWheelPos, rightWheelNeg, rightWheelReadout, msg.vel_right);
+                });
+                return true;
+            }
+
             function bindPublisher() {
                 var ros = getRos();
                 if (!ros || typeof ROSLIB === 'undefined') return false;
@@ -345,6 +761,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     queue_size: 1
                 });
                 bridgeReady = true;
+                bindSensors();
                 setStatus(
                     armed ? 'Driving' : 'Bridge ok, enable to drive',
                     armed ? 'is-on' : 'is-wait'

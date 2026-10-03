@@ -19,12 +19,12 @@
 			},
 			{
 				"shape": {
-					"rows": 4,
+					"rows": 3,
 					"cols": 8
 				},
 				"renderer": "Duckiebot_KeyboardController",
 				"title": "Keyboard Controller",
-				"subtitle": "WASD / D-pad → joy_mapper",
+				"subtitle": "WASD / D-pad · IMU · ToF · wheels",
 				"args": {
 					"ros_hostname": "",
 					"hz": 50

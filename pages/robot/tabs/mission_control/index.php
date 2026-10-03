@@ -144,10 +144,10 @@ if ($load_mission) {
   }
   if (!$has_keyboard_controller) {
     $kc_block = [
-      'shape' => ['rows' => 4, 'cols' => 8],
+      'shape' => ['rows' => 3, 'cols' => 8],
       'renderer' => 'Duckiebot_KeyboardController',
       'title' => 'Keyboard Controller',
-      'subtitle' => 'WASD / D-pad → joy_mapper',
+      'subtitle' => 'WASD / D-pad · IMU · ToF · wheels',
       'args' => [
         'ros_hostname' => '',
         'hz' => 50,
