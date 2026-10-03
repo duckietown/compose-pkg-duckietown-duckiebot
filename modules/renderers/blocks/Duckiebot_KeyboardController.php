@@ -67,13 +67,21 @@ class Duckiebot_KeyboardController extends BlockRenderer {
 
             <div class="robot-kc-body">
                 <div class="robot-kc-pad" aria-label="D-pad">
-                    <button type="button" class="robot-kc-btn robot-kc-up" data-dir="up" title="Forward (W / up)">▲</button>
-                    <button type="button" class="robot-kc-btn robot-kc-left" data-dir="left" title="Left (A / left)">◀</button>
+                    <button type="button" class="robot-kc-btn robot-kc-up" data-dir="up" title="Forward (W / up)">
+                        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="robot-kc-btn robot-kc-left" data-dir="left" title="Left (A / left)">
+                        <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                    </button>
                     <button type="button" class="robot-kc-btn robot-kc-center" disabled aria-hidden="true">
                         <i class="fa fa-gamepad" aria-hidden="true"></i>
                     </button>
-                    <button type="button" class="robot-kc-btn robot-kc-right" data-dir="right" title="Right (D / right)">▶</button>
-                    <button type="button" class="robot-kc-btn robot-kc-down" data-dir="down" title="Back (S / down)">▼</button>
+                    <button type="button" class="robot-kc-btn robot-kc-right" data-dir="right" title="Right (D / right)">
+                        <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="robot-kc-btn robot-kc-down" data-dir="down" title="Back (S / down)">
+                        <i class="fa fa-arrow-down" aria-hidden="true"></i>
+                    </button>
                 </div>
 
                 <div class="robot-kc-side">

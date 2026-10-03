@@ -49,7 +49,7 @@
 					"rows": 2,
 					"cols": 2
 				},
-				"renderer": "DuckietownMsgs_Twist2DStamped",
+				"renderer": "Duckiebot_Twist2DStamped",
 				"title": "Speed - Angular",
 				"subtitle": "\/kinematics_node\/velocity",
 				"args": {
@@ -66,7 +66,7 @@
 					"rows": 2,
 					"cols": 2
 				},
-				"renderer": "DuckietownMsgs_Twist2DStamped",
+				"renderer": "Duckiebot_Twist2DStamped",
 				"title": "Speed - Linear",
 				"subtitle": "\/kinematics_node\/velocity",
 				"args": {

@@ -98,15 +98,17 @@ $mission_control_grid = [];
 if ($load_mission) {
   // Ensure package block renderers are available even when Compose's
   // package-module cache predates newly added files.
-  $kc_renderer = join_path(
+  $pkg_blocks_dir = join_path(
     Core::getPackageRootDir('duckietown_duckiebot'),
     'modules',
     'renderers',
-    'blocks',
-    'Duckiebot_KeyboardController.php'
+    'blocks'
   );
-  if (is_string($kc_renderer) && file_exists($kc_renderer)) {
-    require_once $kc_renderer;
+  foreach (['Duckiebot_KeyboardController.php', 'Duckiebot_Twist2DStamped.php'] as $renderer_file) {
+    $renderer_path = join_path($pkg_blocks_dir, $renderer_file);
+    if (is_string($renderer_path) && file_exists($renderer_path)) {
+      require_once $renderer_path;
+    }
   }
   // read mission details
   $res = $db->read($mission_name);
@@ -114,6 +116,52 @@ if ($load_mission) {
     Core::throwError($res['data']);
   }
   $mission_control_grid = $res['data'];
+  if (!isset($mission_control_grid['blocks']) || !is_array($mission_control_grid['blocks'])) {
+    $mission_control_grid['blocks'] = [];
+  }
+  // Stock Twist2D gauges use undefined chartColors.white and a broken
+  // Math.sign(Math.abs(v)) path; remap to the fixed Duckiebot renderer.
+  // Fresh container volumes can also revive pre-signed defaults with
+  // allow_negative=false — force signed mode for these velocity gauges.
+  for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
+    $renderer = $mission_control_grid['blocks'][$i]['renderer'] ?? '';
+    if ($renderer === 'DuckietownMsgs_Twist2DStamped' || $renderer === 'Duckiebot_Twist2DStamped') {
+      $mission_control_grid['blocks'][$i]['renderer'] = 'Duckiebot_Twist2DStamped';
+      if (!isset($mission_control_grid['blocks'][$i]['args']) || !is_array($mission_control_grid['blocks'][$i]['args'])) {
+        $mission_control_grid['blocks'][$i]['args'] = [];
+      }
+      $mission_control_grid['blocks'][$i]['args']['allow_negative'] = true;
+    }
+  }
+  // Stale mission DBs (pre-teleop defaults) omit the on-page controller.
+  // Always surface it so teleop is available without re-running post_update.
+  $has_keyboard_controller = false;
+  foreach ($mission_control_grid['blocks'] as $block) {
+    if (($block['renderer'] ?? '') === 'Duckiebot_KeyboardController') {
+      $has_keyboard_controller = true;
+      break;
+    }
+  }
+  if (!$has_keyboard_controller) {
+    $kc_block = [
+      'shape' => ['rows' => 4, 'cols' => 8],
+      'renderer' => 'Duckiebot_KeyboardController',
+      'title' => 'Keyboard Controller',
+      'subtitle' => 'WASD / D-pad → joy_mapper',
+      'args' => [
+        'ros_hostname' => '',
+        'hz' => 50,
+      ],
+    ];
+    $insert_at = count($mission_control_grid['blocks']);
+    foreach ($mission_control_grid['blocks'] as $i => $block) {
+      if (($block['renderer'] ?? '') === 'SensorMsgs_CompressedImage') {
+        $insert_at = $i + 1;
+        break;
+      }
+    }
+    array_splice($mission_control_grid['blocks'], $insert_at, 0, [$kc_block]);
+  }
   // if we were able to load the mission, store it as 'last opened'
   $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
 }
