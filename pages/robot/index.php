@@ -88,6 +88,8 @@ $show_power = RobotUIFeatures::should_render_power_controls();
  * html[data-dt-theme]) so light and dark both apply. Do not redeclare them here.
  * Type scale (px only, no pt):
  *   xs 10 | sm 11 | md 12 | lg 13 | xl 15 | title 18 | value 22
+ * Headings: h2=title, h3/h4=xl (section/entity), h5/h6=sm.
+ * Use .robot-label for uppercase field labels; .robot-section-title for group headers.
  */
 .robot-page {
     color: var(--r-text);
@@ -105,11 +107,19 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 }
 .robot-page h2 { font-size: var(--r-fs-title); font-weight: var(--r-fw-semibold); }
 .robot-page h3 { font-size: var(--r-fs-xl); font-weight: var(--r-fw-semibold); margin: 0 0 8px; }
-.robot-page h4 { font-size: var(--r-fs-md); font-weight: var(--r-fw-semibold); margin: 0 0 8px; }
+.robot-page h4 { font-size: var(--r-fs-xl); font-weight: var(--r-fw-semibold); margin: 0 0 8px; }
 .robot-page h5,
 .robot-page h6 { font-size: var(--r-fs-sm); font-weight: var(--r-fw-semibold); margin: 0 0 6px; }
 .robot-label {
-    font-size: var(--r-fs-sm);
+    font-size: var(--r-fs-xs);
+    font-weight: var(--r-fw-semibold);
+    color: var(--r-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--r-tracking-label);
+}
+.robot-section-title {
+    margin: 18px 0 8px;
+    font-size: var(--r-fs-md);
     font-weight: var(--r-fw-semibold);
     color: var(--r-muted);
     text-transform: uppercase;
@@ -182,7 +192,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     margin-right: 2px;
     text-align: center;
     opacity: 0.55;
-    font-size: 12px;
+    font-size: var(--r-fs-md);
     line-height: 1;
 }
 #_robot_tab_btns > li.active > a > i.fa {
@@ -538,7 +548,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     border-color: transparent;
     color: inherit;
     box-shadow: none;
-    font-size: 16px;
+    font-size: var(--r-fs-xl);
 }
 .robot-page .block_renderer_menu_icon .btn:hover,
 .robot-page .block_renderer_menu_icon .btn:focus,
@@ -710,7 +720,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
     text-align: center;
 }
 .robot-auth-gate-icon {
-    font-size: 28px;
+    font-size: var(--r-fs-icon);
     line-height: 1;
     color: var(--r-fill);
     margin-bottom: 10px;

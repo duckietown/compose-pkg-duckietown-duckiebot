@@ -18,6 +18,10 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 <?php
 $robot_type = Duckiebot::getRobotType();
 $robot_type = (strlen($robot_type) < 2)? "duckiebot" : $robot_type;
+// TEMP preview for user viewing — remove when done
+if (isset($_GET['force_type']) && preg_match('/^[a-z0-9_]+$/', $_GET['force_type'])) {
+    $robot_type = $_GET['force_type'];
+}
 $mission_db = "duckietown_{$robot_type}_missions";
 $mission_db_package = "data";
 $mission_name = (isset($_GET['mission']) && strlen(trim($_GET['mission'])) > 0)? trim($_GET['mission']) : null;

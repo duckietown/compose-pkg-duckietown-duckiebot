@@ -237,12 +237,12 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 gap: 6px;
                 margin: 0;
                 font-weight: 600;
-                font-size: 13px;
+                font-size: var(--r-fs-lg);
                 cursor: pointer;
                 color: #0f3d5c;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status {
-                font-size: 11px;
+                font-size: var(--r-fs-sm);
                 padding: 2px 8px;
                 border-radius: 999px;
                 background: var(--kc-blue-soft);
@@ -263,7 +263,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-cmd {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                font-size: 11px;
+                font-size: var(--r-fs-sm);
                 color: #4b6b82;
                 margin-left: auto;
             }
@@ -312,7 +312,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-label {
                 margin: 0;
-                font-size: 10px;
+                font-size: var(--r-fs-xs);
                 font-weight: 700;
                 color: var(--kc-blue-deep);
                 text-transform: uppercase;
@@ -322,7 +322,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-kc-tof-readout,
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-readout {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                font-size: 11px;
+                font-size: var(--r-fs-sm);
                 font-weight: 700;
                 color: #123a52;
                 margin: 0;
@@ -509,7 +509,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-label {
                 margin: 0;
                 font-weight: 700;
-                font-size: 10px;
+                font-size: var(--r-fs-xs);
                 text-transform: uppercase;
                 letter-spacing: 0.03em;
                 color: var(--kc-blue-deep);
@@ -542,7 +542,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-weight: 800;
                 color: #0f3d5c;
-                font-size: 15px;
+                font-size: var(--r-fs-xl);
                 line-height: 1.1;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-block {
@@ -566,14 +566,14 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-label {
                 margin: 0;
                 font-weight: 600;
-                font-size: 9px;
+                font-size: var(--r-fs-xs);
                 text-transform: uppercase;
                 letter-spacing: 0.03em;
                 color: #6b8799;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-val {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                font-size: 10px;
+                font-size: var(--r-fs-xs);
                 font-weight: 600;
                 color: #4b6b82;
             }
@@ -586,7 +586,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-hint {
                 margin: 0;
-                font-size: 11px;
+                font-size: var(--r-fs-sm);
                 line-height: 1.3;
                 color: #4b6b82;
                 text-align: center;
@@ -594,7 +594,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-hint-side {
                 text-align: center;
-                font-size: 10px;
+                font-size: var(--r-fs-xs);
                 max-width: 9em;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc.is-disabled .robot-kc-btn[data-dir] {

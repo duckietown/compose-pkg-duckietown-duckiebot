@@ -79,7 +79,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         align-items: center;
         justify-content: center;
         color: var(--r-muted, #6b7280);
-        font-size: 28px;
+        font-size: var(--r-fs-icon);
         pointer-events: none;
         z-index: 1;
     }
@@ -199,7 +199,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         border-radius: 50%;
         background: var(--r-surface, #f8f9fb);
         color: var(--r-muted, #6b7280);
-        font-size: 10px;
+        font-size: var(--r-fs-xs);
         font-weight: var(--r-fw-semibold, 600);
         line-height: 1;
         cursor: help;
@@ -281,7 +281,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         justify-content: space-between;
         align-items: flex-end;
         padding: 0;
-        font-size: 9px;
+        font-size: var(--r-fs-xs);
         line-height: 1;
         color: var(--r-muted, #6b7280);
         font-variant-numeric: tabular-nums;
@@ -526,7 +526,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-wifi-toggle .fa {
         color: var(--r-muted, #6b7280);
-        font-size: 11px;
+        font-size: var(--r-fs-sm);
     }
     .robot-wifi-toggle strong {
         overflow: hidden;
@@ -569,7 +569,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         background: #fff;
         color: var(--r-text, #111827);
         font: inherit;
-        font-size: 11px;
+        font-size: var(--r-fs-sm);
         font-weight: 600;
         cursor: pointer;
     }
@@ -612,11 +612,11 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-wifi-list .wifi-meta {
         grid-column: 1 / -1;
-        font-size: 11px;
+        font-size: var(--r-fs-sm);
         color: var(--r-muted, #6b7280);
     }
     .robot-wifi-list .wifi-signal {
-        font-size: 11px;
+        font-size: var(--r-fs-sm);
         color: var(--r-muted, #6b7280);
         white-space: nowrap;
     }
@@ -636,7 +636,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-wifi-form label {
         margin: 0;
-        font-size: 12px;
+        font-size: var(--r-fs-md);
         font-weight: 600;
     }
     .robot-wifi-form input[type="password"],
@@ -660,7 +660,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-wifi-warn,
     .robot-wifi-status {
         margin: 0;
-        font-size: 11px;
+        font-size: var(--r-fs-sm);
         line-height: 1.35;
         color: var(--r-muted, #6b7280);
     }
@@ -672,34 +672,18 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-wifi-empty {
         padding: 10px 8px;
-        font-size: 12px;
+        font-size: var(--r-fs-md);
         color: var(--r-muted, #6b7280);
     }
 
     .robot-batt-diag {
-        padding: 12px 14px;
-        background: var(--r-card, #fff);
-        border: 1px solid var(--r-border, #e6e8eb);
-        border-radius: var(--r-radius-md, 10px);
+        /* Card chrome shared with .robot-metric */
+        gap: 10px;
     }
-    .robot-batt-diag-head {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px 10px;
-        margin-bottom: 10px;
-    }
-    .robot-batt-diag-head .batt-diag-label {
-        font-size: var(--r-fs-xs, 10px);
-        font-weight: var(--r-fw-semibold, 600);
-        text-transform: uppercase;
-        letter-spacing: var(--r-tracking-label, 0.04em);
-        color: var(--r-muted, #6b7280);
-    }
-    .robot-batt-diag-head .robot-metric-value {
+    .robot-batt-diag .robot-metric-head .robot-metric-value {
         margin-left: auto;
-        font-size: var(--r-fs-lg, 13px);
-        font-weight: var(--r-fw-semibold, 600);
+        font-size: var(--r-fs-value, 22px);
+        font-weight: var(--r-fw-bold, 700);
     }
     .robot-batt-charge {
         --batt-fill: #5b8a72;
@@ -878,9 +862,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         .robot-batt-diag {
             padding: 10px 12px;
         }
-        .robot-batt-diag-head {
+        .robot-batt-diag .robot-metric-head {
+            flex-wrap: wrap;
             gap: 6px 8px;
-            margin-bottom: 8px;
         }
         .robot-strip {
             gap: 6px 10px;
@@ -907,17 +891,17 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         .robot-chip {
             gap: 4px;
             padding: 3px 8px;
-            font-size: 10px;
+            font-size: var(--r-fs-xs);
         }
         .robot-compute-pt .strip-label {
-            font-size: 9px;
+            font-size: var(--r-fs-xs);
         }
         .robot-util-plot {
             grid-template-columns: 26px minmax(0, 1fr);
             min-height: 120px;
         }
         .robot-util-yaxis {
-            font-size: 8px;
+            font-size: var(--r-fs-xs);
         }
         .robot-util-bars,
         .robot-util-legend {
@@ -932,14 +916,14 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             width: calc(100% + 6px);
         }
         .robot-util-legend .robot-metric-label {
-            font-size: 9px;
+            font-size: var(--r-fs-xs);
             letter-spacing: 0.02em;
         }
         .robot-util-legend .robot-util-reading {
-            font-size: 10px;
+            font-size: var(--r-fs-xs);
         }
-        .robot-batt-diag-head .robot-metric-value {
-            font-size: var(--r-fs-md, 12px);
+        .robot-batt-diag .robot-metric-head .robot-metric-value {
+            font-size: var(--r-fs-xl, 15px);
         }
         .robot-batt-charge {
             height: 8px;
@@ -1088,9 +1072,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 </div>
             </div>
 
-            <div class="robot-batt-diag" id="robot_battery_diag" aria-live="polite">
-                <div class="robot-batt-diag-head">
-                    <span class="batt-diag-label">Battery</span>
+            <div class="robot-metric robot-batt-diag" id="robot_battery_diag" aria-live="polite">
+                <div class="robot-metric-head">
+                    <h4 class="robot-metric-label">Battery</h4>
                     <span class="robot-chip" id="batt_diag_present"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
                     <span class="robot-chip" id="batt_diag_charging">-</span>
                     <span class="robot-metric-value" id="_robot_batt_value">-</span>

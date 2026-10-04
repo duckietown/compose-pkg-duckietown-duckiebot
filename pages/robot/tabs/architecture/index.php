@@ -167,7 +167,7 @@ $height_px = 560;
         position: absolute;
         inset: 0;
         font-family: FontAwesome;
-        font-size: 14px;
+        font-size: var(--r-fs-lg);
         font-weight: normal;
         line-height: 36px;
         text-align: center;

@@ -135,7 +135,7 @@ class Duckiebot_LEDController extends BlockRenderer {
                 flex: 0 0 auto;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-status {
-                font-size: 11px;
+                font-size: var(--r-fs-sm);
                 font-weight: 600;
                 color: #6b7280;
             }
@@ -144,7 +144,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-bad { color: #b91c1c; }
             #<?php echo htmlspecialchars($id) ?> .robot-led-topic {
                 margin-left: auto;
-                font-size: 10px;
+                font-size: var(--r-fs-xs);
                 color: #9ca3af;
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 max-width: 55%;
@@ -184,7 +184,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-label {
                 margin: 0;
-                font-size: 11px;
+                font-size: var(--r-fs-sm);
                 font-weight: 600;
                 color: #4b5563;
             }

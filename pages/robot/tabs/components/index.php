@@ -117,6 +117,9 @@ ROS::connect($ros_hostname);
         margin: 8px 0 4px 0;
         font-size: var(--r-fs-xl, 15px);
         font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-text, #1a1d26);
+        letter-spacing: var(--r-tracking-tight, -0.02em);
+        line-height: var(--r-lh-tight, 1.15);
     }
     
     ._robot_component ._robot_component_info h6{
@@ -126,6 +129,10 @@ ROS::connect($ros_hostname);
         white-space: nowrap;
         color: var(--r-muted, #6b7280);
         font-size: var(--r-fs-md, 12px);
+        font-weight: var(--r-fw-normal, 400);
+        line-height: var(--r-lh, 1.4);
+        text-transform: none;
+        letter-spacing: 0;
     }
 
     ._robot_component ._robot_component_actions {
@@ -213,7 +220,8 @@ ROS::connect($ros_hostname);
         z-index:1060;
     }
 
-    .robot-components-section-title {
+    .robot-components-section-title,
+    #_robot_components_div .robot-section-title {
         text-align: left;
         margin: 18px 0 8px;
         font-size: var(--r-fs-md, 12px);
@@ -442,7 +450,7 @@ ROS::connect($ros_hostname);
         let container_div = $('#_robot_components_div');
         // sort by "supported"
         let components = Object.values(data).sort((a, b) => (a.supported > b.supported) ? -1 : 1);
-        container_div.append('<div class="robot-components-section-title">Required</div>');
+        container_div.append('<div class="robot-section-title">Required</div>');
         let optional_opened = false;
         let missing = [];
         for (let i = 0; i < components.length; i++) {

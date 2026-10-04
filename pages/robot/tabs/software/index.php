@@ -66,6 +66,11 @@ $update_hz = 1.0;
     
     ._robot_software_module ._robot_software_module_info h4{
         margin: 12px 0 6px 0;
+        font-size: var(--r-fs-xl, 15px);
+        font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-text, #1a1d26);
+        letter-spacing: var(--r-tracking-tight, -0.02em);
+        line-height: var(--r-lh-tight, 1.15);
     }
     
     ._robot_software_module ._robot_software_module_info h6{
@@ -73,8 +78,12 @@ $update_hz = 1.0;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        color: var(--r-muted, #6b7280);
+        font-size: var(--r-fs-md, 12px);
+        font-weight: var(--r-fw-normal, 400);
+        line-height: var(--r-lh, 1.4);
     }
-    
+
     ._robot_software_module ._robot_software_module_version{
         min-width: 200px;
         max-width: 200px;
@@ -83,6 +92,9 @@ $update_hz = 1.0;
     
     ._robot_software_module ._robot_software_module_version h5{
         margin-bottom: 0;
+        font-size: var(--r-fs-sm, 11px);
+        font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-muted, #6b7280);
     }
     
     ._robot_software_module ._robot_software_module_actions{

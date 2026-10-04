@@ -33,7 +33,7 @@ $update_hz = 0.5;
     }
     .robot-health-card h4 {
         margin: 0 0 8px 0;
-        font-size: var(--r-fs-md, 12px);
+        font-size: var(--r-fs-xs, 10px);
         font-weight: var(--r-fw-semibold, 600);
         color: var(--r-muted, #6b7280);
         text-transform: uppercase;
@@ -49,7 +49,7 @@ $update_hz = 0.5;
     <p class="robot-hint">Live telemetry history (last ~60 samples). Values update automatically.</p>
     <div class="robot-health-grid">
         <div class="robot-health-card">
-            <h4>CPU temperature</h4>
+            <h4>CPU Temperature</h4>
             <canvas id="_robot_temp_canvas"></canvas>
         </div>
         <div class="robot-health-card">
@@ -73,7 +73,7 @@ $update_hz = 0.5;
             <canvas id="_robot_pgpu_canvas"></canvas>
         </div>
         <div class="robot-health-card">
-            <h4>GPU temperature</h4>
+            <h4>GPU Temperature</h4>
             <canvas id="_robot_tgpu_canvas"></canvas>
         </div>
     </div>
