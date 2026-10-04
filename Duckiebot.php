@@ -119,8 +119,12 @@ class Duckiebot {
         $mission_dbs = [
             'duckietown_duckiebot_missions',
             'duckietown_duckiebot_missions_opts',
+            'duckietown_duckiedrone_missions',
+            'duckietown_duckiedrone_missions_opts',
             'duckietown_watchtower_missions',
             'duckietown_watchtower_missions_opts',
+            'duckietown_traffic_light_missions',
+            'duckietown_traffic_light_missions_opts',
         ];
         foreach ($mission_dbs as $database_name) {
             if (!Data::exists($database_name)) {

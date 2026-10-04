@@ -1,0 +1,16 @@
+{
+	"_data": {
+		"auth": {
+			"type": "public",
+			"owner": null,
+			"grant": [
+			],
+			"guest": [
+				"r",
+				"w"
+			]
+		}
+	},
+	"_metadata": [
+	]
+}
