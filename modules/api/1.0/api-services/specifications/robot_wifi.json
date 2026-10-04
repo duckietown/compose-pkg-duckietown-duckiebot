@@ -20,7 +20,6 @@
         "scan": {
             "details": "Scan for nearby Wi-Fi networks and list known profiles",
             "access_level": [
-                "user",
                 "supervisor",
                 "administrator"
             ],
@@ -35,7 +34,6 @@
         "connect": {
             "details": "Connect the robot to a Wi-Fi network (may drop the current session)",
             "access_level": [
-                "user",
                 "supervisor",
                 "administrator"
             ],
@@ -52,7 +50,7 @@
                 "optional": {
                     "psk": {
                         "type": "text",
-                        "details": "WPA passphrase (omit for open or already-known networks)"
+                        "details": "WPA passphrase (omit for open or already-known networks); POST body only"
                     }
                 }
             }

@@ -289,7 +289,6 @@ class Duckiebot {
     public static function getNetworkSnapshot(): array {
         $host = self::getDuckiebotHostname();
         $addrs = self::getIpv4AddressesByIface();
-        $wifi_up = false;
         $eth_up = false;
         $wifi_iface = null;
         $eth_iface = null;
@@ -309,7 +308,6 @@ class Duckiebot {
                         continue;
                     }
                     if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
-                        $wifi_up = true;
                         if ($wifi_iface === null) {
                             $wifi_iface = $iface;
                         }
@@ -322,9 +320,10 @@ class Duckiebot {
                 }
             }
         }
+        // /proc/net/wireless lists the radio even when unassociated; only use
+        // it to discover the iface name, not to mark Wi‑Fi as the active link.
         $wireless = @file_get_contents('/proc/net/wireless');
         if (is_string($wireless) && preg_match('/^\s*([^\s:]+):/m', $wireless, $wm)) {
-            $wifi_up = true;
             if ($wifi_iface === null) {
                 $wifi_iface = $wm[1];
             }
@@ -333,9 +332,6 @@ class Duckiebot {
         // interface looks up but is unassociated (Ethernet-only / radio idle)
         // and must not be shown as the current network name.
         $ssid = self::getWifiSsid(false);
-        if ($ssid) {
-            $wifi_up = true;
-        }
 
         $wifi_ip = '';
         if ($wifi_iface !== null && isset($addrs[$wifi_iface])) {
@@ -366,6 +362,10 @@ class Duckiebot {
                 }
             }
         }
+
+        // operstate=up alone is not enough: idle wlan stays up on Ethernet
+        // robots. Treat Wi‑Fi as active only when associated or holding an IP.
+        $wifi_up = ($ssid !== null && $ssid !== '') || ($wifi_ip !== '');
 
         $kind = null;
         if ($wifi_up) {
@@ -640,11 +640,12 @@ class Duckiebot {
             }
             return $res;
         }
-        // Missing marker files mean unset: opt-in push flags stay false.
+        // Missing marker files: match robot_settings schema defaults
+        // (stats + config backup on; logs opt-in).
         $defaults = [
             'allow_push_logs_data' => false,
-            'allow_push_stats_data' => false,
-            'allow_push_config_data' => false,
+            'allow_push_stats_data' => true,
+            'allow_push_config_data' => true,
         ];
         return ['success' => true, 'data' => $defaults[$key] ?? false];
     }//getDuckiebotPermission

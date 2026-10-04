@@ -19,7 +19,10 @@ $image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode
 $image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 $network_snapshot = Duckiebot::getNetworkSnapshot();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
-$can_manage_wifi = Core::isUserLoggedIn();
+$can_manage_wifi = count(array_intersect(
+    Core::getUserRolesList(),
+    ['supervisor', 'administrator']
+)) > 0;
 ?>
 
 <style type="text/css">
@@ -1523,15 +1526,14 @@ $can_manage_wifi = Core::isUserLoggedIn();
 
     function wifiConnect(ssid, psk) {
         wifiSetStatus('Connecting to ' + ssid + '…');
-        var args = { ssid: ssid };
+        // Keep passphrase out of the URL (smartAPI arguments → query string).
         var data = { ssid: ssid };
         if (psk) {
-            args.psk = psk;
             data.psk = psk;
         }
         smartAPI('robot_wifi', 'connect', {
             method: 'POST',
-            arguments: args,
+            arguments: { ssid: ssid },
             data: data,
             block: true,
             quiet: false,

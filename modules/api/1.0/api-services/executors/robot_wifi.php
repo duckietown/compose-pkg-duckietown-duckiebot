@@ -27,7 +27,17 @@ function execute(&$service, &$actionName, &$arguments) {
 
         case 'connect':
             $ssid = isset($arguments['ssid']) ? (string) $arguments['ssid'] : '';
-            $psk = array_key_exists('psk', $arguments) ? (string) $arguments['psk'] : null;
+            // Compose merges POST into $_GET before executors run. Reject a
+            // passphrase that arrived on the query string so it never lands
+            // in access logs / Referer; accept it only from the POST body.
+            $query = [];
+            parse_str($_SERVER['QUERY_STRING'] ?? '', $query);
+            if (array_key_exists('psk', $query)) {
+                return response400BadRequest(
+                    'Passphrase must be sent in the POST body, not the URL.'
+                );
+            }
+            $psk = array_key_exists('psk', $_POST) ? (string) $_POST['psk'] : null;
             $res = Duckiebot::connectWifi($ssid, $psk);
             if (!$res['success']) {
                 return response400BadRequest($res['data']);
