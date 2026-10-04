@@ -871,6 +871,10 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 
     // Subtle sticky tooltips (hover + click/keyboard) for .robot-tip chips
     $(document).on('click', '.robot-tip', function (e) {
+        // Let links inside tip bubbles open normally (e.g. docs).
+        if ($(e.target).closest('a[href]').length) {
+            return;
+        }
         e.preventDefault();
         let tip = $(this);
         let wasOpen = tip.hasClass('is-open');

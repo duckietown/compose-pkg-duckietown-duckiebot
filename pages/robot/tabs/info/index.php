@@ -174,7 +174,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         margin: 0;
         line-height: 1.2;
     }
-    .robot-compute-pt .robot-tip {
+    /* Shared circular "i" tip control (Compute + Connection) */
+    .robot-overview button.robot-tip {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -185,7 +186,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         border-radius: 50%;
         background: var(--r-surface, #f8f9fb);
         color: var(--r-muted, #6b7280);
-        font-size: var(--r-fs-xs);
+        font-size: var(--r-fs-xs, 10px);
         font-weight: var(--r-fw-semibold, 600);
         line-height: 1;
         cursor: help;
@@ -193,12 +194,20 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         letter-spacing: 0;
         flex: 0 0 auto;
     }
-    .robot-compute-pt .robot-tip:hover,
-    .robot-compute-pt .robot-tip:focus,
-    .robot-compute-pt .robot-tip.is-open {
+    .robot-overview button.robot-tip:hover,
+    .robot-overview button.robot-tip:focus,
+    .robot-overview button.robot-tip.is-open {
         color: var(--r-text, #111827);
         border-color: var(--r-border-strong, #c9ced8);
         outline: none;
+    }
+    .robot-overview .robot-tip-bubble a {
+        color: #93c5fd;
+        text-decoration: underline;
+    }
+    .robot-overview .robot-tip-bubble a:hover,
+    .robot-overview .robot-tip-bubble a:focus {
+        color: #bfdbfe;
     }
     .robot-compute-pt .robot-tip-bubble {
         left: auto;
@@ -222,6 +231,31 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-compute-pt .robot-tip.is-open .robot-tip-bubble,
     .robot-compute-pt .robot-tip:hover .robot-tip-bubble,
     .robot-compute-pt .robot-tip:focus-within .robot-tip-bubble {
+        transform: translateY(0);
+    }
+    /* Connection tip opens upward so it stays visible above the strip */
+    .robot-strip .robot-tip-bubble {
+        left: 0;
+        right: auto;
+        bottom: calc(100% + 8px);
+        top: auto;
+        transform: translateY(4px);
+        min-width: 220px;
+        max-width: 280px;
+        z-index: 60;
+    }
+    .robot-strip .robot-tip-bubble::after {
+        top: 100%;
+        bottom: auto;
+        left: 8px;
+        right: auto;
+        margin-left: 0;
+        border-top-color: #1f2937;
+        border-bottom-color: transparent;
+    }
+    .robot-strip .robot-tip.is-open .robot-tip-bubble,
+    .robot-strip .robot-tip:hover .robot-tip-bubble,
+    .robot-strip .robot-tip:focus-within .robot-tip-bubble {
         transform: translateY(0);
     }
 
@@ -428,6 +462,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         color: var(--r-muted, #6b7280);
     }
     .robot-strip .strip-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
         font-size: var(--r-fs-xs, 10px);
         font-weight: var(--r-fw-semibold, 600);
         text-transform: uppercase;
@@ -784,7 +821,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             width: auto;
             gap: 6px 8px;
         }
-        .robot-compute-pt .robot-tip-bubble {
+        .robot-compute-pt .robot-tip-bubble,
+        .robot-strip .robot-tip-bubble {
             right: auto;
             left: 0;
             min-width: 0;
@@ -793,6 +831,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         }
         .robot-compute-pt .robot-tip-bubble::after {
             right: auto;
+            left: 10px;
+        }
+        .robot-strip .robot-tip-bubble::after {
             left: 10px;
         }
         .robot-util-plot {
@@ -936,8 +977,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                                     title="About power and thermal status">
                                 <span aria-hidden="true">i</span>
                                 <span class="robot-tip-bubble" role="tooltip">
-                                    <strong>Power / thermal flags</strong>
-                                    Under-voltage, CPU frequency capping, and thermal throttling reported by the device health API. Red chips are active now; amber chips happened earlier since boot. OK means none of those flags are set.
+                                    Shows whether the robot has enough power and stays cool enough to run. Green is healthy. Red means a problem right now; amber means it happened earlier after boot.
                                 </span>
                             </button>
                             <span class="robot-chip is-ok" id="pt_summary_ok">
@@ -1030,7 +1070,22 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     </div>
 
     <div class="robot-strip" id="robot_network" aria-live="polite">
-        <span class="strip-label">Connection</span>
+        <span class="strip-label">
+            Connection
+            <button type="button"
+                    class="robot-tip"
+                    aria-label="How to add or edit Wi-Fi networks"
+                    aria-expanded="false"
+                    title="How to add or edit Wi-Fi networks">
+                <span aria-hidden="true">i</span>
+                <span class="robot-tip-bubble" role="tooltip">
+                    Add or edit Wi‑Fi networks on a Duckiebot by referring to the
+                    <a href="https://docs.duckietown.com/ente/duckietown-manual/10-setup/03-duckiebot/network-configuration.html#how-to-add-or-edit-wi-fi-networks-on-a-duckiebot"
+                       target="_blank"
+                       rel="noopener noreferrer">network configuration docs</a>.
+                </span>
+            </button>
+        </span>
         <span class="robot-chip" id="net_status"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
         <span class="strip-item">Link <strong id="net_kind">-</strong></span>
         <span class="strip-item robot-wifi-picker" id="net_ssid_item">
