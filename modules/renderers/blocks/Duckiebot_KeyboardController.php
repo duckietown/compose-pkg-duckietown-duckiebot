@@ -54,12 +54,15 @@ class Duckiebot_KeyboardController extends BlockRenderer {
         $hz = isset($args['hz']) ? max(20, intval($args['hz'])) : 50;
         $viewer_url = Duckiebot::getKeyboardControllerUrl();
         $uid = preg_replace('/[^a-zA-Z0-9_]/', '_', (string) $id);
+        $can_drive = Core::isUserLoggedIn();
         ?>
-        <div class="robot-kc" id="robot_kc_<?php echo htmlspecialchars($uid) ?>" tabindex="0">
+        <div class="robot-kc" id="robot_kc_<?php echo htmlspecialchars($uid) ?>" tabindex="0"
+             data-can-drive="<?php echo $can_drive ? '1' : '0'; ?>">
             <div class="robot-kc-toolbar">
-                <label class="robot-kc-enable">
-                    <input type="checkbox" class="robot-kc-enable-input" />
-                    <span>Enable drive</span>
+                <label class="robot-kc-enable<?php echo $can_drive ? '' : ' is-locked'; ?>">
+                    <input type="checkbox" class="robot-kc-enable-input"
+                        <?php echo $can_drive ? '' : 'disabled aria-disabled="true"'; ?> />
+                    <span><?php echo $can_drive ? 'Enable drive' : 'Sign in to drive'; ?></span>
                 </label>
                 <span class="robot-kc-status is-idle">Off</span>
                 <span class="robot-kc-cmd" aria-live="polite">axes 0.00 / 0.00</span>
@@ -680,6 +683,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             var trimParamName = <?php echo json_encode($trim_param) ?>;
             var trimUpdateSrvName = <?php echo json_encode($trim_update_srv) ?>;
             var periodMs = <?php echo json_encode(intval(1000 / $hz)) ?>;
+            var canDrive = <?php echo $can_drive ? 'true' : 'false'; ?>;
             var smoothAlpha = 0.28;
             var tofMaxM = 1.2;
             var wheelMaxMs = 0.4;
@@ -1109,6 +1113,13 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             enable.addEventListener('change', function () {
+                if (!canDrive) {
+                    enable.checked = false;
+                    armed = false;
+                    box.classList.add('is-disabled');
+                    setStatus('Sign in to drive', 'is-wait');
+                    return;
+                }
                 if (estopLatched) {
                     enable.checked = false;
                     armed = false;
@@ -1158,13 +1169,19 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             });
 
             box.classList.add('is-disabled');
-            setStatus('Waiting for bridge...', 'is-wait');
+            if (!canDrive) {
+                setStatus('Sign in to drive', 'is-wait');
+            } else {
+                setStatus('Waiting for bridge...', 'is-wait');
+            }
 
             $(document).on(<?php echo json_encode($connected_evt) ?>, function () {
-                bindPublisher();
+                if (canDrive) bindPublisher();
             });
-            setTimeout(function () { bindPublisher(); }, 100);
-            setTimeout(function () { bindPublisher(); }, 800);
+            if (canDrive) {
+                setTimeout(function () { bindPublisher(); }, 100);
+                setTimeout(function () { bindPublisher(); }, 800);
+            }
 
             if (timer) clearInterval(timer);
             timer = setInterval(tick, periodMs);

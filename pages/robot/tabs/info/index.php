@@ -19,6 +19,7 @@ $image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode
 $image_template_jpg = Core::getImageURL('robots/thumbnails/{0}_all.jpg', 'duckietown');
 $network_snapshot = Duckiebot::getNetworkSnapshot();
 $dbot_hostname = Duckiebot::getDuckiebotHostname();
+$can_manage_wifi = Core::isUserLoggedIn();
 ?>
 
 <style type="text/css">
@@ -1090,6 +1091,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         <span class="strip-item">Link <strong id="net_kind">-</strong></span>
         <span class="strip-item robot-wifi-picker" id="net_ssid_item">
             SSID
+            <?php if ($can_manage_wifi): ?>
             <button type="button" class="robot-wifi-toggle" id="net_wifi_toggle"
                     aria-haspopup="listbox" aria-expanded="false" aria-controls="net_wifi_menu"
                     title="Scan and switch Wi‑Fi networks">
@@ -1113,6 +1115,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 </div>
                 <p class="robot-wifi-status" id="net_wifi_status" aria-live="polite"></p>
             </div>
+            <?php else: ?>
+            <strong id="net_name"><?php echo htmlspecialchars((string) ($network_snapshot['ssid'] ?? '') ?: '-'); ?></strong>
+            <?php endif; ?>
         </span>
         <span class="strip-item">Network IP <strong id="net_ip"><?php echo htmlspecialchars((string) ($network_snapshot['ip'] ?? '') ?: '-'); ?></strong></span>
         <?php
@@ -1714,6 +1719,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         applyNetworkSnapshot(NETWORK_BOOT);
         setInterval(update_overview, <?php echo 1000 / $update_hz ?>);
 
+        <?php if ($can_manage_wifi): ?>
         $('#net_wifi_toggle').on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1751,6 +1757,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 $('#net_wifi_connect').trigger('click');
             }
         });
+        <?php endif; ?>
         $(document).on('click.robotWifi', function (e) {
             if (!wifiPicker.open) return;
             if ($(e.target).closest('.robot-wifi-picker').length) return;

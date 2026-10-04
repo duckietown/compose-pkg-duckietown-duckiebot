@@ -72,9 +72,8 @@ class Duckiebot {
                 Data::set_public_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
                 Data::set_guest_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME, true, true);
             }
-            // Mission Control saves/loads missions through the Data API. Guests
-            // need explicit r/w on these public DBs or Add block / Save fail
-            // with 401, so the page looks broken until someone signs in.
+            // Mission Control loads missions through the Data API. Guests may
+            // read public mission DBs; writes require a signed-in role.
             self::ensureMissionDatabasesGuestAccess();
             //
             self::$initialized = true;
@@ -110,10 +109,11 @@ class Duckiebot {
     }//close
 
     /**
-     * Ensure Mission Control mission DBs are public with guest r/w.
+     * Ensure Mission Control mission DBs are public with guest read-only.
      * Existing installs shipped without a guest ACL, so unsigned-in
      * operators could view the page (direct Database reads) but could not
-     * Save / Add block through the Data API.
+     * load missions through the Data API. Writes stay authenticated so guests
+     * cannot persist layout changes or leave teleop blocks for others.
      */
     private static function ensureMissionDatabasesGuestAccess(): void {
         $mission_dbs = [
@@ -131,7 +131,7 @@ class Duckiebot {
                 continue;
             }
             Data::set_public_access($database_name);
-            Data::set_guest_access($database_name, true, true);
+            Data::set_guest_access($database_name, true, false);
         }
     }
     
@@ -329,9 +329,13 @@ class Duckiebot {
                 $wifi_iface = $wm[1];
             }
         }
-        $ssid = self::getWifiSsid();
+        // Live association only; persisted SSID files are stale when the radio
+        // is down and must not flip wifi_up / kind.
+        $ssid = self::getWifiSsid(false);
         if ($ssid) {
             $wifi_up = true;
+        } else if ($wifi_up) {
+            $ssid = self::getWifiSsid(true);
         }
 
         $wifi_ip = '';
@@ -417,8 +421,11 @@ class Duckiebot {
     /**
      * Current Wi-Fi SSID. Dashboard containers often lack `iwgetid`; ioctl
      * against wlan* still works with host networking.
+     *
+     * @param bool $allow_persisted When true, fall back to on-disk SSID files
+     *        for display. Live association detection must pass false.
      */
-    private static function getWifiSsid(): ?string {
+    private static function getWifiSsid(bool $allow_persisted = true): ?string {
         $iw = @trim((string) @shell_exec('iwgetid -r 2>/dev/null'));
         if ($iw !== '') {
             return $iw;
@@ -447,6 +454,9 @@ class Duckiebot {
         $ioctl = @trim((string) @shell_exec('python3 -c ' . escapeshellarg($script) . ' 2>/dev/null'));
         if ($ioctl !== '') {
             return $ioctl;
+        }
+        if (!$allow_persisted) {
+            return null;
         }
         foreach (['/data/config/network/ssid', '/data/config/wifi/ssid'] as $ssid_path) {
             if (is_readable($ssid_path)) {
@@ -631,10 +641,11 @@ class Duckiebot {
             }
             return $res;
         }
+        // Missing marker files mean unset: opt-in push flags stay false.
         $defaults = [
             'allow_push_logs_data' => false,
-            'allow_push_stats_data' => true,
-            'allow_push_config_data' => true,
+            'allow_push_stats_data' => false,
+            'allow_push_config_data' => false,
         ];
         return ['success' => true, 'data' => $defaults[$key] ?? false];
     }//getDuckiebotPermission
