@@ -110,6 +110,7 @@ ROS::connect($ros_hostname);
     ._robot_component ._robot_component_info{
         min-width: 280px;
         padding: 8px 12px;
+        width: 100%;
     }
     
     ._robot_component ._robot_component_info h4{
@@ -125,6 +126,20 @@ ROS::connect($ros_hostname);
         white-space: nowrap;
         color: var(--r-muted, #6b7280);
         font-size: var(--r-fs-md, 12px);
+    }
+
+    ._robot_component ._robot_component_actions {
+        width: 140px;
+        min-width: 140px;
+        max-width: 140px;
+        padding: 8px 12px;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    ._robot_component ._robot_component_actions .robot-btn {
+        min-width: 118px;
     }
     
     ._robot_component ._robot_component_stats{
@@ -333,7 +348,7 @@ ROS::connect($ros_hostname);
                             <h4 class="text-left">{name}</h4>
                             <h6 class="text-left">{description}</h6>
                         </td>
-                        <td>
+                        <td class="_robot_component_actions">
                             {verification_test_button}
                         </td>
                         <td rowspan="2" class="_robot_component_stats">

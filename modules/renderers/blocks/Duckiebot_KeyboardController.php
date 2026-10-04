@@ -47,6 +47,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
         $imu_topic = $prefix . '/imu_node/raw';
         $tof_topic = $prefix . '/front_center_tof_driver_node/range';
         $wheels_topic = $prefix . '/wheels_driver_node/wheels_cmd_executed';
+        $estop_topic = $prefix . '/wheels_driver_node/emergency_stop';
+        $trim_param = $prefix . '/kinematics_node/trim';
+        $trim_update_srv = $prefix . '/kinematics_node/request_parameters_update';
 
         $hz = isset($args['hz']) ? max(20, intval($args['hz'])) : 50;
         $viewer_url = Duckiebot::getKeyboardControllerUrl();
@@ -101,8 +104,8 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                         <button type="button" class="robot-kc-btn robot-kc-left" data-dir="left" title="Left (A / left)">
                             <i class="fa fa-arrow-left" aria-hidden="true"></i>
                         </button>
-                        <button type="button" class="robot-kc-btn robot-kc-center" disabled aria-hidden="true">
-                            <i class="fa fa-gamepad" aria-hidden="true"></i>
+                        <button type="button" class="robot-kc-btn robot-kc-center robot-kc-estop" title="Emergency stop (E)">
+                            <span class="robot-kc-estop-mark">E-STOP</span>
                         </button>
                         <button type="button" class="robot-kc-btn robot-kc-right" data-dir="right" title="Right (D / right)">
                             <i class="fa fa-arrow-right" aria-hidden="true"></i>
@@ -111,7 +114,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                             <i class="fa fa-arrow-down" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <p class="robot-kc-hint">WASD / arrows · Space stops</p>
+                    <p class="robot-kc-hint">WASD / arrows · Space stops · E e-stop</p>
                 </div>
 
                 <div class="robot-kc-col robot-kc-col-sensors" aria-label="ToF and right wheel">
@@ -150,7 +153,18 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                                orient="vertical"
                                aria-orientation="vertical" />
                     </div>
-                    <p class="robot-kc-hint robot-kc-hint-side">Enable, then hold D-pad / WASD. Space stops.</p>
+                    <div class="robot-kc-trim-block">
+                        <div class="robot-kc-trim-head">
+                            <label class="robot-kc-trim-label" for="robot_kc_trim_<?php echo htmlspecialchars($uid) ?>">Trim</label>
+                            <div class="robot-kc-trim-val">0.00</div>
+                        </div>
+                        <input id="robot_kc_trim_<?php echo htmlspecialchars($uid) ?>"
+                               class="robot-kc-trim"
+                               type="range" min="-0.2" max="0.2" step="0.01" value="0"
+                               title="Kinematics trim (C / V)"
+                               aria-label="Kinematics trim" />
+                    </div>
+                    <p class="robot-kc-hint robot-kc-hint-side">Enable, then hold D-pad / WASD.</p>
                 </div>
             </div>
         </div>
@@ -184,6 +198,14 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 position: relative;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc {
+                --kc-blue: #26a4ea;
+                --kc-blue-deep: #1d8bc9;
+                --kc-blue-soft: rgba(38, 164, 234, 0.16);
+                --kc-blue-mid: rgba(38, 164, 234, 0.32);
+                --kc-yellow: #f2c511;
+                --kc-yellow-soft: rgba(242, 197, 17, 0.22);
+                --kc-stop: #dc2626;
+                --kc-stop-deep: #b91c1c;
                 box-sizing: border-box;
                 position: absolute;
                 inset: 0;
@@ -195,6 +217,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 user-select: none;
                 -webkit-user-select: none;
                 overflow: hidden;
+                background: #f3f8fc;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc:focus {
                 box-shadow: inset 0 0 0 2px rgba(38, 164, 234, 0.45);
@@ -206,7 +229,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 gap: 6px 10px;
                 flex: 0 0 auto;
                 padding-bottom: 4px;
-                border-bottom: 1px solid var(--r-border, #e6e8eb);
+                border-bottom: 1px solid rgba(38, 164, 234, 0.22);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-enable {
                 display: inline-flex;
@@ -216,33 +239,39 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-weight: 600;
                 font-size: 13px;
                 cursor: pointer;
+                color: #0f3d5c;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status {
                 font-size: 11px;
                 padding: 2px 8px;
                 border-radius: 999px;
-                background: var(--r-surface, #f1f3f5);
-                color: var(--r-muted, #6b7280);
+                background: var(--kc-blue-soft);
+                color: var(--kc-blue-deep);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status.is-on {
-                background: rgba(34, 197, 94, 0.15);
+                background: rgba(34, 197, 94, 0.18);
                 color: #15803d;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status.is-wait {
-                background: rgba(234, 179, 8, 0.18);
+                background: var(--kc-yellow-soft);
                 color: #a16207;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-status.is-estop {
+                background: rgba(220, 38, 38, 0.16);
+                color: var(--kc-stop-deep);
+                font-weight: 700;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-cmd {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-size: 11px;
-                color: var(--r-muted, #6b7280);
+                color: #4b6b82;
                 margin-left: auto;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-body {
                 flex: 1 1 auto;
                 min-height: 0;
                 display: grid;
-                grid-template-columns: minmax(96px, 0.95fr) minmax(150px, 1.2fr) minmax(96px, 0.95fr) minmax(72px, 0.55fr);
+                grid-template-columns: minmax(96px, 0.95fr) minmax(150px, 1.2fr) minmax(96px, 0.95fr) minmax(84px, 0.6fr);
                 gap: 8px 10px;
                 align-items: stretch;
                 justify-items: stretch;
@@ -265,9 +294,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 align-items: center;
                 gap: 4px;
                 padding: 6px;
-                border: 1px solid var(--r-border, #e6e8eb);
-                border-radius: 8px;
-                background: var(--r-surface, #f8fafc);
+                border: 1px solid rgba(38, 164, 234, 0.28);
+                border-radius: 10px;
+                background: #ffffff;
                 overflow: hidden;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-card-wheel {
@@ -284,18 +313,18 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-label {
                 margin: 0;
                 font-size: 10px;
-                font-weight: 600;
-                color: var(--r-muted, #6b7280);
+                font-weight: 700;
+                color: var(--kc-blue-deep);
                 text-transform: uppercase;
-                letter-spacing: 0.02em;
+                letter-spacing: 0.03em;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-imu-readout,
             #<?php echo htmlspecialchars($id) ?> .robot-kc-tof-readout,
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-readout {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-size: 11px;
-                font-weight: 600;
-                color: var(--r-text, #1f2937);
+                font-weight: 700;
+                color: #123a52;
                 margin: 0;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-imu,
@@ -314,15 +343,16 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 position: absolute;
                 inset: 0;
                 border-radius: 50%;
-                background: rgba(38, 164, 234, 0.18);
-                box-shadow: inset 0 0 0 1px rgba(38, 164, 234, 0.15);
+                background: var(--kc-blue-mid);
+                box-shadow: inset 0 0 0 2px rgba(38, 164, 234, 0.35);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-imu-dot {
                 position: absolute;
-                width: 16%;
-                height: 16%;
+                width: 18%;
+                height: 18%;
                 border-radius: 50%;
-                background: rgb(38, 164, 234);
+                background: var(--kc-blue);
+                box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
                 left: 50%;
                 bottom: 50%;
                 transform: translate(-50%, 50%);
@@ -335,7 +365,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 border-radius: 50%;
                 background: conic-gradient(
                     from 315deg,
-                    rgba(38, 164, 234, 0.22) 90deg,
+                    var(--kc-blue-mid) 90deg,
                     rgba(0, 0, 0, 0) 0deg
                 );
             }
@@ -348,7 +378,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 transform: translate(-50%, -50%);
                 background: conic-gradient(
                     from 315deg,
-                    rgb(38, 164, 234) 90deg,
+                    var(--kc-blue) 90deg,
                     rgba(0, 0, 0, 0) 0deg
                 );
                 transition: width 0.12s linear, height 0.12s linear;
@@ -364,7 +394,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 position: absolute;
                 inset: 0;
                 border-radius: 6px;
-                background: rgba(38, 164, 234, 0.18);
+                background: var(--kc-blue-mid);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-pos,
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-neg {
@@ -372,7 +402,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 left: 0;
                 width: 100%;
                 height: 0%;
-                background: rgb(38, 164, 234);
+                background: var(--kc-blue);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-pos {
                 bottom: 50%;
@@ -391,17 +421,17 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 min-width: 0;
                 min-height: 0;
                 height: 100%;
-                padding: 6px;
-                border: 1px solid var(--r-border, #e6e8eb);
-                border-radius: 8px;
-                background: var(--r-surface, #f8fafc);
-                overflow: hidden;
+                padding: 8px;
+                border: 1px solid rgba(38, 164, 234, 0.35);
+                border-radius: 12px;
+                background: #ffffff;
+                overflow: visible;
                 container-type: size;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-pad {
                 display: grid;
                 flex: 0 0 auto;
-                width: min(100%, calc(100cqh - 26px));
+                width: min(100%, calc(100cqh - 28px));
                 max-width: 100%;
                 aspect-ratio: 1;
                 height: auto;
@@ -422,23 +452,36 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 margin: 0;
                 width: 100%;
                 height: 100%;
-                border: 2px solid #1f2937;
-                border-radius: 10px;
-                background: #fff;
-                color: #1f2937;
+                border: 2px solid var(--kc-blue-deep);
+                border-radius: 12px;
+                background: #ffffff;
+                color: #0f3d5c;
                 font-size: clamp(14px, 2.2cqw, 22px);
                 line-height: 1;
                 cursor: pointer;
                 touch-action: none;
             }
-            #<?php echo htmlspecialchars($id) ?> .robot-kc-btn:disabled {
-                cursor: default;
-                opacity: 0.85;
-                background: #fff;
-            }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-btn.is-active {
-                background: #26a4ea;
-                border-color: #1d8bc9;
+                background: var(--kc-blue);
+                border-color: var(--kc-blue-deep);
+                color: #fff;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-estop {
+                border-color: var(--kc-stop-deep);
+                background: #fee2e2;
+                color: var(--kc-stop-deep);
+                font-weight: 800;
+                letter-spacing: 0.04em;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-estop-mark {
+                display: block;
+                font-size: clamp(10px, 1.6cqw, 13px);
+                line-height: 1.1;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-estop.is-latched,
+            #<?php echo htmlspecialchars($id) ?> .robot-kc.is-estop .robot-kc-estop {
+                background: var(--kc-stop);
+                border-color: #7f1d1d;
                 color: #fff;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-side {
@@ -450,9 +493,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 align-items: center;
                 gap: 6px;
                 padding: 8px 6px;
-                border: 1px solid var(--r-border, #e6e8eb);
-                border-radius: 8px;
-                background: var(--r-surface, #f8fafc);
+                border: 1px solid rgba(38, 164, 234, 0.28);
+                border-radius: 10px;
+                background: #ffffff;
                 overflow: hidden;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-head {
@@ -465,11 +508,11 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-label {
                 margin: 0;
-                font-weight: 600;
+                font-weight: 700;
                 font-size: 10px;
                 text-transform: uppercase;
-                letter-spacing: 0.02em;
-                color: var(--r-muted, #6b7280);
+                letter-spacing: 0.03em;
+                color: var(--kc-blue-deep);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-row {
                 display: flex;
@@ -479,30 +522,73 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 flex: 1 1 auto;
                 min-height: 0;
                 width: 100%;
+                padding: 4px 0;
+                border-radius: 8px;
+                background: var(--kc-yellow-soft);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed {
                 width: 28px;
                 height: 100%;
-                min-height: 64px;
+                min-height: 56px;
                 margin: 0;
                 writing-mode: vertical-lr;
                 direction: rtl;
                 appearance: slider-vertical;
                 -webkit-appearance: slider-vertical;
+                accent-color: var(--kc-blue);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-val {
                 font-variant-numeric: tabular-nums;
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                font-weight: 700;
-                color: var(--r-text, #1f2937);
+                font-weight: 800;
+                color: #0f3d5c;
                 font-size: 15px;
                 line-height: 1.1;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-block {
+                width: 100%;
+                flex: 0 0 auto;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 2px;
+                padding: 4px 4px 2px;
+                border-radius: 8px;
+                background: rgba(15, 61, 92, 0.04);
+                border: 1px dashed rgba(38, 164, 234, 0.28);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-head {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 4px;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-label {
+                margin: 0;
+                font-weight: 600;
+                font-size: 9px;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                color: #6b8799;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-val {
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                font-size: 10px;
+                font-weight: 600;
+                color: #4b6b82;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc-trim {
+                width: 100%;
+                height: 18px;
+                margin: 0;
+                accent-color: #7aa7c2;
+                opacity: 0.92;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-hint {
                 margin: 0;
                 font-size: 11px;
                 line-height: 1.3;
-                color: var(--r-muted, #6b7280);
+                color: #4b6b82;
                 text-align: center;
                 flex: 0 0 auto;
             }
@@ -513,6 +599,10 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc.is-disabled .robot-kc-btn[data-dir] {
                 opacity: 0.45;
+                pointer-events: none;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-kc.is-estop .robot-kc-btn[data-dir] {
+                opacity: 0.35;
                 pointer-events: none;
             }
             @media (max-width: 900px) {
@@ -537,11 +627,12 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 #<?php echo htmlspecialchars($id) ?> .robot-kc-side {
                     grid-column: 1 / -1;
                     flex-direction: row;
+                    flex-wrap: wrap;
                     align-items: center;
                     min-height: 64px;
                 }
                 #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-row {
-                    flex: 1 1 auto;
+                    flex: 1 1 140px;
                 }
                 #<?php echo htmlspecialchars($id) ?> .robot-kc-speed {
                     writing-mode: horizontal-tb;
@@ -551,6 +642,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     width: 100%;
                     height: 28px;
                     min-height: 0;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-block {
+                    flex: 1 1 160px;
                 }
                 #<?php echo htmlspecialchars($id) ?> .robot-kc-hint-side {
                     max-width: none;
@@ -573,6 +667,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             var cmdEl = root.querySelector('.robot-kc-cmd');
             var speed = root.querySelector('.robot-kc-speed');
             var speedVal = root.querySelector('.robot-kc-speed-val');
+            var trim = root.querySelector('.robot-kc-trim');
+            var trimVal = root.querySelector('.robot-kc-trim-val');
+            var estopBtn = root.querySelector('.robot-kc-estop');
             var buttons = root.querySelectorAll('.robot-kc-btn[data-dir]');
 
             var rosHost = <?php echo json_encode($ros_hostname) ?>;
@@ -580,11 +677,17 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             var imuTopicName = <?php echo json_encode($imu_topic) ?>;
             var tofTopicName = <?php echo json_encode($tof_topic) ?>;
             var wheelsTopicName = <?php echo json_encode($wheels_topic) ?>;
+            var estopTopicName = <?php echo json_encode($estop_topic) ?>;
+            var trimParamName = <?php echo json_encode($trim_param) ?>;
+            var trimUpdateSrvName = <?php echo json_encode($trim_update_srv) ?>;
             var periodMs = <?php echo json_encode(intval(1000 / $hz)) ?>;
             var smoothAlpha = 0.28;
             var tofMaxM = 1.2;
             var wheelMaxMs = 0.4;
             var sensorsBound = false;
+            var trimBound = false;
+            var trimTimer = null;
+            var estopLatched = false;
 
             var imuDot = root.querySelector('.robot-kc-imu-dot');
             var imuReadout = root.querySelector('.robot-kc-imu-readout');
@@ -597,9 +700,16 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             var rightWheelNeg = root.querySelectorAll('.robot-kc-col-sensors')[1].querySelector('.robot-kc-wheel-neg');
             var rightWheelReadout = root.querySelector('.robot-kc-wheel-right-readout');
 
-            var Keys = { UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39, W: 87, A: 65, S: 83, D: 68, SPACE: 32 };
+            var Keys = {
+                UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39,
+                W: 87, A: 65, S: 83, D: 68, SPACE: 32,
+                E: 69, C: 67, V: 86
+            };
             var pressed = { up: false, down: false, left: false, right: false };
             var joyPub = null;
+            var estopPub = null;
+            var trimParam = null;
+            var trimUpdateSrv = null;
             var bridgeReady = false;
             var curFwd = 0;
             var curSteer = 0;
@@ -611,12 +721,28 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 statusEl.className = 'robot-kc-status' + (cls ? ' ' + cls : '');
             }
 
+            function refreshStatus() {
+                if (estopLatched) {
+                    setStatus('E-STOP', 'is-estop');
+                    return;
+                }
+                if (!bridgeReady) {
+                    setStatus('Waiting for bridge...', 'is-wait');
+                    return;
+                }
+                if (armed) {
+                    setStatus('Driving', 'is-on');
+                } else {
+                    setStatus('Bridge ok, enable to drive', 'is-wait');
+                }
+            }
+
             function setCmdLabel(fwd, steer) {
                 cmdEl.textContent = 'axes ' + fwd.toFixed(2) + ' / ' + steer.toFixed(2);
             }
 
             function driving() {
-                return !!(armed && bridgeReady && joyPub);
+                return !!(armed && bridgeReady && joyPub && !estopLatched);
             }
 
             function syncButtons() {
@@ -626,11 +752,28 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 });
             }
 
+            function syncEstopUi() {
+                box.classList.toggle('is-estop', estopLatched);
+                if (estopBtn) estopBtn.classList.toggle('is-latched', estopLatched);
+                refreshStatus();
+            }
+
             function getRos() {
                 if (!window.ros) return null;
                 if (rosHost && window.ros[rosHost]) return window.ros[rosHost];
+                // Prefer hostname key used by Mission Control rosbridge connect
+                try {
+                    var host = window.location && window.location.hostname;
+                    if (host && window.ros[host]) return window.ros[host];
+                } catch (err) {}
                 if (window.ros['local']) return window.ros['local'];
+                if (window.ros['akshet.local']) return window.ros['akshet.local'];
                 if (window.ros.socket) return window.ros;
+                var keys = Object.keys(window.ros);
+                for (var i = 0; i < keys.length; i++) {
+                    var cand = window.ros[keys[i]];
+                    if (cand && cand.socket) return cand;
+                }
                 return null;
             }
 
@@ -649,11 +792,45 @@ class Duckiebot_KeyboardController extends BlockRenderer {
 
             function publishJoy(fwd, steer) {
                 // joy_mapper: axes[1] = forward, axes[3] = steer
+                // Do NOT pulse buttons[3] here — that would toggle e-stop every tick.
                 joyPub.publish(new ROSLIB.Message({
                     axes: [0, fwd, 0, steer, 0, 0, 0, 0],
                     buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }));
                 setCmdLabel(fwd, steer);
+            }
+
+            function publishEstop(active) {
+                if (!estopPub) return;
+                estopPub.publish(new ROSLIB.Message({
+                    header: { stamp: { secs: 0, nsecs: 0 }, frame_id: '' },
+                    data: !!active
+                }));
+            }
+
+            function setEstop(active) {
+                estopLatched = !!active;
+                if (estopLatched) {
+                    stopAll();
+                    curFwd = 0;
+                    curSteer = 0;
+                    if (joyPub && bridgeReady) publishJoy(0, 0);
+                    if (enable.checked) {
+                        enable.checked = false;
+                        armed = false;
+                        box.classList.add('is-disabled');
+                    }
+                }
+                publishEstop(estopLatched);
+                syncEstopUi();
+            }
+
+            function toggleEstop() {
+                if (!bridgeReady && !bindPublisher()) {
+                    setStatus('Waiting for bridge...', 'is-wait');
+                    return;
+                }
+                setEstop(!estopLatched);
             }
 
             function tick() {
@@ -666,7 +843,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 if (Math.abs(curSteer) < 0.01) curSteer = 0;
 
                 // Stream while armed, and briefly while coasting to zero after disable
-                if (!armed && curFwd === 0 && curSteer === 0) {
+                if ((!armed || estopLatched) && curFwd === 0 && curSteer === 0) {
                     setCmdLabel(0, 0);
                     return;
                 }
@@ -686,6 +863,62 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 posEl.style.height = (v > 0 ? pct : 0) + '%';
                 negEl.style.height = (v < 0 ? pct : 0) + '%';
                 readoutEl.textContent = v.toFixed(2) + ' m/s';
+            }
+
+            function updateTrimLabel() {
+                var v = parseFloat(trim.value);
+                if (!isFinite(v)) v = 0;
+                trimVal.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
+            }
+
+            function pushTrim(value) {
+                if (!trimParam) return;
+                var v = Math.max(-0.2, Math.min(0.2, Number(value) || 0));
+                trimParam.set(v);
+                if (trimUpdateSrv) {
+                    trimUpdateSrv.callService(
+                        new ROSLIB.ServiceRequest({ parameter: trimParamName }),
+                        function () {},
+                        function () {}
+                    );
+                }
+            }
+
+            function scheduleTrimPush() {
+                updateTrimLabel();
+                if (trimTimer) clearTimeout(trimTimer);
+                trimTimer = setTimeout(function () {
+                    pushTrim(trim.value);
+                }, 120);
+            }
+
+            function nudgeTrim(delta) {
+                var v = parseFloat(trim.value) || 0;
+                v = Math.max(-0.2, Math.min(0.2, Math.round((v + delta) * 100) / 100));
+                trim.value = String(v);
+                scheduleTrimPush();
+            }
+
+            function bindTrim() {
+                var ros = getRos();
+                if (!ros || typeof ROSLIB === 'undefined' || trimBound) return false;
+                trimBound = true;
+                trimParam = new ROSLIB.Param({
+                    ros: ros,
+                    name: trimParamName
+                });
+                trimUpdateSrv = new ROSLIB.Service({
+                    ros: ros,
+                    name: trimUpdateSrvName,
+                    serviceType: 'duckietown_msgs/NodeRequestParamsUpdate'
+                });
+                trimParam.get(function (value) {
+                    if (value == null || !isFinite(Number(value))) return;
+                    var v = Math.max(-0.2, Math.min(0.2, Number(value)));
+                    trim.value = String(v);
+                    updateTrimLabel();
+                });
+                return true;
             }
 
             function bindSensors() {
@@ -747,31 +980,82 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     setWheelBar(leftWheelPos, leftWheelNeg, leftWheelReadout, msg.vel_left);
                     setWheelBar(rightWheelPos, rightWheelNeg, rightWheelReadout, msg.vel_right);
                 });
+
+                // Mirror external e-stop state (e.g. full viewer)
+                var estopSub = new ROSLIB.Topic({
+                    ros: ros,
+                    name: estopTopicName,
+                    messageType: 'duckietown_msgs/BoolStamped',
+                    queue_size: 1,
+                    throttle_rate: 200
+                });
+                estopSub.subscribe(function (msg) {
+                    var active = !!(msg && msg.data);
+                    if (active === estopLatched) return;
+                    estopLatched = active;
+                    if (estopLatched) {
+                        stopAll();
+                        curFwd = 0;
+                        curSteer = 0;
+                        if (enable.checked) {
+                            enable.checked = false;
+                            armed = false;
+                            box.classList.add('is-disabled');
+                        }
+                    }
+                    syncEstopUi();
+                });
                 return true;
             }
 
             function bindPublisher() {
                 var ros = getRos();
                 if (!ros || typeof ROSLIB === 'undefined') return false;
-                // Single publisher only
+                // Single joy publisher only
                 joyPub = new ROSLIB.Topic({
                     ros: ros,
                     name: joyTopicName,
                     messageType: 'sensor_msgs/Joy',
                     queue_size: 1
                 });
+                estopPub = new ROSLIB.Topic({
+                    ros: ros,
+                    name: estopTopicName,
+                    messageType: 'duckietown_msgs/BoolStamped',
+                    queue_size: 1
+                });
                 bridgeReady = true;
                 bindSensors();
-                setStatus(
-                    armed ? 'Driving' : 'Bridge ok, enable to drive',
-                    armed ? 'is-on' : 'is-wait'
-                );
+                bindTrim();
+                refreshStatus();
                 return true;
             }
 
             function onKey(e, down) {
-                if (!driving()) return;
                 var code = e.keyCode;
+                var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+                if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+                // E-stop and trim work even when drive is disabled
+                if (code === Keys.E) {
+                    if (down) {
+                        e.preventDefault();
+                        toggleEstop();
+                    }
+                    return;
+                }
+                if (code === Keys.C && down) {
+                    e.preventDefault();
+                    nudgeTrim(-0.01);
+                    return;
+                }
+                if (code === Keys.V && down) {
+                    e.preventDefault();
+                    nudgeTrim(0.01);
+                    return;
+                }
+
+                if (!driving()) return;
                 var handled = true;
                 if (code === Keys.SPACE) {
                     if (down) stopAll();
@@ -817,7 +1101,22 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 });
             });
 
+            if (estopBtn) {
+                estopBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    toggleEstop();
+                });
+            }
+
             enable.addEventListener('change', function () {
+                if (estopLatched) {
+                    enable.checked = false;
+                    armed = false;
+                    box.classList.add('is-disabled');
+                    refreshStatus();
+                    return;
+                }
                 armed = !!enable.checked;
                 box.classList.toggle('is-disabled', !armed);
                 if (armed) {
@@ -828,7 +1127,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                         setStatus('Waiting for bridge...', 'is-wait');
                         return;
                     }
-                    setStatus('Driving', 'is-on');
+                    refreshStatus();
                     box.focus();
                 } else {
                     stopAll();
@@ -839,7 +1138,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                             publishJoy(0, 0);
                         }
                     }, 150);
-                    setStatus(bridgeReady ? 'Off' : 'Waiting for bridge...', bridgeReady ? '' : 'is-wait');
+                    refreshStatus();
                 }
             });
 
@@ -848,6 +1147,10 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 speedVal.textContent = Math.max(0, Math.min(100, pct)) + '%';
             });
             speed.dispatchEvent(new Event('input'));
+
+            trim.addEventListener('input', scheduleTrimPush);
+            trim.addEventListener('change', scheduleTrimPush);
+            updateTrimLabel();
 
             window.addEventListener('keydown', function (e) { onKey(e, true); }, true);
             window.addEventListener('keyup', function (e) { onKey(e, false); }, true);

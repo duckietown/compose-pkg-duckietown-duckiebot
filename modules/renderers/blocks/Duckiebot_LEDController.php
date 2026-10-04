@@ -95,7 +95,6 @@ class Duckiebot_LEDController extends BlockRenderer {
                         <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="green">Green</button>
                         <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="off">Off</button>
                     </div>
-                    <p class="robot-led-hint">Restores last pattern on reload · live publish</p>
                 </div>
             </div>
         </div>
@@ -227,12 +226,6 @@ class Duckiebot_LEDController extends BlockRenderer {
                 border-color: #26a4ea;
                 color: #0b6ea8;
                 background: rgba(38, 164, 234, 0.12);
-            }
-            #<?php echo htmlspecialchars($id) ?> .robot-led-hint {
-                margin: 0;
-                font-size: 10px;
-                color: #9ca3af;
-                line-height: 1.3;
             }
             @media (max-width: 720px) {
                 #<?php echo htmlspecialchars($id) ?> .robot-led-body {
