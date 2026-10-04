@@ -1,0 +1,63 @@
+{
+    "details": "Scan nearby Wi-Fi networks and connect the Duckiebot to a different SSID",
+    "actions": {
+        "status": {
+            "details": "Current connection snapshot (Wi-Fi / Ethernet)",
+            "access_level": [
+                "guest",
+                "user",
+                "superviror",
+                "administrator"
+            ],
+            "authentication": [
+                "web"
+            ],
+            "parameters": {
+                "mandatory": {},
+                "optional": {}
+            }
+        },
+        "scan": {
+            "details": "Scan for nearby Wi-Fi networks and list known profiles",
+            "access_level": [
+                "guest",
+                "user",
+                "superviror",
+                "administrator"
+            ],
+            "authentication": [
+                "web"
+            ],
+            "parameters": {
+                "mandatory": {},
+                "optional": {}
+            }
+        },
+        "connect": {
+            "details": "Connect the robot to a Wi-Fi network (may drop the current session)",
+            "access_level": [
+                "guest",
+                "user",
+                "superviror",
+                "administrator"
+            ],
+            "authentication": [
+                "web"
+            ],
+            "parameters": {
+                "mandatory": {
+                    "ssid": {
+                        "type": "text",
+                        "details": "SSID to join"
+                    }
+                },
+                "optional": {
+                    "psk": {
+                        "type": "text",
+                        "details": "WPA passphrase (omit for open or already-known networks)"
+                    }
+                }
+            }
+        }
+    }
+}

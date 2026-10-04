@@ -247,14 +247,48 @@ class Duckiebot {
     }
 
     /**
+     * Global-scope LAN IPv4 addresses keyed by interface name.
+     *
+     * @return array<string,string>
+     */
+    private static function getIpv4AddressesByIface(): array {
+        $by_iface = [];
+        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
+        if (!is_string($out) || $out === '') {
+            return $by_iface;
+        }
+        foreach (explode("\n", trim($out)) as $line) {
+            if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
+                continue;
+            }
+            $iface = preg_replace('/@.*$/', '', $m[1]);
+            $ip = $m[2];
+            if (!self::isLanIpv4($ip)) {
+                continue;
+            }
+            if (preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface)) {
+                continue;
+            }
+            if (!isset($by_iface[$iface])) {
+                $by_iface[$iface] = $ip;
+            }
+        }
+        return $by_iface;
+    }
+
+    /**
      * Compact connection snapshot for the Overview widget.
      * Best-effort: hostname/IP always; wifi vs ethernet and SSID when visible.
+     * When Wi‑Fi and Ethernet are both up, `ethernet` carries the wired IP so
+     * the Connection strip can show a second entry in the same row.
      */
     public static function getNetworkSnapshot(): array {
         $host = self::getDuckiebotHostname();
-        $ip = self::getPrimaryIpv4();
-        $kind = null;
-        $connected = false;
+        $addrs = self::getIpv4AddressesByIface();
+        $wifi_up = false;
+        $eth_up = false;
+        $wifi_iface = null;
+        $eth_iface = null;
         $sys = '/sys/class/net';
         if (is_dir($sys)) {
             $ifaces = @scandir($sys);
@@ -270,29 +304,88 @@ class Duckiebot {
                     if ($state !== 'up') {
                         continue;
                     }
-                    $connected = true;
                     if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
-                        $kind = 'wifi';
+                        $wifi_up = true;
+                        if ($wifi_iface === null) {
+                            $wifi_iface = $iface;
+                        }
                     } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
-                        $kind = $kind ?: 'ethernet';
-                    } else if ($kind === null) {
-                        $kind = 'ethernet';
+                        $eth_up = true;
+                        if ($eth_iface === null) {
+                            $eth_iface = $iface;
+                        }
                     }
                 }
             }
         }
         $wireless = @file_get_contents('/proc/net/wireless');
-        if (is_string($wireless) && preg_match('/^\s*([^\s:]+):/m', $wireless)) {
-            $kind = 'wifi';
-            $connected = true;
+        if (is_string($wireless) && preg_match('/^\s*([^\s:]+):/m', $wireless, $wm)) {
+            $wifi_up = true;
+            if ($wifi_iface === null) {
+                $wifi_iface = $wm[1];
+            }
         }
         $ssid = self::getWifiSsid();
+        if ($ssid) {
+            $wifi_up = true;
+        }
+
+        $wifi_ip = '';
+        if ($wifi_iface !== null && isset($addrs[$wifi_iface])) {
+            $wifi_ip = $addrs[$wifi_iface];
+        } else {
+            foreach ($addrs as $iface => $ip) {
+                if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                    $wifi_ip = $ip;
+                    if ($wifi_iface === null) {
+                        $wifi_iface = $iface;
+                    }
+                    break;
+                }
+            }
+        }
+
+        $eth_ip = '';
+        if ($eth_iface !== null && isset($addrs[$eth_iface])) {
+            $eth_ip = $addrs[$eth_iface];
+        } else {
+            foreach ($addrs as $iface => $ip) {
+                if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                    $eth_ip = $ip;
+                    if ($eth_iface === null) {
+                        $eth_iface = $iface;
+                    }
+                    break;
+                }
+            }
+        }
+
+        $kind = null;
+        if ($wifi_up) {
+            $kind = 'wifi';
+        } else if ($eth_up) {
+            $kind = 'ethernet';
+        }
+        $ip = $wifi_ip !== '' ? $wifi_ip : ($eth_ip !== '' ? $eth_ip : self::getPrimaryIpv4());
+        $connected = $wifi_up || $eth_up || ($ip !== '');
+
+        // Second row entry only when both links are up at once.
+        $ethernet = null;
+        if ($wifi_up && $eth_up) {
+            $ethernet = [
+                'connected' => true,
+                'ip' => $eth_ip,
+                'iface' => $eth_iface,
+            ];
+        }
+
         return [
             'hostname' => $host,
             'ip' => $ip,
-            'connected' => $connected || ($ip !== ''),
+            'connected' => $connected,
             'kind' => $kind,
             'ssid' => $ssid,
+            'ethernet' => $ethernet,
         ];
     }
 
@@ -360,6 +453,122 @@ class Duckiebot {
             }
         }
         return null;
+    }
+
+    /**
+     * Path to the wpa_supplicant helper used for scan/connect.
+     */
+    private static function getWifiHelperPath(): string {
+        return dirname(__FILE__) . '/tools/wpa_wifi.py';
+    }
+
+    /**
+     * Whether the wpa_supplicant control socket is mounted/visible.
+     */
+    public static function isWifiManagementAvailable(): bool {
+        $dir = getenv('WPA_CTRL_DIR');
+        if ($dir === false || $dir === '') {
+            $dir = '/var/run/wpa_supplicant';
+        }
+        if (!is_dir($dir)) {
+            return false;
+        }
+        $entries = @scandir($dir);
+        if (!is_array($entries)) {
+            return false;
+        }
+        foreach ($entries as $name) {
+            if ($name === '.' || $name === '..') {
+                continue;
+            }
+            if (strpos($name, 'p2p-') === 0) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Run tools/wpa_wifi.py with a JSON request on stdin.
+     *
+     * @param array $request
+     * @return array{success:bool,data:mixed}
+     */
+    private static function runWifiHelper(array $request): array {
+        $helper = self::getWifiHelperPath();
+        if (!is_readable($helper)) {
+            return [
+                'success' => false,
+                'data' => 'Wi-Fi helper script is missing',
+            ];
+        }
+        $payload = json_encode($request, JSON_UNESCAPED_SLASHES);
+        if ($payload === false) {
+            return ['success' => false, 'data' => 'Could not encode Wi-Fi request'];
+        }
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        $cmd = 'python3 ' . escapeshellarg($helper);
+        $proc = @proc_open($cmd, $descriptors, $pipes);
+        if (!is_resource($proc)) {
+            return ['success' => false, 'data' => 'Could not start Wi-Fi helper'];
+        }
+
+        fwrite($pipes[0], $payload);
+        fclose($pipes[0]);
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        $code = proc_close($proc);
+
+        $decoded = json_decode((string) $stdout, true);
+        if (!is_array($decoded)) {
+            $hint = trim((string) $stderr);
+            return [
+                'success' => false,
+                'data' => $hint !== ''
+                    ? ('Wi-Fi helper error: ' . $hint)
+                    : 'Wi-Fi helper returned invalid JSON',
+            ];
+        }
+        if (empty($decoded['ok'])) {
+            return [
+                'success' => false,
+                'data' => isset($decoded['error'])
+                    ? (string) $decoded['error']
+                    : 'Wi-Fi operation failed',
+                'meta' => $decoded,
+            ];
+        }
+        return ['success' => true, 'data' => $decoded, 'code' => $code];
+    }
+
+    /**
+     * Scan nearby Wi-Fi networks (plus known profiles).
+     */
+    public static function scanWifiNetworks(): array {
+        return self::runWifiHelper(['action' => 'scan']);
+    }
+
+    /**
+     * Connect to a Wi-Fi network. Pass null/empty $psk for open or known nets.
+     */
+    public static function connectWifi(string $ssid, ?string $psk = null): array {
+        $ssid = trim($ssid);
+        if ($ssid === '') {
+            return ['success' => false, 'data' => 'SSID is required'];
+        }
+        $request = ['action' => 'connect', 'ssid' => $ssid];
+        if ($psk !== null && $psk !== '') {
+            $request['psk'] = $psk;
+        }
+        return self::runWifiHelper($request);
     }
     
     public static function getDuckiebotHostname(): string {

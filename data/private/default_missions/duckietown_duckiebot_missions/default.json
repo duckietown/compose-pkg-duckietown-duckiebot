@@ -33,6 +33,18 @@
 			{
 				"shape": {
 					"rows": 2,
+					"cols": 8
+				},
+				"renderer": "Duckiebot_LEDController",
+				"title": "LED Colours",
+				"subtitle": "Front / back · presets · live publish",
+				"args": {
+					"ros_hostname": ""
+				}
+			},
+			{
+				"shape": {
+					"rows": 2,
 					"cols": 4
 				},
 				"renderer": "DuckietownMsgs_WheelsCmdStamped",

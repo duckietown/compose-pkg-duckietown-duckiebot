@@ -500,6 +500,182 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         font-weight: var(--r-fw-semibold, 600);
     }
 
+    .robot-wifi-picker {
+        position: relative;
+        align-items: center !important;
+    }
+    .robot-wifi-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 2px 8px 2px 6px;
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: 6px;
+        background: var(--r-card, #fff);
+        color: var(--r-text, #111827);
+        font: inherit;
+        font-weight: var(--r-fw-semibold, 600);
+        cursor: pointer;
+        max-width: min(280px, 70vw);
+    }
+    .robot-wifi-toggle:hover,
+    .robot-wifi-toggle[aria-expanded="true"] {
+        border-color: #cbd5e1;
+        background: #fff;
+    }
+    .robot-wifi-toggle .fa {
+        color: var(--r-muted, #6b7280);
+        font-size: 11px;
+    }
+    .robot-wifi-toggle strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .robot-wifi-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 40;
+        width: min(320px, 86vw);
+        padding: 8px;
+        background: var(--r-card, #fff);
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: 10px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+        color: var(--r-text, #111827);
+    }
+    .robot-wifi-menu[hidden] {
+        display: none !important;
+    }
+    .robot-wifi-menu-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: var(--r-fs-xs, 10px);
+        font-weight: var(--r-fw-semibold, 600);
+        text-transform: uppercase;
+        letter-spacing: var(--r-tracking-label, 0.04em);
+        color: var(--r-muted, #6b7280);
+    }
+    .robot-wifi-menu-head button,
+    .robot-wifi-actions button {
+        margin: 0;
+        padding: 4px 8px;
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--r-text, #111827);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .robot-wifi-menu-head button:hover,
+    .robot-wifi-actions button:hover {
+        background: var(--r-surface, #f8f9fb);
+    }
+    .robot-wifi-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 220px;
+        overflow: auto;
+    }
+    .robot-wifi-list li button {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 10px;
+        width: 100%;
+        margin: 0;
+        padding: 8px 8px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+    .robot-wifi-list li button:hover,
+    .robot-wifi-list li button:focus {
+        background: var(--r-surface, #f8f9fb);
+        outline: none;
+    }
+    .robot-wifi-list .wifi-ssid {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .robot-wifi-list .wifi-meta {
+        grid-column: 1 / -1;
+        font-size: 11px;
+        color: var(--r-muted, #6b7280);
+    }
+    .robot-wifi-list .wifi-signal {
+        font-size: 11px;
+        color: var(--r-muted, #6b7280);
+        white-space: nowrap;
+    }
+    .robot-wifi-list li.is-current button {
+        background: #eff6ff;
+    }
+    .robot-wifi-form {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--r-border, #e6e8eb);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .robot-wifi-form[hidden] {
+        display: none !important;
+    }
+    .robot-wifi-form label {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .robot-wifi-form input[type="password"],
+    .robot-wifi-form input[type="text"] {
+        width: 100%;
+        padding: 7px 9px;
+        border: 1px solid var(--r-border, #e6e8eb);
+        border-radius: 6px;
+        font: inherit;
+    }
+    .robot-wifi-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+    .robot-wifi-actions .is-primary {
+        background: #111827 !important;
+        border-color: #111827 !important;
+        color: #fff !important;
+    }
+    .robot-wifi-warn,
+    .robot-wifi-status {
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.35;
+        color: var(--r-muted, #6b7280);
+    }
+    .robot-wifi-status.is-error {
+        color: var(--r-bad, #b91c1c);
+    }
+    .robot-wifi-status.is-ok {
+        color: #047857;
+    }
+    .robot-wifi-empty {
+        padding: 10px 8px;
+        font-size: 12px;
+        color: var(--r-muted, #6b7280);
+    }
+
     .robot-batt-diag {
         padding: 12px 14px;
         background: var(--r-card, #fff);
@@ -639,9 +815,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         .robot-overview-thumb {
             width: 100%;
             height: auto;
-            min-height: 220px;
-            max-height: 360px;
-            aspect-ratio: 4 / 3;
+            min-height: 280px;
+            max-height: 420px;
+            aspect-ratio: 1 / 1;
         }
         .robot-overview-side {
             height: auto;
@@ -940,10 +1116,46 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         <span class="strip-label">Connection</span>
         <span class="robot-chip" id="net_status"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
         <span class="strip-item">Link <strong id="net_kind">-</strong></span>
-        <span class="strip-item" id="net_ssid_item">SSID <strong id="net_name"><?php echo htmlspecialchars((string) ($network_snapshot['ssid'] ?? '') ?: '-'); ?></strong></span>
+        <span class="strip-item robot-wifi-picker" id="net_ssid_item">
+            SSID
+            <button type="button" class="robot-wifi-toggle" id="net_wifi_toggle"
+                    aria-haspopup="listbox" aria-expanded="false" aria-controls="net_wifi_menu"
+                    title="Scan and switch Wi‑Fi networks">
+                <strong id="net_name"><?php echo htmlspecialchars((string) ($network_snapshot['ssid'] ?? '') ?: '-'); ?></strong>
+                <i class="fa fa-caret-down" aria-hidden="true"></i>
+            </button>
+            <div class="robot-wifi-menu" id="net_wifi_menu" hidden role="listbox" aria-label="Nearby Wi‑Fi networks">
+                <div class="robot-wifi-menu-head">
+                    <span>Nearby networks</span>
+                    <button type="button" id="net_wifi_refresh">Refresh</button>
+                </div>
+                <ul class="robot-wifi-list" id="net_wifi_list"></ul>
+                <div class="robot-wifi-form" id="net_wifi_form" hidden>
+                    <label for="net_wifi_psk">Password for <span id="net_wifi_target"></span></label>
+                    <input type="password" id="net_wifi_psk" autocomplete="off" spellcheck="false" placeholder="Wi‑Fi password">
+                    <p class="robot-wifi-warn">Switching networks disconnects this dashboard until your computer joins the same Wi‑Fi.</p>
+                    <div class="robot-wifi-actions">
+                        <button type="button" id="net_wifi_cancel">Cancel</button>
+                        <button type="button" class="is-primary" id="net_wifi_connect">Connect</button>
+                    </div>
+                </div>
+                <p class="robot-wifi-status" id="net_wifi_status" aria-live="polite"></p>
+            </div>
+        </span>
         <span class="strip-item">Network IP <strong id="net_ip"><?php echo htmlspecialchars((string) ($network_snapshot['ip'] ?? '') ?: '-'); ?></strong></span>
+        <?php
+            $eth_snap = (isset($network_snapshot['ethernet']) && is_array($network_snapshot['ethernet']))
+                ? $network_snapshot['ethernet']
+                : null;
+            $show_eth = is_array($eth_snap) && !empty($eth_snap['connected']);
+            $eth_ip = is_array($eth_snap) ? (string) ($eth_snap['ip'] ?? '') : '';
+        ?>
+        <span class="strip-item" id="net_eth_item"<?php echo $show_eth ? '' : ' hidden'; ?>>
+            Ethernet <strong id="net_eth_ip"><?php echo htmlspecialchars($eth_ip !== '' ? $eth_ip : '-'); ?></strong>
+        </span>
     </div>
 </div>
+
 
 
 <script type="text/javascript">
@@ -957,7 +1169,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         'throttling-occurred'
     ];
 
-    const NETWORK_BOOT = <?php echo json_encode($network_snapshot, JSON_UNESCAPED_SLASHES); ?>;
+    let NETWORK_BOOT = <?php echo json_encode($network_snapshot, JSON_UNESCAPED_SLASHES); ?>;
 
     function _meter_level(pct) {
         if (pct >= 90) return 'is-bad';
@@ -1137,6 +1349,12 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         if (!merged.ssid && NETWORK_BOOT && NETWORK_BOOT.ssid) {
             merged.ssid = NETWORK_BOOT.ssid;
         }
+        // Health payloads rarely include ethernet; keep boot value unless
+        // refreshNetworkSnapshot supplies an explicit ethernet field.
+        if (!Object.prototype.hasOwnProperty.call(extra, 'ethernet')
+                && NETWORK_BOOT && Object.prototype.hasOwnProperty.call(NETWORK_BOOT, 'ethernet')) {
+            merged.ethernet = NETWORK_BOOT.ethernet;
+        }
         return merged;
     }
 
@@ -1164,6 +1382,208 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         $('#net_name').text(name || '-');
         $('#net_ssid_item').removeAttr('hidden');
         $('#net_ip').text(ip || '-');
+
+        // Extra strip entry only when Wi‑Fi and Ethernet are both up.
+        var eth = net.ethernet;
+        var wifiActive = /wifi|wlan/i.test(String(kind)) || !!name;
+        var showEth = !!(eth && eth.connected && wifiActive);
+        if (showEth) {
+            var ethIp = eth.ip || '';
+            if (ethIp === '127.0.0.1' || (ethIp && ethIp.indexOf('127.') === 0)) {
+                ethIp = '';
+            }
+            $('#net_eth_ip').text(ethIp || '-');
+            $('#net_eth_item').removeAttr('hidden');
+        } else {
+            $('#net_eth_item').attr('hidden', true);
+            $('#net_eth_ip').text('-');
+        }
+    }
+
+    function refreshNetworkSnapshot() {
+        smartAPI('robot_wifi', 'status', {
+            method: 'GET',
+            block: false,
+            quiet: true,
+            on_success: function (res) {
+                var data = (res && res.data) ? res.data : res;
+                if (!data || typeof data !== 'object') return;
+                NETWORK_BOOT = data;
+                applyNetworkSnapshot(data);
+            }
+        });
+    }
+
+    var wifiPicker = {
+        open: false,
+        loading: false,
+        networks: [],
+        pending: null
+    };
+
+    function wifiSetStatus(msg, cls) {
+        var el = $('#net_wifi_status');
+        el.removeClass('is-error is-ok');
+        if (cls) el.addClass(cls);
+        el.text(msg || '');
+    }
+
+    function wifiSignalLabel(net) {
+        if (net.out_of_range || net.signal === null || net.signal === undefined) {
+            return '';
+        }
+        var s = Number(net.signal);
+        if (!isFinite(s)) return '';
+        if (s >= -55) return 'strong';
+        if (s >= -70) return 'ok';
+        return 'weak';
+    }
+
+    function wifiCloseMenu() {
+        wifiPicker.open = false;
+        $('#net_wifi_menu').attr('hidden', true);
+        $('#net_wifi_toggle').attr('aria-expanded', 'false');
+        $('#net_wifi_form').attr('hidden', true);
+        wifiPicker.pending = null;
+        $('#net_wifi_psk').val('');
+    }
+
+    function wifiRenderList(networks) {
+        var list = $('#net_wifi_list');
+        list.empty();
+        if (!networks || !networks.length) {
+            list.append('<li class="robot-wifi-empty">No networks found.</li>');
+            return;
+        }
+        networks.forEach(function (net) {
+            var ssid = String(net.ssid || '');
+            var meta = [];
+            if (net.current) meta.push('connected');
+            if (net.known && !net.current) meta.push('saved');
+            if (net.secured) meta.push('secured');
+            else meta.push('open');
+            if (net.out_of_range) meta.push('out of range');
+            var $btn = $('<button type="button"></button>');
+            $btn.append($('<span class="wifi-ssid"></span>').text(ssid));
+            $btn.append($('<span class="wifi-signal"></span>').text(wifiSignalLabel(net)));
+            if (meta.length) {
+                $btn.append($('<span class="wifi-meta"></span>').text(meta.join(' · ')));
+            }
+            $btn.on('click', function () {
+                wifiSelectNetwork(net);
+            });
+            var $li = $('<li></li>');
+            if (net.current) $li.addClass('is-current');
+            $li.append($btn);
+            list.append($li);
+        });
+    }
+
+    function wifiSelectNetwork(net) {
+        if (!net || !net.ssid) return;
+        if (net.current) {
+            wifiSetStatus('Already connected to ' + net.ssid, 'is-ok');
+            return;
+        }
+        // Known profiles can switch without re-entering the password.
+        if (net.known) {
+            if (!window.confirm(
+                'Switch the robot to "' + net.ssid + '"?\n\n' +
+                'This page will disconnect until your computer is on the same Wi‑Fi.'
+            )) {
+                return;
+            }
+            wifiConnect(net.ssid, null);
+            return;
+        }
+        if (!net.secured) {
+            if (!window.confirm(
+                'Join open network "' + net.ssid + '"?\n\n' +
+                'This page will disconnect until your computer is on the same Wi‑Fi.'
+            )) {
+                return;
+            }
+            wifiConnect(net.ssid, null);
+            return;
+        }
+        wifiPicker.pending = net;
+        $('#net_wifi_target').text(net.ssid);
+        $('#net_wifi_psk').val('');
+        $('#net_wifi_form').removeAttr('hidden');
+        wifiSetStatus('Enter the password, then Connect.');
+        setTimeout(function () { $('#net_wifi_psk').trigger('focus'); }, 0);
+    }
+
+    function wifiScan(forceOpen) {
+        if (wifiPicker.loading) return;
+        wifiPicker.loading = true;
+        wifiSetStatus('Scanning…');
+        $('#net_wifi_list').html('<li class="robot-wifi-empty">Scanning nearby networks…</li>');
+        if (forceOpen) {
+            wifiPicker.open = true;
+            $('#net_wifi_menu').removeAttr('hidden');
+            $('#net_wifi_toggle').attr('aria-expanded', 'true');
+        }
+        smartAPI('robot_wifi', 'scan', {
+            method: 'GET',
+            block: false,
+            quiet: true,
+            on_success: function (res) {
+                wifiPicker.loading = false;
+                var data = (res && res.data) ? res.data : res;
+                if (data && data.available === false) {
+                    wifiRenderList([]);
+                    wifiSetStatus(data.error || 'Wi‑Fi management is not available on this dashboard.', 'is-error');
+                    return;
+                }
+                wifiPicker.networks = (data && data.networks) ? data.networks : [];
+                wifiRenderList(wifiPicker.networks);
+                var cur = data && data.current && data.current.ssid;
+                if (cur) $('#net_name').text(cur);
+                wifiSetStatus(
+                    wifiPicker.networks.length
+                        ? ('Found ' + wifiPicker.networks.length + ' network' + (wifiPicker.networks.length === 1 ? '' : 's'))
+                        : 'No networks found'
+                );
+            },
+            on_error: function (res) {
+                wifiPicker.loading = false;
+                var msg = (res && (res.message || res.data)) || 'Wi‑Fi scan failed';
+                wifiSetStatus(String(msg), 'is-error');
+            }
+        });
+    }
+
+    function wifiConnect(ssid, psk) {
+        wifiSetStatus('Connecting to ' + ssid + '…');
+        var args = { ssid: ssid };
+        var data = { ssid: ssid };
+        if (psk) {
+            args.psk = psk;
+            data.psk = psk;
+        }
+        smartAPI('robot_wifi', 'connect', {
+            method: 'POST',
+            arguments: args,
+            data: data,
+            block: true,
+            quiet: false,
+            on_success: function (res) {
+                var data = (res && res.data) ? res.data : res;
+                $('#net_name').text(ssid);
+                wifiSetStatus(
+                    (data && data.warning) || ('Switching to ' + ssid + '… reconnect from that network.'),
+                    'is-ok'
+                );
+                $('#net_wifi_form').attr('hidden', true);
+                $('#net_wifi_psk').val('');
+                wifiPicker.pending = null;
+            },
+            on_error: function (res) {
+                var msg = (res && (res.message || res.data)) || 'Could not connect';
+                wifiSetStatus(String(msg), 'is-error');
+            }
+        });
     }
 
     function update_overview() {
@@ -1243,6 +1663,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 if (data.network || data.net) {
                     applyNetworkSnapshot(mergeNetworkSnapshot(data.network || data.net, true));
                 }
+                // Refresh Wi‑Fi + optional Ethernet strip from the robot itself.
+                refreshNetworkSnapshot();
                 if (data.software && data.software.date && data.software.version) {
                     let firmware = '{month}/{day}/{year}'.format(data.software.date);
                     firmware = '{0} ({1})'.format(firmware, String(data.software.version).substr(0, 7));
@@ -1305,8 +1727,11 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
 
         url = get_api_url("files", "data/config/robot_configuration");
         callExternalAPI(url, 'GET', 'text', false, false, function(data) {
-            robot_configuration = 'unknown';
-            try { robot_configuration = data.split('\n')[0].trim(); } catch (e) {}
+            robot_configuration = 'DB21J';
+            try {
+                let parsed = data.split('\n')[0].trim();
+                if (parsed) robot_configuration = parsed;
+            } catch (e) {}
             applyRobotThumbnail();
             $('.robot-info-container #robot_configuration').html(robot_configuration.capitalize());
             let modelEl = $('.robot-info-container #hardware_model');
@@ -1314,11 +1739,69 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             modelEl.text(formatHardwareModel(currentModel, robot_configuration));
         }, true, true);
 
+        // Sandbox / offline: files API may never answer; still show a DB21J diagram.
+        window.setTimeout(function () {
+            if (!robot_configuration) {
+                robot_configuration = 'DB21J';
+                applyRobotThumbnail();
+                let $cfg = $('.robot-info-container #robot_configuration');
+                if ($cfg.find('img').length) {
+                    $cfg.html(robot_configuration.capitalize());
+                }
+            }
+        }, 2500);
+
         document.documentElement.addEventListener('dt-theme-change', applyRobotThumbnail);
 
         update_overview();
         applyNetworkSnapshot(NETWORK_BOOT);
         setInterval(update_overview, <?php echo 1000 / $update_hz ?>);
+
+        $('#net_wifi_toggle').on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (wifiPicker.open) {
+                wifiCloseMenu();
+                return;
+            }
+            wifiScan(true);
+        });
+        $('#net_wifi_refresh').on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            wifiScan(true);
+        });
+        $('#net_wifi_cancel').on('click', function (e) {
+            e.preventDefault();
+            $('#net_wifi_form').attr('hidden', true);
+            wifiPicker.pending = null;
+            $('#net_wifi_psk').val('');
+            wifiSetStatus('');
+        });
+        $('#net_wifi_connect').on('click', function (e) {
+            e.preventDefault();
+            if (!wifiPicker.pending || !wifiPicker.pending.ssid) return;
+            var psk = String($('#net_wifi_psk').val() || '');
+            if (!psk) {
+                wifiSetStatus('Password required for this network.', 'is-error');
+                return;
+            }
+            wifiConnect(wifiPicker.pending.ssid, psk);
+        });
+        $('#net_wifi_psk').on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                $('#net_wifi_connect').trigger('click');
+            }
+        });
+        $(document).on('click.robotWifi', function (e) {
+            if (!wifiPicker.open) return;
+            if ($(e.target).closest('.robot-wifi-picker').length) return;
+            wifiCloseMenu();
+        });
+        $(document).on('keydown.robotWifi', function (e) {
+            if (e.key === 'Escape' && wifiPicker.open) wifiCloseMenu();
+        });
     });
 
 </script>

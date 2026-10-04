@@ -104,7 +104,11 @@ if ($load_mission) {
     'renderers',
     'blocks'
   );
-  foreach (['Duckiebot_KeyboardController.php', 'Duckiebot_Twist2DStamped.php'] as $renderer_file) {
+  foreach ([
+    'Duckiebot_KeyboardController.php',
+    'Duckiebot_Twist2DStamped.php',
+    'Duckiebot_LEDController.php',
+  ] as $renderer_file) {
     $renderer_path = join_path($pkg_blocks_dir, $renderer_file);
     if (is_string($renderer_path) && file_exists($renderer_path)) {
       require_once $renderer_path;
@@ -136,10 +140,14 @@ if ($load_mission) {
   // Stale mission DBs (pre-teleop defaults) omit the on-page controller.
   // Always surface it so teleop is available without re-running post_update.
   $has_keyboard_controller = false;
+  $has_led_controller = false;
   foreach ($mission_control_grid['blocks'] as $block) {
-    if (($block['renderer'] ?? '') === 'Duckiebot_KeyboardController') {
+    $renderer = $block['renderer'] ?? '';
+    if ($renderer === 'Duckiebot_KeyboardController') {
       $has_keyboard_controller = true;
-      break;
+    }
+    if ($renderer === 'Duckiebot_LEDController') {
+      $has_led_controller = true;
     }
   }
   if (!$has_keyboard_controller) {
@@ -161,6 +169,26 @@ if ($load_mission) {
       }
     }
     array_splice($mission_control_grid['blocks'], $insert_at, 0, [$kc_block]);
+  }
+  // Always surface LED colour control without requiring post_update.
+  if (!$has_led_controller) {
+    $led_block = [
+      'shape' => ['rows' => 2, 'cols' => 8],
+      'renderer' => 'Duckiebot_LEDController',
+      'title' => 'LED Colours',
+      'subtitle' => 'Front / back · presets · live publish',
+      'args' => [
+        'ros_hostname' => '',
+      ],
+    ];
+    $insert_at = count($mission_control_grid['blocks']);
+    foreach ($mission_control_grid['blocks'] as $i => $block) {
+      if (($block['renderer'] ?? '') === 'Duckiebot_KeyboardController') {
+        $insert_at = $i + 1;
+        break;
+      }
+    }
+    array_splice($mission_control_grid['blocks'], $insert_at, 0, [$led_block]);
   }
   // if we were able to load the mission, store it as 'last opened'
   $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
