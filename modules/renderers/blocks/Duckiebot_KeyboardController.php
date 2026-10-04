@@ -107,7 +107,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                         <button type="button" class="robot-kc-btn robot-kc-left" data-dir="left" title="Left (A / left)">
                             <i class="fa fa-arrow-left" aria-hidden="true"></i>
                         </button>
-                        <button type="button" class="robot-kc-btn robot-kc-center robot-kc-estop" title="Emergency stop (E)">
+                        <button type="button" class="robot-kc-btn robot-kc-center robot-kc-estop"
+                                title="<?php echo $can_drive ? 'Emergency stop (E)' : 'Sign in to use e-stop'; ?>"
+                                <?php echo $can_drive ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-kc-estop-mark">E-STOP</span>
                         </button>
                         <button type="button" class="robot-kc-btn robot-kc-right" data-dir="right" title="Right (D / right)">
@@ -164,8 +166,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                         <input id="robot_kc_trim_<?php echo htmlspecialchars($uid) ?>"
                                class="robot-kc-trim"
                                type="range" min="-0.2" max="0.2" step="0.01" value="0"
-                               title="Kinematics trim (C / V)"
-                               aria-label="Kinematics trim" />
+                               title="<?php echo $can_drive ? 'Kinematics trim (C / V)' : 'Sign in to adjust trim'; ?>"
+                               aria-label="Kinematics trim"
+                               <?php echo $can_drive ? '' : 'disabled aria-disabled="true"'; ?> />
                     </div>
                     <p class="robot-kc-hint robot-kc-hint-side">Enable, then hold D-pad / WASD.</p>
                 </div>
@@ -829,6 +832,10 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             function toggleEstop() {
+                if (!canDrive) {
+                    setStatus('Sign in to drive', 'is-wait');
+                    return;
+                }
                 if (!bridgeReady && !bindPublisher()) {
                     setStatus('Waiting for bridge...', 'is-wait');
                     return;
@@ -875,7 +882,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             function pushTrim(value) {
-                if (!trimParam) return;
+                if (!canDrive || !trimParam) return;
                 var v = Math.max(-0.2, Math.min(0.2, Number(value) || 0));
                 trimParam.set(v);
                 if (trimUpdateSrv) {
@@ -889,6 +896,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
 
             function scheduleTrimPush() {
                 updateTrimLabel();
+                if (!canDrive) return;
                 if (trimTimer) clearTimeout(trimTimer);
                 trimTimer = setTimeout(function () {
                     pushTrim(trim.value);
@@ -896,6 +904,10 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             function nudgeTrim(delta) {
+                if (!canDrive) {
+                    setStatus('Sign in to drive', 'is-wait');
+                    return;
+                }
                 var v = parseFloat(trim.value) || 0;
                 v = Math.max(-0.2, Math.min(0.2, Math.round((v + delta) * 100) / 100));
                 trim.value = String(v);
@@ -903,6 +915,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             function bindTrim() {
+                if (!canDrive) return false;
                 var ros = getRos();
                 if (!ros || typeof ROSLIB === 'undefined' || trimBound) return false;
                 trimBound = true;
@@ -1012,6 +1025,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             function bindPublisher() {
+                if (!canDrive) return false;
                 var ros = getRos();
                 if (!ros || typeof ROSLIB === 'undefined') return false;
                 // Single joy publisher only
@@ -1039,7 +1053,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
                 if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
-                // E-stop and trim work even when drive is disabled
+                // Actuation (e-stop, trim, drive) requires sign-in
                 if (code === Keys.E) {
                     if (down) {
                         e.preventDefault();

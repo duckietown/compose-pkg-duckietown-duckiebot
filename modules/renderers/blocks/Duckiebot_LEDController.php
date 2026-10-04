@@ -40,10 +40,13 @@ class Duckiebot_LEDController extends BlockRenderer {
         $led_topic = $prefix . '/led_driver_node/led_pattern';
         $uid = preg_replace('/[^a-zA-Z0-9_]/', '_', (string) $id);
         $storage_key = 'duckietown.led_pattern.' . (strlen((string) $vehicle) ? $vehicle : 'local');
+        $can_control = Core::isUserLoggedIn();
         ?>
-        <div class="robot-led" id="robot_led_<?php echo htmlspecialchars($uid) ?>">
+        <div class="robot-led<?php echo $can_control ? '' : ' is-locked'; ?>"
+             id="robot_led_<?php echo htmlspecialchars($uid) ?>"
+             data-can-control="<?php echo $can_control ? '1' : '0'; ?>">
             <div class="robot-led-toolbar">
-                <span class="robot-led-status is-wait">Waiting for bridge…</span>
+                <span class="robot-led-status is-wait"><?php echo $can_control ? 'Waiting for bridge…' : 'Sign in to control LEDs'; ?></span>
                 <span class="robot-led-topic" title="<?php echo htmlspecialchars($led_topic) ?>">
                     <?php echo htmlspecialchars($led_topic) ?>
                 </span>
@@ -55,63 +58,77 @@ class Duckiebot_LEDController extends BlockRenderer {
                         <label class="robot-led-label" for="robot_led_fl_<?php echo htmlspecialchars($uid) ?>">Front L</label>
                         <input id="robot_led_fl_<?php echo htmlspecialchars($uid) ?>"
                                class="robot-led-color" type="color" value="#ffffff"
-                               data-led="front_left" title="Front left LED" />
+                               data-led="front_left" title="Front left LED"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                         <input class="robot-led-intensity" type="range" min="0" max="1" step="0.05" value="0.2"
-                               data-led="front_left" aria-label="Front left intensity" />
+                               data-led="front_left" aria-label="Front left intensity"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                     </div>
                     <div class="robot-led-cell" data-led="front_right">
                         <label class="robot-led-label" for="robot_led_fr_<?php echo htmlspecialchars($uid) ?>">Front R</label>
                         <input id="robot_led_fr_<?php echo htmlspecialchars($uid) ?>"
                                class="robot-led-color" type="color" value="#ffffff"
-                               data-led="front_right" title="Front right LED" />
+                               data-led="front_right" title="Front right LED"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                         <input class="robot-led-intensity" type="range" min="0" max="1" step="0.05" value="0.2"
-                               data-led="front_right" aria-label="Front right intensity" />
+                               data-led="front_right" aria-label="Front right intensity"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                     </div>
                     <div class="robot-led-divider" aria-hidden="true"></div>
                     <div class="robot-led-cell" data-led="back_left">
                         <label class="robot-led-label" for="robot_led_bl_<?php echo htmlspecialchars($uid) ?>">Back L</label>
                         <input id="robot_led_bl_<?php echo htmlspecialchars($uid) ?>"
                                class="robot-led-color" type="color" value="#ff0000"
-                               data-led="back_left" title="Back left LED" />
+                               data-led="back_left" title="Back left LED"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                         <input class="robot-led-intensity" type="range" min="0" max="1" step="0.05" value="0.2"
-                               data-led="back_left" aria-label="Back left intensity" />
+                               data-led="back_left" aria-label="Back left intensity"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                     </div>
                     <div class="robot-led-cell" data-led="back_right">
                         <label class="robot-led-label" for="robot_led_br_<?php echo htmlspecialchars($uid) ?>">Back R</label>
                         <input id="robot_led_br_<?php echo htmlspecialchars($uid) ?>"
                                class="robot-led-color" type="color" value="#ff0000"
-                               data-led="back_right" title="Back right LED" />
+                               data-led="back_right" title="Back right LED"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                         <input class="robot-led-intensity" type="range" min="0" max="1" step="0.05" value="0.2"
-                               data-led="back_right" aria-label="Back right intensity" />
+                               data-led="back_right" aria-label="Back right intensity"
+                               <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?> />
                     </div>
                 </div>
 
                 <div class="robot-led-side">
                     <div class="robot-led-presets" role="group" aria-label="LED presets">
-                        <button type="button" class="robot-led-preset" data-preset="default" title="Default: white front, red back">
+                        <button type="button" class="robot-led-preset" data-preset="default" title="Default: white front, red back"
+                                <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-led-preset-swatch is-split" aria-hidden="true">
                                 <i style="background:#ffffff"></i>
                                 <i style="background:#ff0000"></i>
                             </span>
                             <span class="robot-led-preset-name">Default</span>
                         </button>
-                        <button type="button" class="robot-led-preset" data-preset="white" title="All white">
+                        <button type="button" class="robot-led-preset" data-preset="white" title="All white"
+                                <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#ffffff"></span>
                             <span class="robot-led-preset-name">White</span>
                         </button>
-                        <button type="button" class="robot-led-preset" data-preset="red" title="All red">
+                        <button type="button" class="robot-led-preset" data-preset="red" title="All red"
+                                <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#ff0000"></span>
                             <span class="robot-led-preset-name">Red</span>
                         </button>
-                        <button type="button" class="robot-led-preset" data-preset="blue" title="All blue">
+                        <button type="button" class="robot-led-preset" data-preset="blue" title="All blue"
+                                <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#0066ff"></span>
                             <span class="robot-led-preset-name">Blue</span>
                         </button>
-                        <button type="button" class="robot-led-preset" data-preset="green" title="All green">
+                        <button type="button" class="robot-led-preset" data-preset="green" title="All green"
+                                <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#00cc44"></span>
                             <span class="robot-led-preset-name">Green</span>
                         </button>
-                        <button type="button" class="robot-led-preset" data-preset="off" title="Lights off">
+                        <button type="button" class="robot-led-preset" data-preset="off" title="Lights off"
+                                <?php echo $can_control ? '' : 'disabled aria-disabled="true"'; ?>>
                             <span class="robot-led-preset-swatch is-off" aria-hidden="true"></span>
                             <span class="robot-led-preset-name">Off</span>
                         </button>
@@ -149,6 +166,10 @@ class Duckiebot_LEDController extends BlockRenderer {
                 overflow: hidden;
                 color: var(--r-text, #1a1d26);
                 background: transparent;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led.is-locked .robot-led-body {
+                opacity: 0.55;
+                pointer-events: none;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-toolbar {
                 display: flex;
@@ -343,6 +364,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             var topicName = <?php echo json_encode($led_topic) ?>;
             var connectedEvt = <?php echo json_encode($connected_evt) ?>;
             var storageKey = <?php echo json_encode($storage_key) ?>;
+            var canControl = <?php echo $can_control ? 'true' : 'false'; ?>;
             var ledPub = null;
             var bridgeReady = false;
             var publishTimer = null;
@@ -530,6 +552,10 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
 
             function publishState(state, statusText) {
+                if (!canControl) {
+                    setStatus('Sign in to control LEDs', 'is-wait');
+                    return false;
+                }
                 if (!ledPub || !bridgeReady || typeof ROSLIB === 'undefined') {
                     setStatus('Waiting for bridge…', 'is-wait');
                     return false;
@@ -544,11 +570,15 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
 
             function publishNow(statusText) {
+                if (!canControl) {
+                    setStatus('Sign in to control LEDs', 'is-wait');
+                    return false;
+                }
                 return publishState(readUiState(), statusText || 'Pattern sent');
             }
 
             function schedulePublish() {
-                if (syncingUi) return;
+                if (!canControl || syncingUi) return;
                 if (publishTimer) clearTimeout(publishTimer);
                 publishTimer = setTimeout(function () {
                     publishTimer = null;
@@ -560,6 +590,10 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
 
             function applyPreset(name) {
+                if (!canControl) {
+                    setStatus('Sign in to control LEDs', 'is-wait');
+                    return;
+                }
                 var preset = PRESETS[name];
                 if (!preset) return;
                 writeUiState(normalizeState(preset), { persist: true });
@@ -567,6 +601,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
 
             function bindPublisher() {
+                if (!canControl) return false;
                 var ros = getRos();
                 if (!ros || typeof ROSLIB === 'undefined') return false;
                 if (!ledPub) {
@@ -609,7 +644,7 @@ class Duckiebot_LEDController extends BlockRenderer {
 
             // Keep multiple Mission Control tabs consistent.
             window.addEventListener('storage', function (evt) {
-                if (evt.key !== storageKey || !evt.newValue) return;
+                if (!canControl || evt.key !== storageKey || !evt.newValue) return;
                 try {
                     var state = normalizeState(JSON.parse(evt.newValue));
                     writeUiState(state, { persist: false });
@@ -617,12 +652,16 @@ class Duckiebot_LEDController extends BlockRenderer {
                 } catch (err) {}
             });
 
-            setStatus('Waiting for bridge…', 'is-wait');
-            $(document).on(connectedEvt, function () {
-                bindPublisher();
-            });
-            setTimeout(function () { bindPublisher(); }, 100);
-            setTimeout(function () { bindPublisher(); }, 800);
+            if (!canControl) {
+                setStatus('Sign in to control LEDs', 'is-wait');
+            } else {
+                setStatus('Waiting for bridge…', 'is-wait');
+                $(document).on(connectedEvt, function () {
+                    bindPublisher();
+                });
+                setTimeout(function () { bindPublisher(); }, 100);
+                setTimeout(function () { bindPublisher(); }, 800);
+            }
         })();
         </script>
         <?php

@@ -329,13 +329,12 @@ class Duckiebot {
                 $wifi_iface = $wm[1];
             }
         }
-        // Live association only; persisted SSID files are stale when the radio
-        // is down and must not flip wifi_up / kind.
+        // Live association only. Persisted SSID files are stale when the
+        // interface looks up but is unassociated (Ethernet-only / radio idle)
+        // and must not be shown as the current network name.
         $ssid = self::getWifiSsid(false);
         if ($ssid) {
             $wifi_up = true;
-        } else if ($wifi_up) {
-            $ssid = self::getWifiSsid(true);
         }
 
         $wifi_ip = '';
