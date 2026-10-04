@@ -209,7 +209,7 @@ class Duckiebot_Calibration extends BlockRenderer{
         width: 25px;
         height: 25px;
         border-radius: 50%;
-        background: #d14c48;
+        background: var(--r-fill, #d14c48);
         cursor: pointer;
       }
 
@@ -217,7 +217,7 @@ class Duckiebot_Calibration extends BlockRenderer{
         width: 25px;
         height: 25px;
         border-radius: 50%;
-        background: #d14c48;
+        background: var(--r-fill, #d14c48);
         cursor: pointer;
       }
 

@@ -198,14 +198,12 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 position: relative;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc {
-                --kc-blue: #26a4ea;
-                --kc-blue-deep: #1d8bc9;
-                --kc-blue-soft: rgba(38, 164, 234, 0.16);
-                --kc-blue-mid: rgba(38, 164, 234, 0.32);
-                --kc-yellow: #f2c511;
-                --kc-yellow-soft: rgba(242, 197, 17, 0.22);
-                --kc-stop: #dc2626;
-                --kc-stop-deep: #b91c1c;
+                --kc-accent: var(--r-fill, #2c5686);
+                --kc-accent-soft: var(--r-info-bg, rgba(38, 164, 234, 0.16));
+                --kc-accent-mid: color-mix(in srgb, var(--r-fill, #2c5686) 34%, transparent);
+                --kc-stop: var(--r-bad, #dc2626);
+                --kc-stop-deep: var(--r-bad, #b91c1c);
+                --kc-stop-bg: var(--r-bad-bg, rgba(220, 38, 38, 0.16));
                 box-sizing: border-box;
                 position: absolute;
                 inset: 0;
@@ -217,10 +215,11 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 user-select: none;
                 -webkit-user-select: none;
                 overflow: hidden;
-                background: #f3f8fc;
+                background: transparent;
+                color: var(--r-text, #1a1d26);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc:focus {
-                box-shadow: inset 0 0 0 2px rgba(38, 164, 234, 0.45);
+                box-shadow: inset 0 0 0 2px var(--r-focus-ring, rgba(44, 86, 134, 0.35));
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-toolbar {
                 display: flex;
@@ -229,7 +228,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 gap: 6px 10px;
                 flex: 0 0 auto;
                 padding-bottom: 4px;
-                border-bottom: 1px solid rgba(38, 164, 234, 0.22);
+                border-bottom: 1px solid var(--r-border, #dde1ea);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-enable {
                 display: inline-flex;
@@ -239,32 +238,32 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-weight: 600;
                 font-size: var(--r-fs-lg);
                 cursor: pointer;
-                color: #0f3d5c;
+                color: var(--r-text, #1a1d26);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status {
                 font-size: var(--r-fs-sm);
                 padding: 2px 8px;
                 border-radius: 999px;
-                background: var(--kc-blue-soft);
-                color: var(--kc-blue-deep);
+                background: var(--kc-accent-soft);
+                color: var(--kc-accent);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status.is-on {
-                background: rgba(34, 197, 94, 0.18);
-                color: #15803d;
+                background: var(--r-ok-bg, rgba(34, 197, 94, 0.18));
+                color: var(--r-ok, #15803d);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status.is-wait {
-                background: var(--kc-yellow-soft);
-                color: #a16207;
+                background: var(--r-warn-bg, rgba(242, 197, 17, 0.22));
+                color: var(--r-warn, #a16207);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-status.is-estop {
-                background: rgba(220, 38, 38, 0.16);
+                background: var(--kc-stop-bg);
                 color: var(--kc-stop-deep);
                 font-weight: 700;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-cmd {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-size: var(--r-fs-sm);
-                color: #4b6b82;
+                color: var(--r-muted, #6b7280);
                 margin-left: auto;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-body {
@@ -294,9 +293,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 align-items: center;
                 gap: 4px;
                 padding: 6px;
-                border: 1px solid rgba(38, 164, 234, 0.28);
+                border: 1px solid var(--r-border, #dde1ea);
                 border-radius: 10px;
-                background: #ffffff;
+                background: var(--r-surface, #f4f6fa);
                 overflow: hidden;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-sensor-card-wheel {
@@ -314,7 +313,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 margin: 0;
                 font-size: var(--r-fs-xs);
                 font-weight: 700;
-                color: var(--kc-blue-deep);
+                color: var(--kc-accent);
                 text-transform: uppercase;
                 letter-spacing: 0.03em;
             }
@@ -324,7 +323,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-size: var(--r-fs-sm);
                 font-weight: 700;
-                color: #123a52;
+                color: var(--r-text, #1a1d26);
                 margin: 0;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-imu,
@@ -343,16 +342,16 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 position: absolute;
                 inset: 0;
                 border-radius: 50%;
-                background: var(--kc-blue-mid);
-                box-shadow: inset 0 0 0 2px rgba(38, 164, 234, 0.35);
+                background: var(--kc-accent-mid);
+                box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--r-fill, #2c5686) 35%, transparent);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-imu-dot {
                 position: absolute;
                 width: 18%;
                 height: 18%;
                 border-radius: 50%;
-                background: var(--kc-blue);
-                box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+                background: var(--kc-accent);
+                box-shadow: 0 0 0 2px var(--r-card, #fff);
                 left: 50%;
                 bottom: 50%;
                 transform: translate(-50%, 50%);
@@ -365,7 +364,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 border-radius: 50%;
                 background: conic-gradient(
                     from 315deg,
-                    var(--kc-blue-mid) 90deg,
+                    var(--kc-accent-mid) 90deg,
                     rgba(0, 0, 0, 0) 0deg
                 );
             }
@@ -378,7 +377,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 transform: translate(-50%, -50%);
                 background: conic-gradient(
                     from 315deg,
-                    var(--kc-blue) 90deg,
+                    var(--kc-accent) 90deg,
                     rgba(0, 0, 0, 0) 0deg
                 );
                 transition: width 0.12s linear, height 0.12s linear;
@@ -394,7 +393,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 position: absolute;
                 inset: 0;
                 border-radius: 6px;
-                background: var(--kc-blue-mid);
+                background: var(--kc-accent-mid);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-pos,
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-neg {
@@ -402,7 +401,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 left: 0;
                 width: 100%;
                 height: 0%;
-                background: var(--kc-blue);
+                background: var(--kc-accent);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-wheel-pos {
                 bottom: 50%;
@@ -422,9 +421,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 min-height: 0;
                 height: 100%;
                 padding: 8px;
-                border: 1px solid rgba(38, 164, 234, 0.35);
+                border: 1px solid var(--r-border, #dde1ea);
                 border-radius: 12px;
-                background: #ffffff;
+                background: var(--r-surface, #f4f6fa);
                 overflow: visible;
                 container-type: size;
             }
@@ -452,23 +451,23 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 margin: 0;
                 width: 100%;
                 height: 100%;
-                border: 2px solid var(--kc-blue-deep);
+                border: 2px solid var(--r-border-strong, #c9ced8);
                 border-radius: 12px;
-                background: #ffffff;
-                color: #0f3d5c;
+                background: var(--r-card, #fff);
+                color: var(--r-text, #1a1d26);
                 font-size: clamp(14px, 2.2cqw, 22px);
                 line-height: 1;
                 cursor: pointer;
                 touch-action: none;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-btn.is-active {
-                background: var(--kc-blue);
-                border-color: var(--kc-blue-deep);
-                color: #fff;
+                background: var(--kc-accent);
+                border-color: var(--kc-accent);
+                color: var(--r-on-fill, #fff);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-estop {
                 border-color: var(--kc-stop-deep);
-                background: #fee2e2;
+                background: var(--r-bad-bg, #fee2e2);
                 color: var(--kc-stop-deep);
                 font-weight: 800;
                 letter-spacing: 0.04em;
@@ -481,8 +480,8 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-kc-estop.is-latched,
             #<?php echo htmlspecialchars($id) ?> .robot-kc.is-estop .robot-kc-estop {
                 background: var(--kc-stop);
-                border-color: #7f1d1d;
-                color: #fff;
+                border-color: var(--kc-stop-deep);
+                color: var(--r-on-fill, #fff);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-side {
                 min-width: 0;
@@ -493,9 +492,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 align-items: center;
                 gap: 6px;
                 padding: 8px 6px;
-                border: 1px solid rgba(38, 164, 234, 0.28);
+                border: 1px solid var(--r-border, #dde1ea);
                 border-radius: 10px;
-                background: #ffffff;
+                background: var(--r-surface, #f4f6fa);
                 overflow: hidden;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-head {
@@ -512,7 +511,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-size: var(--r-fs-xs);
                 text-transform: uppercase;
                 letter-spacing: 0.03em;
-                color: var(--kc-blue-deep);
+                color: var(--kc-accent);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-row {
                 display: flex;
@@ -524,7 +523,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 width: 100%;
                 padding: 4px 0;
                 border-radius: 8px;
-                background: var(--kc-yellow-soft);
+                background: var(--r-hover, rgba(15, 61, 92, 0.04));
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed {
                 width: 28px;
@@ -535,13 +534,13 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 direction: rtl;
                 appearance: slider-vertical;
                 -webkit-appearance: slider-vertical;
-                accent-color: var(--kc-blue);
+                accent-color: var(--kc-accent);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-speed-val {
                 font-variant-numeric: tabular-nums;
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-weight: 800;
-                color: #0f3d5c;
+                color: var(--r-text, #1a1d26);
                 font-size: var(--r-fs-xl);
                 line-height: 1.1;
             }
@@ -554,8 +553,8 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 gap: 2px;
                 padding: 4px 4px 2px;
                 border-radius: 8px;
-                background: rgba(15, 61, 92, 0.04);
-                border: 1px dashed rgba(38, 164, 234, 0.28);
+                background: var(--r-hover, rgba(15, 61, 92, 0.04));
+                border: 1px dashed var(--r-border, #dde1ea);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-head {
                 display: flex;
@@ -569,26 +568,26 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 font-size: var(--r-fs-xs);
                 text-transform: uppercase;
                 letter-spacing: 0.03em;
-                color: #6b8799;
+                color: var(--r-muted, #6b7280);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-trim-val {
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 font-size: var(--r-fs-xs);
                 font-weight: 600;
-                color: #4b6b82;
+                color: var(--r-muted, #6b7280);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-trim {
                 width: 100%;
                 height: 18px;
                 margin: 0;
-                accent-color: #7aa7c2;
+                accent-color: var(--r-control-border, #8b929e);
                 opacity: 0.92;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-kc-hint {
                 margin: 0;
                 font-size: var(--r-fs-sm);
                 line-height: 1.3;
-                color: #4b6b82;
+                color: var(--r-muted, #6b7280);
                 text-align: center;
                 flex: 0 0 auto;
             }

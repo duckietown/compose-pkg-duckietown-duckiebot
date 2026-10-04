@@ -101,13 +101,19 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
             var boundKey = 'twist2d_' + <?php echo json_encode($uid) ?>;
 
             function emptyColor() {
+                var styles = window.getComputedStyle(document.documentElement);
+                var track = (styles.getPropertyValue('--r-track') || '').trim();
+                if (track) return track;
                 if (window.chartColors && window.chartColors.white) {
                     return window.chartColors.white;
                 }
-                return '#ffffff';
+                return '#e8ebf1';
             }
 
             function fillColor() {
+                var styles = window.getComputedStyle(document.documentElement);
+                var fill = (styles.getPropertyValue('--r-fill') || '').trim();
+                if (fill) return fill;
                 if (window.chartColors && window.chartColors.green) {
                     return window.chartColors.green;
                 }

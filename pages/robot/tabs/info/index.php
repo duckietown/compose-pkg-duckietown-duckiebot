@@ -505,8 +505,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     }
     .robot-wifi-toggle:hover,
     .robot-wifi-toggle[aria-expanded="true"] {
-        border-color: #cbd5e1;
-        background: #fff;
+        border-color: var(--r-border-strong, #cbd5e1);
+        background: var(--r-surface, #fff);
     }
     .robot-wifi-toggle .fa {
         color: var(--r-muted, #6b7280);
@@ -550,7 +550,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         padding: 4px 8px;
         border: 1px solid var(--r-border, #e6e8eb);
         border-radius: 6px;
-        background: #fff;
+        background: var(--r-card, #fff);
         color: var(--r-text, #111827);
         font: inherit;
         font-size: var(--r-fs-sm);
@@ -605,7 +605,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         white-space: nowrap;
     }
     .robot-wifi-list li.is-current button {
-        background: #eff6ff;
+        background: var(--r-info-bg, #eff6ff);
     }
     .robot-wifi-form {
         margin-top: 8px;
@@ -637,9 +637,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         justify-content: flex-end;
     }
     .robot-wifi-actions .is-primary {
-        background: #111827 !important;
-        border-color: #111827 !important;
-        color: #fff !important;
+        background: var(--r-fill, #111827) !important;
+        border-color: var(--r-fill, #111827) !important;
+        color: var(--r-on-fill, #fff) !important;
     }
     .robot-wifi-warn,
     .robot-wifi-status {
@@ -652,7 +652,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         color: var(--r-bad, #b91c1c);
     }
     .robot-wifi-status.is-ok {
-        color: #047857;
+        color: var(--r-ok, #047857);
     }
     .robot-wifi-empty {
         padding: 10px 8px;

@@ -147,6 +147,8 @@ class Duckiebot_LEDController extends BlockRenderer {
                 gap: 6px;
                 padding: 4px 10px 8px;
                 overflow: hidden;
+                color: var(--r-text, #1a1d26);
+                background: transparent;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-toolbar {
                 display: flex;
@@ -158,15 +160,15 @@ class Duckiebot_LEDController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-led-status {
                 font-size: var(--r-fs-sm);
                 font-weight: 600;
-                color: #6b7280;
+                color: var(--r-muted, #6b7280);
             }
-            #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-wait { color: #b45309; }
-            #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-on { color: #15803d; }
-            #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-bad { color: #b91c1c; }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-wait { color: var(--r-warn, #b45309); }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-on { color: var(--r-ok, #15803d); }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-status.is-bad { color: var(--r-bad, #b91c1c); }
             #<?php echo htmlspecialchars($id) ?> .robot-led-topic {
                 margin-left: auto;
                 font-size: var(--r-fs-xs);
-                color: #9ca3af;
+                color: var(--r-muted, #9ca3af);
                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 max-width: 55%;
                 overflow: hidden;
@@ -192,7 +194,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             #<?php echo htmlspecialchars($id) ?> .robot-led-divider {
                 width: 1px;
                 align-self: stretch;
-                background: #e5e7eb;
+                background: var(--r-border, #e5e7eb);
                 margin: 4px 2px;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-cell {
@@ -207,15 +209,15 @@ class Duckiebot_LEDController extends BlockRenderer {
                 margin: 0;
                 font-size: var(--r-fs-sm);
                 font-weight: 600;
-                color: #4b5563;
+                color: var(--r-text, #4b5563);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-color {
                 width: 42px;
                 height: 32px;
                 padding: 0;
-                border: 1px solid #d1d5db;
+                border: 1px solid var(--r-border-strong, #d1d5db);
                 border-radius: 6px;
-                background: #fff;
+                background: var(--r-card, #fff);
                 cursor: pointer;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-color::-webkit-color-swatch-wrapper {
@@ -229,7 +231,7 @@ class Duckiebot_LEDController extends BlockRenderer {
                 width: 72px;
                 height: 16px;
                 margin: 0;
-                accent-color: #26a4ea;
+                accent-color: var(--r-fill, #26a4ea);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-side {
                 display: flex;
@@ -280,10 +282,10 @@ class Duckiebot_LEDController extends BlockRenderer {
                 max-width: 36px;
                 height: 14px;
                 border-radius: 999px;
-                border: 1px solid rgba(17, 24, 39, 0.12);
+                border: 1px solid var(--r-border, rgba(17, 24, 39, 0.12));
                 box-sizing: border-box;
                 overflow: hidden;
-                background: #d1d5db;
+                background: var(--r-track, #d1d5db);
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-preset-swatch.is-split {
                 display: grid;
@@ -299,8 +301,8 @@ class Duckiebot_LEDController extends BlockRenderer {
                 background:
                     repeating-linear-gradient(
                         -45deg,
-                        #e5e7eb 0 3px,
-                        #9ca3af 3px 6px
+                        var(--r-border, #e5e7eb) 0 3px,
+                        var(--r-control-border, #9ca3af) 3px 6px
                     );
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-preset-name {
