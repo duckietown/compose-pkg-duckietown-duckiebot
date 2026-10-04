@@ -6,7 +6,7 @@
             "access_level": [
                 "guest",
                 "user",
-                "superviror",
+                "supervisor",
                 "administrator"
             ],
             "authentication": [
@@ -21,7 +21,7 @@
             "details": "Scan for nearby Wi-Fi networks and list known profiles",
             "access_level": [
                 "user",
-                "superviror",
+                "supervisor",
                 "administrator"
             ],
             "authentication": [
@@ -36,7 +36,7 @@
             "details": "Connect the robot to a Wi-Fi network (may drop the current session)",
             "access_level": [
                 "user",
-                "superviror",
+                "supervisor",
                 "administrator"
             ],
             "authentication": [

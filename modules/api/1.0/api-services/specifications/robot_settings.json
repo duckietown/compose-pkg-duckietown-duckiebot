@@ -6,7 +6,7 @@
             "access_level": [
                 "guest",
                 "user",
-                "superviror",
+                "supervisor",
                 "administrator"
             ],
             "authentication": [
