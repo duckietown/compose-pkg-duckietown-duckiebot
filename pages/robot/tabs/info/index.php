@@ -2,10 +2,9 @@
 /**
  * Modern Overview tab (default).
  *
- * Compute section: CPU temp + CPU/RAM/Disk as clustered vertical columns,
- * with power/thermal status in the section header. Battery, connection
- * strips below. Legacy Chart.js version:
- *   pages/robot/legacy/info_chartjs_overview.php
+ * Compute section: CPU/RAM/Disk as % columns; CPU temp as a header reading.
+ * Power/thermal chips share the right-side header meta with Battery.
+ * Legacy Chart.js version: pages/robot/legacy/info_chartjs_overview.php
  * Toggle via RobotUIFeatures::modern_overview() / robot_ui/modern_overview.
  *
  * @see ../../ui_features.php
@@ -133,7 +132,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         flex: 0 0 auto;
         flex-wrap: nowrap;
     }
-    .robot-metric-label {
+    .robot-metric-label,
+    .robot-page h4.robot-metric-label {
         margin: 0;
         font-size: var(--r-fs-xs, 10px);
         font-weight: var(--r-fw-semibold, 600);
@@ -164,24 +164,10 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         align-items: center;
         justify-content: flex-end;
         gap: 6px;
-        margin-left: auto;
+        margin-left: 0;
         min-width: 0;
         max-width: 100%;
         line-height: 1;
-    }
-    .robot-compute-pt .strip-label {
-        font-size: var(--r-fs-xs, 10px);
-        font-weight: var(--r-fw-semibold, 600);
-        text-transform: uppercase;
-        letter-spacing: var(--r-tracking-label, 0.04em);
-        color: var(--r-muted, #6b7280);
-        margin: 0;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        line-height: 1;
-        white-space: nowrap;
-        flex: 0 0 auto;
     }
     .robot-compute-pt .robot-chip {
         flex: 0 0 auto;
@@ -258,10 +244,40 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-meter.is-warn > span { background: var(--r-warn, #b45309); }
     .robot-meter.is-bad > span { background: var(--r-bad, #b91c1c); }
 
-    /* Clustered vertical columns: Temp (°C) + CPU / RAM / Disk (%).
-       Temp maps 0–100°C onto the same height as 0–100% capacity. */
+    /* Clustered vertical columns: CPU / RAM / Disk (% only).
+       Temperature is shown separately in the Compute header. */
     .robot-util-chart {
         min-height: 0;
+    }
+    .robot-metric-head-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px 8px;
+        margin-left: auto;
+        min-width: 0;
+    }
+    .robot-temp-inline {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        padding: 2px 0;
+        margin-right: 4px;
+        border-right: 1px solid var(--r-border, #e6e8eb);
+        padding-right: 10px;
+        flex: 0 0 auto;
+    }
+    .robot-temp-inline .robot-metric-label {
+        margin: 0;
+    }
+    .robot-temp-inline .robot-util-reading {
+        font-size: var(--r-fs-lg, 13px);
+        font-weight: var(--r-fw-bold, 700);
+        color: var(--r-text, #111827);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        letter-spacing: var(--r-tracking-tight, -0.02em);
     }
     .robot-util-plot {
         position: relative;
@@ -304,29 +320,18 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         position: absolute;
         left: 0;
         right: 0;
-        border-top: 1px dashed var(--r-border, #e6e8eb);
+        border-top: 1px solid var(--r-border, #e6e8eb);
     }
     .robot-util-grid i.is-zero {
-        border-top-style: solid;
         border-top-color: var(--r-border-strong, #c9ced8);
-    }
-    .robot-util-grid i.is-warn {
-        border-top-style: dotted;
-        border-top-color: var(--r-warn, #b45309);
-        opacity: 0.55;
-    }
-    .robot-util-grid i.is-bad {
-        border-top-style: dotted;
-        border-top-color: var(--r-bad, #b91c1c);
-        opacity: 0.55;
     }
     .robot-util-bars {
         position: relative;
         z-index: 1;
         flex: 1 1 auto;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 4px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
         align-items: stretch;
         min-width: 0;
         height: 100%;
@@ -335,8 +340,8 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         grid-column: 2;
         grid-row: 2;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 4px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
         padding-top: 8px;
     }
     .robot-util-legend .robot-util-col {
@@ -358,10 +363,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         line-height: 1.2;
         text-align: center;
     }
-    .robot-util-legend .robot-util-reading.is-cool { color: var(--r-info, #2563eb); }
-    .robot-util-legend .robot-util-reading.is-ok { color: var(--r-ok, #047857); }
-    .robot-util-legend .robot-util-reading.is-warn { color: var(--r-warn, #b45309); }
-    .robot-util-legend .robot-util-reading.is-bad { color: var(--r-bad, #b91c1c); }
     .robot-meter-v {
         width: 28px;
         max-width: 100%;
@@ -380,60 +381,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         height: 0%;
         border-radius: 6px 6px 0 0;
         transition: height 0.35s ease, background-color 0.35s ease;
-    }
-
-    /* Temperature column keeps the original zone palette + marker. */
-    .robot-temp-col {
-        display: flex;
-        align-items: stretch;
-        justify-content: center;
-        min-width: 0;
-        height: 100%;
-    }
-    .robot-temp-gauge {
-        position: relative;
-        width: 28px;
-        max-width: 100%;
-        height: 100%;
-        min-height: 0;
-    }
-    .robot-temp-track {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        border-radius: 6px 6px 0 0;
-        overflow: visible;
-        background: var(--r-track, #eef0f3);
-    }
-    .robot-temp-track-fill {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        border-radius: 6px 6px 0 0;
-        overflow: hidden;
-    }
-    .robot-temp-zone { width: 100%; flex-shrink: 0; }
-    .robot-temp-zone.z-hot  { flex: 0 0 15%; background: #f87171; }
-    .robot-temp-zone.z-warm { flex: 0 0 15%; background: #fbbf24; }
-    .robot-temp-zone.z-ok   { flex: 0 0 20%; background: #34d399; }
-    .robot-temp-zone.z-cool { flex: 0 0 50%; background: #60a5fa; }
-    .robot-temp-marker {
-        position: absolute;
-        left: -5px;
-        width: calc(100% + 10px);
-        height: 3px;
-        bottom: 0%;
-        top: auto;
-        margin-left: 0;
-        background: var(--r-text, #111827);
-        border-radius: 2px;
-        box-shadow: 0 0 0 2px var(--r-card, #fff), 0 1px 2px rgba(0,0,0,0.25);
-        transition: bottom 0.35s ease;
-        z-index: 2;
-        pointer-events: none;
     }
 
     .robot-chip {
@@ -681,7 +628,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         gap: 10px;
     }
     .robot-batt-diag .robot-metric-head .robot-metric-value {
-        margin-left: auto;
         font-size: var(--r-fs-value, 22px);
         font-weight: var(--r-fw-bold, 700);
     }
@@ -828,11 +774,14 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             align-items: center;
             gap: 8px 10px;
         }
+        .robot-metric-head-meta {
+            width: 100%;
+            justify-content: flex-start;
+        }
         .robot-compute-pt {
             flex-wrap: wrap;
             justify-content: flex-start;
-            margin-left: 0;
-            width: 100%;
+            width: auto;
             gap: 6px 8px;
         }
         .robot-compute-pt .robot-tip-bubble {
@@ -853,10 +802,9 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         }
         .robot-util-bars,
         .robot-util-legend {
-            gap: 3px;
+            gap: 6px;
         }
-        .robot-meter-v,
-        .robot-temp-gauge {
+        .robot-meter-v {
             width: 22px;
         }
         .robot-batt-diag {
@@ -893,8 +841,11 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             padding: 3px 8px;
             font-size: var(--r-fs-xs);
         }
-        .robot-compute-pt .strip-label {
-            font-size: var(--r-fs-xs);
+        .robot-temp-inline {
+            border-right: 0;
+            padding-right: 0;
+            margin-right: 0;
+            width: 100%;
         }
         .robot-util-plot {
             grid-template-columns: 26px minmax(0, 1fr);
@@ -905,15 +856,10 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         }
         .robot-util-bars,
         .robot-util-legend {
-            gap: 2px;
+            gap: 4px;
         }
-        .robot-meter-v,
-        .robot-temp-gauge {
+        .robot-meter-v {
             width: 18px;
-        }
-        .robot-temp-marker {
-            left: -3px;
-            width: calc(100% + 6px);
         }
         .robot-util-legend .robot-metric-label {
             font-size: var(--r-fs-xs);
@@ -977,9 +923,12 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             <div class="robot-metric robot-util-chart" id="metric_compute">
                 <div class="robot-metric-head">
                     <h4 class="robot-metric-label">Compute</h4>
-                    <div class="robot-compute-pt robot-health-bits-container" id="robot_power_thermal" aria-live="polite">
-                        <span class="strip-label">
-                            Power / thermal
+                    <div class="robot-metric-head-meta">
+                        <div class="robot-temp-inline" title="CPU temperature">
+                            <span class="robot-metric-label">Temp</span>
+                            <span class="robot-util-reading" id="_robot_temp_value">-</span>
+                        </div>
+                        <div class="robot-compute-pt robot-health-bits-container" id="robot_power_thermal" aria-live="polite">
                             <button type="button"
                                     class="robot-tip"
                                     aria-label="About power and thermal status"
@@ -991,31 +940,31 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                                     Under-voltage, CPU frequency capping, and thermal throttling reported by the device health API. Red chips are active now; amber chips happened earlier since boot. OK means none of those flags are set.
                                 </span>
                             </button>
-                        </span>
-                        <span class="robot-chip is-ok" id="pt_summary_ok">
-                            <i class="fa fa-check-circle" aria-hidden="true"></i> Power &amp; thermal OK
-                        </span>
-                        <span class="robot-chip is-bad is-hidden" id="under-voltage-now" data-pt-key="under-voltage-now">
-                            Under-voltage
-                        </span>
-                        <span class="robot-chip is-bad is-hidden" id="freq-capped-now" data-pt-key="freq-capped-now">
-                            CPU capped
-                        </span>
-                        <span class="robot-chip is-bad is-hidden" id="throttling-now" data-pt-key="throttling-now">
-                            Throttling
-                        </span>
-                        <span class="robot-chip is-warn is-hidden" id="under-voltage-occurred" data-pt-key="under-voltage-occurred">
-                            Under-voltage (earlier)
-                        </span>
-                        <span class="robot-chip is-warn is-hidden" id="freq-capped-occurred" data-pt-key="freq-capped-occurred">
-                            CPU capped (earlier)
-                        </span>
-                        <span class="robot-chip is-warn is-hidden" id="throttling-occurred" data-pt-key="throttling-occurred">
-                            Throttling (earlier)
-                        </span>
+                            <span class="robot-chip is-ok" id="pt_summary_ok">
+                                <i class="fa fa-check-circle" aria-hidden="true"></i> Power &amp; thermal OK
+                            </span>
+                            <span class="robot-chip is-bad is-hidden" id="under-voltage-now" data-pt-key="under-voltage-now">
+                                Under-voltage
+                            </span>
+                            <span class="robot-chip is-bad is-hidden" id="freq-capped-now" data-pt-key="freq-capped-now">
+                                CPU capped
+                            </span>
+                            <span class="robot-chip is-bad is-hidden" id="throttling-now" data-pt-key="throttling-now">
+                                Throttling
+                            </span>
+                            <span class="robot-chip is-warn is-hidden" id="under-voltage-occurred" data-pt-key="under-voltage-occurred">
+                                Under-voltage (earlier)
+                            </span>
+                            <span class="robot-chip is-warn is-hidden" id="freq-capped-occurred" data-pt-key="freq-capped-occurred">
+                                CPU capped (earlier)
+                            </span>
+                            <span class="robot-chip is-warn is-hidden" id="throttling-occurred" data-pt-key="throttling-occurred">
+                                Throttling (earlier)
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div class="robot-util-plot" role="group" aria-label="CPU temperature and compute utilization">
+                <div class="robot-util-plot" role="group" aria-label="Compute utilization">
                     <div class="robot-util-yaxis" aria-hidden="true">
                         <span>100%</span>
                         <span>75%</span>
@@ -1026,36 +975,18 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                     <div class="robot-util-stage">
                         <div class="robot-util-grid" aria-hidden="true">
                             <i style="top:0%"></i>
-                            <i class="is-bad" style="top:10%" title="90% critical"></i>
-                            <i class="is-warn" style="top:25%" title="75% warning"></i>
+                            <i style="top:25%"></i>
                             <i style="top:50%"></i>
                             <i style="top:75%"></i>
                             <i class="is-zero" style="top:100%"></i>
                         </div>
                         <div class="robot-util-bars">
-                            <div class="robot-temp-col">
-                                <div class="robot-temp-gauge" id="_robot_temp_meter" role="meter" aria-label="CPU temperature" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                                    <div class="robot-temp-track">
-                                        <div class="robot-temp-track-fill">
-                                            <span class="robot-temp-zone z-hot"></span>
-                                            <span class="robot-temp-zone z-warm"></span>
-                                            <span class="robot-temp-zone z-ok"></span>
-                                            <span class="robot-temp-zone z-cool"></span>
-                                        </div>
-                                        <span class="robot-temp-marker" id="_robot_temp_marker"></span>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="robot-meter robot-meter-v" id="_robot_pcpu_meter" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
                             <div class="robot-meter robot-meter-v" id="_robot_ram_meter" role="meter" aria-label="RAM" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
                             <div class="robot-meter robot-meter-v" id="_robot_disk_meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
                         </div>
                     </div>
                     <div class="robot-util-legend">
-                        <div class="robot-util-col">
-                            <h4 class="robot-metric-label">Temp</h4>
-                            <span class="robot-util-reading" id="_robot_temp_value">-</span>
-                        </div>
                         <div class="robot-util-col">
                             <h4 class="robot-metric-label">CPU</h4>
                             <span class="robot-util-reading" id="_robot_pcpu_value">-</span>
@@ -1075,9 +1006,11 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             <div class="robot-metric robot-batt-diag" id="robot_battery_diag" aria-live="polite">
                 <div class="robot-metric-head">
                     <h4 class="robot-metric-label">Battery</h4>
-                    <span class="robot-chip" id="batt_diag_present"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
-                    <span class="robot-chip" id="batt_diag_charging">-</span>
-                    <span class="robot-metric-value" id="_robot_batt_value">-</span>
+                    <div class="robot-metric-head-meta">
+                        <span class="robot-chip" id="batt_diag_present"><i class="fa fa-circle-o" aria-hidden="true"></i> Checking</span>
+                        <span class="robot-chip" id="batt_diag_charging">-</span>
+                        <span class="robot-metric-value" id="_robot_batt_value">-</span>
+                    </div>
                 </div>
                 <div class="robot-batt-charge" id="_robot_batt_meter" role="meter" aria-label="Battery charge" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <span class="robot-batt-charge-fill"></span>
@@ -1169,10 +1102,10 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             else if (pct >= 20) level = 'is-warn';
             else level = 'is-bad';
         }
-        let clamped = Math.max(0, Math.min(100, pct));
-        let fill = clamped.toFixed(1) + '%';
+        let clamped = Math.max(0, Math.min(100, Math.round(pct)));
+        let fill = clamped + '%';
         el.removeClass('is-ok is-warn is-bad').addClass(level);
-        el.attr('aria-valuenow', clamped.toFixed(1));
+        el.attr('aria-valuenow', String(clamped));
         if (el.hasClass('robot-meter-v')) {
             el.children('span').css({ height: fill, width: '100%' });
         } else {
@@ -1185,26 +1118,16 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         let level = 'is-ok';
         if (pct < 20) level = 'is-bad';
         else if (pct < 40) level = 'is-warn';
-        let clamped = Math.max(0, Math.min(100, pct));
+        let clamped = Math.max(0, Math.min(100, Math.round(pct)));
         el.removeClass('is-ok is-warn is-bad').addClass(level);
         el.toggleClass('is-charging', !!charging);
-        el.attr('aria-valuenow', clamped.toFixed(1));
-        el.find('.robot-batt-charge-fill').css('width', clamped.toFixed(1) + '%');
+        el.attr('aria-valuenow', String(clamped));
+        el.find('.robot-batt-charge-fill').css('width', clamped + '%');
     }
 
-    function _set_temp_meter(temp) {
-        let clamped = Math.max(0, Math.min(100, temp));
-        let tstat = _temp_status(temp);
-        $('#_robot_temp_meter').attr('aria-valuenow', clamped.toFixed(0));
-        $('#_robot_temp_marker').css('bottom', clamped.toFixed(1) + '%');
-        return tstat;
-    }
-
-    function _temp_status(temp) {
-        if (temp < 50) return { label: 'Cool', cls: 'is-cool' };
-        if (temp < 70) return { label: 'Normal', cls: 'is-ok' };
-        if (temp < 85) return { label: 'Warm', cls: 'is-warn' };
-        return { label: 'Hot', cls: 'is-bad' };
+    function _format_pct(n) {
+        if (!isFinite(n)) return '-';
+        return Math.round(n) + '%';
     }
 
     function _update_power_thermal(throttling) {
@@ -1587,29 +1510,24 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 let temp = Number(data.temperature);
                 let tempReading = $('#_robot_temp_value');
                 if (!isFinite(temp)) {
-                    tempReading.text('-').removeClass('is-cool is-ok is-warn is-bad');
-                    $('#_robot_temp_meter').attr('aria-valuenow', 0);
-                    $('#_robot_temp_marker').css('bottom', '0%');
+                    tempReading.text('-');
                 } else {
-                    let tstat = _set_temp_meter(temp);
-                    tempReading.text(temp.toFixed(0) + ' °C')
-                        .removeClass('is-cool is-ok is-warn is-bad')
-                        .addClass(tstat.cls);
+                    tempReading.text(Math.round(temp) + ' °C');
                 }
 
                 let cpu = Number(data.cpu && data.cpu.percentage);
                 let ram = Number(data.memory && data.memory.percentage);
                 let disk = Number(data.disk && data.disk.percentage);
                 if (isFinite(cpu)) {
-                    $('#_robot_pcpu_value').text(cpu.toFixed(1) + '%');
+                    $('#_robot_pcpu_value').text(_format_pct(cpu));
                     _set_meter('#_robot_pcpu_meter', cpu, false);
                 }
                 if (isFinite(ram)) {
-                    $('#_robot_ram_value').text(ram.toFixed(1) + '%');
+                    $('#_robot_ram_value').text(_format_pct(ram));
                     _set_meter('#_robot_ram_meter', ram, false);
                 }
                 if (isFinite(disk)) {
-                    $('#_robot_disk_value').text(disk.toFixed(1) + '%');
+                    $('#_robot_disk_value').text(_format_pct(disk));
                     _set_meter('#_robot_disk_meter', disk, false);
                 }
 
@@ -1619,7 +1537,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 if (batt_raw !== undefined && batt_raw !== null && batt_raw !== 'ND') {
                     let batt = Number(batt_raw);
                     if (isFinite(batt)) {
-                        $('#_robot_batt_value').text(batt.toFixed(1) + '%');
+                        $('#_robot_batt_value').text(_format_pct(batt));
                         _set_batt_meter(batt, battCharging);
                     }
                 } else if (batt_raw === 'ND') {
@@ -1649,10 +1567,10 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 }
                 // Refresh Wi‑Fi + optional Ethernet strip from the robot itself.
                 refreshNetworkSnapshot();
-                if (data.software && data.software.date && data.software.version) {
-                    let firmware = '{month}/{day}/{year}'.format(data.software.date);
-                    firmware = '{0} ({1})'.format(firmware, String(data.software.version).substr(0, 7));
-                    $('.robot-info-container #firmware_info').text(firmware);
+                if (data.software && data.software.version) {
+                    $('.robot-info-container #firmware_info').text(
+                        String(data.software.version).substr(0, 7)
+                    );
                 }
 
                 _update_power_thermal(data.throttling);

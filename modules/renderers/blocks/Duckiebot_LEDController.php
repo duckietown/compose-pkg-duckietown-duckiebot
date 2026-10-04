@@ -88,12 +88,33 @@ class Duckiebot_LEDController extends BlockRenderer {
 
                 <div class="robot-led-side">
                     <div class="robot-led-presets" role="group" aria-label="LED presets">
-                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="default">Default</button>
-                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="white">White</button>
-                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="red">Red</button>
-                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="blue">Blue</button>
-                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="green">Green</button>
-                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-xs" data-preset="off">Off</button>
+                        <button type="button" class="robot-led-preset" data-preset="default" title="Default: white front, red back">
+                            <span class="robot-led-preset-swatch is-split" aria-hidden="true">
+                                <i style="background:#ffffff"></i>
+                                <i style="background:#ff0000"></i>
+                            </span>
+                            <span class="robot-led-preset-name">Default</span>
+                        </button>
+                        <button type="button" class="robot-led-preset" data-preset="white" title="All white">
+                            <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#ffffff"></span>
+                            <span class="robot-led-preset-name">White</span>
+                        </button>
+                        <button type="button" class="robot-led-preset" data-preset="red" title="All red">
+                            <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#ff0000"></span>
+                            <span class="robot-led-preset-name">Red</span>
+                        </button>
+                        <button type="button" class="robot-led-preset" data-preset="blue" title="All blue">
+                            <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#0066ff"></span>
+                            <span class="robot-led-preset-name">Blue</span>
+                        </button>
+                        <button type="button" class="robot-led-preset" data-preset="green" title="All green">
+                            <span class="robot-led-preset-swatch" aria-hidden="true" style="background:#00cc44"></span>
+                            <span class="robot-led-preset-name">Green</span>
+                        </button>
+                        <button type="button" class="robot-led-preset" data-preset="off" title="Lights off">
+                            <span class="robot-led-preset-swatch is-off" aria-hidden="true"></span>
+                            <span class="robot-led-preset-name">Off</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -218,14 +239,79 @@ class Duckiebot_LEDController extends BlockRenderer {
                 min-width: 0;
             }
             #<?php echo htmlspecialchars($id) ?> .robot-led-presets {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 4px;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 6px;
+                width: 100%;
             }
-            #<?php echo htmlspecialchars($id) ?> .robot-led-presets .robot-btn.is-active {
-                border-color: #26a4ea;
-                color: #0b6ea8;
-                background: rgba(38, 164, 234, 0.12);
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                margin: 0;
+                min-width: 0;
+                padding: 6px 4px;
+                border: 1px solid var(--r-border, #dde1ea);
+                border-radius: var(--r-radius-sm, 6px);
+                background: var(--r-card, #fff);
+                color: var(--r-text, #1a1d26);
+                cursor: pointer;
+                box-shadow: none;
+                transition: border-color var(--r-ease, 160ms ease), background-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset:hover {
+                border-color: var(--r-border-strong, #c9ced8);
+                background: var(--r-surface, #f4f6fa);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 3px var(--r-focus-ring, rgba(44, 86, 134, 0.18));
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset.is-active {
+                border-color: var(--r-fill, #2c5686);
+                background: var(--r-info-bg, #eff6ff);
+                box-shadow: inset 0 0 0 1px var(--r-fill, #2c5686);
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset-swatch {
+                display: block;
+                width: 100%;
+                max-width: 36px;
+                height: 14px;
+                border-radius: 999px;
+                border: 1px solid rgba(17, 24, 39, 0.12);
+                box-sizing: border-box;
+                overflow: hidden;
+                background: #d1d5db;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset-swatch.is-split {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                background: transparent;
+                padding: 0;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset-swatch.is-split > i {
+                display: block;
+                height: 100%;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset-swatch.is-off {
+                background:
+                    repeating-linear-gradient(
+                        -45deg,
+                        #e5e7eb 0 3px,
+                        #9ca3af 3px 6px
+                    );
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset-name {
+                font-size: var(--r-fs-xs, 10px);
+                font-weight: var(--r-fw-semibold, 600);
+                line-height: 1.1;
+                color: var(--r-muted, #6b7280);
+                white-space: nowrap;
+            }
+            #<?php echo htmlspecialchars($id) ?> .robot-led-preset.is-active .robot-led-preset-name {
+                color: var(--r-fill, #2c5686);
             }
             @media (max-width: 720px) {
                 #<?php echo htmlspecialchars($id) ?> .robot-led-body {
@@ -235,6 +321,9 @@ class Duckiebot_LEDController extends BlockRenderer {
                     flex-direction: row;
                     flex-wrap: wrap;
                     align-items: center;
+                }
+                #<?php echo htmlspecialchars($id) ?> .robot-led-presets {
+                    width: 100%;
                 }
             }
         </style>
