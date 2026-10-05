@@ -70,7 +70,13 @@ def find_iface():
         return None
     preferred = []
     other = []
-    for name in sorted(os.listdir(CTRL_DIR)):
+    try:
+        names = sorted(os.listdir(CTRL_DIR))
+    except OSError:
+        # Common when /var/run/wpa_supplicant is mounted but still root-only
+        # (drwxr-x---). Caller surfaces a clear JSON error.
+        return None
+    for name in names:
         if name.startswith(".") or name.startswith("wpa_ctrl_") or name.startswith("cli_"):
             continue
         path = os.path.join(CTRL_DIR, name)
@@ -283,18 +289,29 @@ def main():
     action = (req.get("action") or "").strip().lower()
     iface = find_iface()
     if not iface:
+        # Distinguish missing mount from root-only directory permissions.
+        perm_hint = ""
+        if os.path.isdir(CTRL_DIR) and not os.access(CTRL_DIR, os.R_OK | os.X_OK):
+            perm_hint = (
+                " Socket directory is not readable; on the robot run: "
+                "sudo chmod 755 /var/run/wpa_supplicant && "
+                "sudo chmod 666 /var/run/wpa_supplicant/wlan0 "
+                "/var/run/wpa_supplicant/p2p-dev-wlan0"
+            )
         print(json.dumps({
             "ok": False,
             "available": False,
             "error": (
                 "Wi-Fi control socket not available. Mount "
                 "/var/run/wpa_supplicant into the dashboard container."
+                + perm_hint
             ),
         }))
         return 2
 
-    ctrl = WpaCtrl(iface)
+    ctrl = None
     try:
+        ctrl = WpaCtrl(iface)
         if action == "scan":
             result = do_scan(ctrl)
         elif action == "connect":
@@ -306,7 +323,8 @@ def main():
     except Exception as exc:
         result = {"ok": False, "error": "Wi-Fi helper failed: %s" % exc}
     finally:
-        ctrl.close()
+        if ctrl is not None:
+            ctrl.close()
 
     print(json.dumps(result))
     return 0 if result.get("ok") else 1
