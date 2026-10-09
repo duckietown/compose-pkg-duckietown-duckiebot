@@ -75,13 +75,22 @@ function _agraph_type_color(type, tone = 'standard') {
 }
 
 
+function agraph_ui_border(highlight) {
+    var dark = false;
+    try {
+        dark = document.documentElement.getAttribute('data-dt-theme') === 'dark';
+    } catch (e) {}
+    if (highlight) return dark ? '#c5cddc' : 'darkgray';
+    return dark ? '#5b6580' : 'gray';
+}
+
 function agraph_get_node_color(node, filter) {
     if (filter === 'none') return {};
     let color = {
-        border: "gray",
+        border: agraph_ui_border(false),
         background: null,
         highlight: {
-            border: "darkgray",
+            border: agraph_ui_border(true),
             background: null,
         }
     };
@@ -106,11 +115,11 @@ function agraph_get_topic_color(topic, filter) {
         return undefined;
     }
     let color = {
-        border: "gray",
+        border: agraph_ui_border(false),
         color: ColorPalette.get('gray'),
         background: ColorPalette.get('gray'),
         highlight: {
-            border: "gray",
+            border: agraph_ui_border(false),
             color: ColorPalette.get('gray', 'dark'),
             background: ColorPalette.get('gray')
         }

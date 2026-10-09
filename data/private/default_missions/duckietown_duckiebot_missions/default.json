@@ -3,19 +3,43 @@
 		"blocks": [
 			{
 				"shape": {
-					"rows": 2,
-					"cols": 2
+					"rows": 4,
+					"cols": 8
 				},
-				"renderer": "DuckietownMsgs_Twist2DStamped",
-				"title": "Speed - Linear",
-				"subtitle": "\/kinematics_node\/velocity",
+				"renderer": "SensorMsgs_CompressedImage",
+				"title": "Camera",
+				"subtitle": "\/camera_node\/image\/compressed",
 				"args": {
-					"topic": "~/kinematics_node\/velocity",
-					"fps": 5,
-					"field": "v",
-					"unit": "m\/s",
-					"max_value": 0.4,
-					"allow_negative": false
+					"topic": "~/camera_node\/image\/compressed",
+					"fps": 10,
+					"style": "cover",
+					"position": "center center",
+					"background-color": "white"
+				}
+			},
+			{
+				"shape": {
+					"rows": 3,
+					"cols": 8
+				},
+				"renderer": "Duckiebot_KeyboardController",
+				"title": "Keyboard Controller",
+				"subtitle": "WASD / D-pad · IMU · ToF · wheels",
+				"args": {
+					"ros_hostname": "",
+					"hz": 50
+				}
+			},
+			{
+				"shape": {
+					"rows": 2,
+					"cols": 8
+				},
+				"renderer": "Duckiebot_LEDController",
+				"title": "LED Colours",
+				"subtitle": "Front / back · presets · live publish",
+				"args": {
+					"ros_hostname": ""
 				}
 			},
 			{
@@ -37,7 +61,7 @@
 					"rows": 2,
 					"cols": 2
 				},
-				"renderer": "DuckietownMsgs_Twist2DStamped",
+				"renderer": "Duckiebot_Twist2DStamped",
 				"title": "Speed - Angular",
 				"subtitle": "\/kinematics_node\/velocity",
 				"args": {
@@ -46,23 +70,24 @@
 					"field": "omega",
 					"unit": "rad\/s",
 					"max_value": 8,
-					"allow_negative": false
+					"allow_negative": true
 				}
 			},
 			{
 				"shape": {
-					"rows": 4,
-					"cols": 8
+					"rows": 2,
+					"cols": 2
 				},
-				"renderer": "SensorMsgs_CompressedImage",
-				"title": "Camera",
-				"subtitle": "\/camera_node\/image\/compressed",
+				"renderer": "Duckiebot_Twist2DStamped",
+				"title": "Speed - Linear",
+				"subtitle": "\/kinematics_node\/velocity",
 				"args": {
-					"topic": "~/camera_node\/image\/compressed",
-					"fps": 10,
-					"style": "cover",
-					"position": "center center",
-					"background-color": "white"
+					"topic": "~/kinematics_node\/velocity",
+					"fps": 5,
+					"field": "v",
+					"unit": "m\/s",
+					"max_value": 0.4,
+					"allow_negative": true
 				}
 			}
 		]

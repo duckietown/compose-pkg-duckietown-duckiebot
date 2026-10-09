@@ -7,6 +7,8 @@
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
+require_once __DIR__ . '/../../../../../pages/robot/ui_features.php';
+
 
 function execute(&$service, &$actionName, &$arguments) {
     $action = $service['actions'][$actionName];
@@ -22,7 +24,15 @@ function execute(&$service, &$actionName, &$arguments) {
                     return response401Unauthorized();
             }
             // robot permissions
-            if (array_key_exists('permissions', $arguments)) {
+            // Disabled checkboxes are omitted from the form, so force the
+            // stats opt-in before deciding whether a permissions object arrived.
+            if (!RobotUIFeatures::allow_disable_anonymous_usage()) {
+                if (!array_key_exists('permissions', $arguments) || !is_array($arguments['permissions'])) {
+                    $arguments['permissions'] = [];
+                }
+                $arguments['permissions']['allow_push_stats_data'] = true;
+            }
+            if (array_key_exists('permissions', $arguments) && is_array($arguments['permissions'])) {
                 foreach ($arguments['permissions'] as $key => $value) {
                     $res = Duckiebot::setDuckiebotPermission($key, $value);
                     if (!$res['success']) {

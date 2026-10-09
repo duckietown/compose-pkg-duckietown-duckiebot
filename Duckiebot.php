@@ -59,12 +59,9 @@ class Duckiebot {
             $first_setup_db = new Database('core', 'first_setup');
             if (!$first_setup_db->key_exists('step1')) {
                 $first_setup_db->write('no_admin', null);
-                // enable developer mode
-                $res = Core::setSetting('core', 'developer_mode', true);
+                // Operator chrome is the default. Developers can enable
+                // developer_mode from Dashboard Settings → Dashboard.
                 // confirm step1 and step2
-                if (!$res['success']) {
-                    Core::throwError($res['data']);
-                }
                 // mark the first two steps as completed
                 $first_setup_db->write('step1', null);
                 $first_setup_db->write('step2', null);
@@ -75,6 +72,9 @@ class Duckiebot {
                 Data::set_public_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME);
                 Data::set_guest_access(self::$HARDWARE_TEST_RESULTS_DATABASE_NAME, true, true);
             }
+            // Mission Control loads missions through the Data API. Guests may
+            // read public mission DBs; writes require a signed-in role.
+            self::ensureMissionDatabasesGuestAccess();
             //
             self::$initialized = true;
             return ['success' => true, 'data' => null];
@@ -107,6 +107,33 @@ class Duckiebot {
         // do stuff
         return ['success' => true, 'data' => null];
     }//close
+
+    /**
+     * Ensure Mission Control mission DBs are public with guest read-only.
+     * Existing installs shipped without a guest ACL, so unsigned-in
+     * operators could view the page (direct Database reads) but could not
+     * load missions through the Data API. Writes stay authenticated so guests
+     * cannot persist layout changes or leave teleop blocks for others.
+     */
+    private static function ensureMissionDatabasesGuestAccess(): void {
+        $mission_dbs = [
+            'duckietown_duckiebot_missions',
+            'duckietown_duckiebot_missions_opts',
+            'duckietown_duckiedrone_missions',
+            'duckietown_duckiedrone_missions_opts',
+            'duckietown_watchtower_missions',
+            'duckietown_watchtower_missions_opts',
+            'duckietown_traffic_light_missions',
+            'duckietown_traffic_light_missions_opts',
+        ];
+        foreach ($mission_dbs as $database_name) {
+            if (!Data::exists($database_name)) {
+                continue;
+            }
+            Data::set_public_access($database_name);
+            Data::set_guest_access($database_name, true, false);
+        }
+    }
     
     
     // =======================================================================================================
@@ -138,6 +165,418 @@ class Duckiebot {
         if (!$res['success']) return null;
         return $res['data'];
     }//getRobotConfiguration
+
+    /**
+     * True for a unicast IPv4 the operator would recognize as the robot on the LAN.
+     * Rejects loopback, link-local, and typical Docker/bridge pools.
+     */
+    private static function isLanIpv4($ip): bool {
+        if (!is_string($ip) || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return false;
+        }
+        if ($ip === '0.0.0.0' || strpos($ip, '127.') === 0 || strpos($ip, '169.254.') === 0) {
+            return false;
+        }
+        if (strpos($ip, '172.17.') === 0 || strpos($ip, '172.18.') === 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Robot LAN IPv4. gethostbyname(vehicle) is wrong here: /etc/hosts maps
+     * akshet / akshet.local to 127.0.0.1. Prefer UP wifi/ethernet addresses.
+     */
+    private static function getPrimaryIpv4(): string {
+        $http_host = isset($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : '';
+        if (self::isLanIpv4($http_host)) {
+            return $http_host;
+        }
+
+        $ranked = [];
+        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
+        if (is_string($out) && $out !== '') {
+            foreach (explode("\n", trim($out)) as $line) {
+                if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
+                    continue;
+                }
+                $iface = preg_replace('/@.*$/', '', $m[1]);
+                $ip = $m[2];
+                if (!self::isLanIpv4($ip)) {
+                    continue;
+                }
+                if (preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface)) {
+                    continue;
+                }
+                $rank = 50;
+                if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                    $rank = 0;
+                } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                    $rank = 1;
+                }
+                $ranked[] = ['rank' => $rank, 'ip' => $ip];
+            }
+            if ($ranked) {
+                usort($ranked, function ($a, $b) {
+                    return $a['rank'] - $b['rank'];
+                });
+                return $ranked[0]['ip'];
+            }
+        }
+
+        if (function_exists('socket_create')) {
+            $sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+            if ($sock !== false) {
+                @socket_connect($sock, '8.8.8.8', 53);
+                $addr = null;
+                @socket_getsockname($sock, $addr);
+                @socket_close($sock);
+                if (self::isLanIpv4($addr)) {
+                    return $addr;
+                }
+            }
+        }
+
+        $hosts = @shell_exec('hostname -I 2>/dev/null');
+        if (is_string($hosts)) {
+            foreach (preg_split('/\s+/', trim($hosts)) as $ip) {
+                if (self::isLanIpv4($ip)) {
+                    return $ip;
+                }
+            }
+        }
+
+        $resolved = @gethostbyname(self::getDuckiebotHostname());
+        return self::isLanIpv4($resolved) ? $resolved : '';
+    }
+
+    /**
+     * Global-scope LAN IPv4 addresses keyed by interface name.
+     *
+     * @return array<string,string>
+     */
+    private static function getIpv4AddressesByIface(): array {
+        $by_iface = [];
+        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
+        if (!is_string($out) || $out === '') {
+            return $by_iface;
+        }
+        foreach (explode("\n", trim($out)) as $line) {
+            if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
+                continue;
+            }
+            $iface = preg_replace('/@.*$/', '', $m[1]);
+            $ip = $m[2];
+            if (!self::isLanIpv4($ip)) {
+                continue;
+            }
+            if (preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface)) {
+                continue;
+            }
+            if (!isset($by_iface[$iface])) {
+                $by_iface[$iface] = $ip;
+            }
+        }
+        return $by_iface;
+    }
+
+    /**
+     * Compact connection snapshot for the Overview widget.
+     * Best-effort: hostname/IP always; wifi vs ethernet and SSID when visible.
+     * When Wi‑Fi and Ethernet are both up, `ethernet` carries the wired IP so
+     * the Connection strip can show a second entry in the same row.
+     */
+    public static function getNetworkSnapshot(): array {
+        $host = self::getDuckiebotHostname();
+        $addrs = self::getIpv4AddressesByIface();
+        $eth_up = false;
+        $wifi_iface = null;
+        $eth_iface = null;
+        $sys = '/sys/class/net';
+        if (is_dir($sys)) {
+            $ifaces = @scandir($sys);
+            if (is_array($ifaces)) {
+                foreach ($ifaces as $iface) {
+                    if ($iface === '.' || $iface === '..' || $iface === 'lo') {
+                        continue;
+                    }
+                    if (preg_match('/^(docker|br-|veth|cni)/i', $iface)) {
+                        continue;
+                    }
+                    $state = @trim((string) @file_get_contents($sys . '/' . $iface . '/operstate'));
+                    if ($state !== 'up') {
+                        continue;
+                    }
+                    if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                        if ($wifi_iface === null) {
+                            $wifi_iface = $iface;
+                        }
+                    } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                        $eth_up = true;
+                        if ($eth_iface === null) {
+                            $eth_iface = $iface;
+                        }
+                    }
+                }
+            }
+        }
+        // /proc/net/wireless lists the radio even when unassociated; only use
+        // it to discover the iface name, not to mark Wi‑Fi as the active link.
+        $wireless = @file_get_contents('/proc/net/wireless');
+        if (is_string($wireless) && preg_match('/^\s*([^\s:]+):/m', $wireless, $wm)) {
+            if ($wifi_iface === null) {
+                $wifi_iface = $wm[1];
+            }
+        }
+        // Live association only. Persisted SSID files are stale when the
+        // interface looks up but is unassociated (Ethernet-only / radio idle)
+        // and must not be shown as the current network name.
+        $ssid = self::getWifiSsid(false);
+
+        $wifi_ip = '';
+        if ($wifi_iface !== null && isset($addrs[$wifi_iface])) {
+            $wifi_ip = $addrs[$wifi_iface];
+        } else {
+            foreach ($addrs as $iface => $ip) {
+                if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                    $wifi_ip = $ip;
+                    if ($wifi_iface === null) {
+                        $wifi_iface = $iface;
+                    }
+                    break;
+                }
+            }
+        }
+
+        $eth_ip = '';
+        if ($eth_iface !== null && isset($addrs[$eth_iface])) {
+            $eth_ip = $addrs[$eth_iface];
+        } else {
+            foreach ($addrs as $iface => $ip) {
+                if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                    $eth_ip = $ip;
+                    if ($eth_iface === null) {
+                        $eth_iface = $iface;
+                    }
+                    break;
+                }
+            }
+        }
+
+        // operstate=up alone is not enough: idle wlan stays up on Ethernet
+        // robots. Treat Wi‑Fi as active only when associated or holding an IP.
+        $wifi_up = ($ssid !== null && $ssid !== '') || ($wifi_ip !== '');
+
+        $kind = null;
+        if ($wifi_up) {
+            $kind = 'wifi';
+        } else if ($eth_up) {
+            $kind = 'ethernet';
+        }
+        $ip = $wifi_ip !== '' ? $wifi_ip : ($eth_ip !== '' ? $eth_ip : self::getPrimaryIpv4());
+        $connected = $wifi_up || $eth_up || ($ip !== '');
+
+        // Second row entry only when both links are up at once.
+        $ethernet = null;
+        if ($wifi_up && $eth_up) {
+            $ethernet = [
+                'connected' => true,
+                'ip' => $eth_ip,
+                'iface' => $eth_iface,
+            ];
+        }
+
+        return [
+            'hostname' => $host,
+            'ip' => $ip,
+            'connected' => $connected,
+            'kind' => $kind,
+            'ssid' => $ssid,
+            'ethernet' => $ethernet,
+        ];
+    }
+
+    /**
+     * URL for the robot-hosted keyboard controller (dt-duckietown-viewer).
+     * Default port 8090; override with KEYBOARD_CONTROLLER_PORT.
+     */
+    public static function getKeyboardControllerUrl(): string {
+        // Same-origin path. Nginx proxies this to the controller, which is
+        // plain HTTP on the docker bridge only. Using the dashboard scheme
+        // and host avoids a TLS handshake against that HTTP port.
+        $base = \system\classes\Configuration::$BASE ?? '';
+        if (!is_string($base)) {
+            $base = '';
+        }
+        return rtrim($base, '/') . '/keyboard-controller/app/';
+    }
+
+    /**
+     * Current Wi-Fi SSID. Dashboard containers often lack `iwgetid`; ioctl
+     * against wlan* still works with host networking.
+     *
+     * @param bool $allow_persisted When true, fall back to on-disk SSID files
+     *        for display. Live association detection must pass false.
+     */
+    private static function getWifiSsid(bool $allow_persisted = true): ?string {
+        $iw = @trim((string) @shell_exec('iwgetid -r 2>/dev/null'));
+        if ($iw !== '') {
+            return $iw;
+        }
+        $script = implode("\n", [
+            'import array,fcntl,os,socket,struct,sys',
+            'SIOCGIWESSID=0x8B1B',
+            'ifaces=[i for i in os.listdir("/sys/class/net") if i.startswith(("wlan","wlp","wlx","wifi"))]',
+            'for iface in ifaces:',
+            '    try:',
+            '        s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)',
+            '        buff=array.array("B", b"\\0"*32)',
+            '        addr,length=buff.buffer_info()',
+            '        packed=struct.pack("16sPHH", iface.encode(), addr, length, 0)',
+            '        fcntl.ioctl(s.fileno(), SIOCGIWESSID, packed)',
+            '        ssid=buff.tobytes().split(b"\\x00",1)[0].decode("utf-8","replace").strip()',
+            '        s.close()',
+            '        if ssid:',
+            '            sys.stdout.write(ssid)',
+            '            raise SystemExit(0)',
+            '    except SystemExit:',
+            '        raise',
+            '    except Exception:',
+            '        pass',
+        ]);
+        $ioctl = @trim((string) @shell_exec('python3 -c ' . escapeshellarg($script) . ' 2>/dev/null'));
+        if ($ioctl !== '') {
+            return $ioctl;
+        }
+        if (!$allow_persisted) {
+            return null;
+        }
+        foreach (['/data/config/network/ssid', '/data/config/wifi/ssid'] as $ssid_path) {
+            if (is_readable($ssid_path)) {
+                $val = trim((string) file_get_contents($ssid_path));
+                if ($val !== '') {
+                    return $val;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Path to the wpa_supplicant helper used for scan/connect.
+     */
+    private static function getWifiHelperPath(): string {
+        return dirname(__FILE__) . '/tools/wpa_wifi.py';
+    }
+
+    /**
+     * Whether the wpa_supplicant control socket is mounted/visible.
+     */
+    public static function isWifiManagementAvailable(): bool {
+        $dir = getenv('WPA_CTRL_DIR');
+        if ($dir === false || $dir === '') {
+            $dir = '/var/run/wpa_supplicant';
+        }
+        if (!is_dir($dir)) {
+            return false;
+        }
+        $entries = @scandir($dir);
+        if (!is_array($entries)) {
+            return false;
+        }
+        foreach ($entries as $name) {
+            if ($name === '.' || $name === '..') {
+                continue;
+            }
+            if (strpos($name, 'p2p-') === 0) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Run tools/wpa_wifi.py with a JSON request on stdin.
+     *
+     * @param array $request
+     * @return array{success:bool,data:mixed}
+     */
+    private static function runWifiHelper(array $request): array {
+        $helper = self::getWifiHelperPath();
+        if (!is_readable($helper)) {
+            return [
+                'success' => false,
+                'data' => 'Wi-Fi helper script is missing',
+            ];
+        }
+        $payload = json_encode($request, JSON_UNESCAPED_SLASHES);
+        if ($payload === false) {
+            return ['success' => false, 'data' => 'Could not encode Wi-Fi request'];
+        }
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        $cmd = 'python3 ' . escapeshellarg($helper);
+        $proc = @proc_open($cmd, $descriptors, $pipes);
+        if (!is_resource($proc)) {
+            return ['success' => false, 'data' => 'Could not start Wi-Fi helper'];
+        }
+
+        fwrite($pipes[0], $payload);
+        fclose($pipes[0]);
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        $code = proc_close($proc);
+
+        $decoded = json_decode((string) $stdout, true);
+        if (!is_array($decoded)) {
+            $hint = trim((string) $stderr);
+            return [
+                'success' => false,
+                'data' => $hint !== ''
+                    ? ('Wi-Fi helper error: ' . $hint)
+                    : 'Wi-Fi helper returned invalid JSON',
+            ];
+        }
+        if (empty($decoded['ok'])) {
+            return [
+                'success' => false,
+                'data' => isset($decoded['error'])
+                    ? (string) $decoded['error']
+                    : 'Wi-Fi operation failed',
+                'meta' => $decoded,
+            ];
+        }
+        return ['success' => true, 'data' => $decoded, 'code' => $code];
+    }
+
+    /**
+     * Scan nearby Wi-Fi networks (plus known profiles).
+     */
+    public static function scanWifiNetworks(): array {
+        return self::runWifiHelper(['action' => 'scan']);
+    }
+
+    /**
+     * Connect to a Wi-Fi network. Pass null/empty $psk for open or known nets.
+     */
+    public static function connectWifi(string $ssid, ?string $psk = null): array {
+        $ssid = trim($ssid);
+        if ($ssid === '') {
+            return ['success' => false, 'data' => 'SSID is required'];
+        }
+        $request = ['action' => 'connect', 'ssid' => $ssid];
+        if ($psk !== null && $psk !== '') {
+            $request['psk'] = $psk;
+        }
+        return self::runWifiHelper($request);
+    }
     
     public static function getDuckiebotHostname(): string {
         $duckiebot_name = Core::getSetting('duckiebot_hostname', 'duckietown_duckiebot');
@@ -209,7 +648,24 @@ class Duckiebot {
         if (!in_array($key, self::$PERMISSION_KEYS))
             return ['success' => false, 'data' => "Permission key `$key` not recognized."];
         $fpath = sprintf(self::$PERMISSION_LOCATION, $key);
-        return self::readFileFromDisk($fpath);
+        $res = self::readFileFromDisk($fpath);
+        if ($res['success']) {
+            $raw = is_string($res['data']) ? trim($res['data']) : $res['data'];
+            if ($raw === '1' || $raw === 1 || $raw === true || $raw === 'true') {
+                $res['data'] = true;
+            } else if ($raw === '0' || $raw === 0 || $raw === false || $raw === 'false' || $raw === '') {
+                $res['data'] = false;
+            }
+            return $res;
+        }
+        // Missing marker files: match robot_settings schema defaults
+        // (stats + config backup on; logs opt-in).
+        $defaults = [
+            'allow_push_logs_data' => false,
+            'allow_push_stats_data' => true,
+            'allow_push_config_data' => true,
+        ];
+        return ['success' => true, 'data' => $defaults[$key] ?? false];
     }//getDuckiebotPermission
     
     public static function getDuckiebotConfiguration($key): array {

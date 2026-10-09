@@ -1,4 +1,8 @@
 <?php
+/**
+ * Mission Control tab - status bar / bridge pill chrome polish.
+ * Grid fills the content pane so 8-column blocks (camera) span the row.
+ */
 use \system\classes\Core;
 use \system\classes\Database;
 use \system\packages\ros\ROS;
@@ -69,35 +73,142 @@ if ($db->size() > 0 && is_null($mission_name)) {
   }
 }
 
-// create a mission control menu to the left
-new MissionControlMenu(
+// create mission tools (modals + JS); toolbar is rendered in the status bar
+$mc_menu = new MissionControlMenu(
   $grid_id,
   'left',
   $mission_db_package,
   $mission_db,
   $mission_name,
-  $missions_regex
+  $missions_regex,
+  true
 );
 
 
 $load_mission = true;
 // check if the mission exists
 if ($db->size() == 0){
-  echo sprintf('<h3 class="text-center">%s</h3></div>', "No missions available!");
+  echo sprintf('<p class="robot-empty-state">%s</p>', "No missions available!");
   $load_mission = false;
 } elseif (is_null($mission_name) || !$db->key_exists($mission_name)) {
   $message = is_null($mission_name)? "No mission loaded!" : "Mission '$mission_name' not found!";
-  echo sprintf('<h3 class="text-center">%s</h3></div>', $message);
+  echo sprintf('<p class="robot-empty-state">%s</p>', htmlspecialchars($message));
   $load_mission = false;
 }
 $mission_control_grid = [];
+$is_duckiebot_mission = ($robot_type === 'duckiebot');
 if ($load_mission) {
+  // Duckiebot-only renderers (teleop / signed Twist2D / LED). Other robot
+  // types (duckiedrone, traffic_light, watchtower) must not load these.
+  if ($is_duckiebot_mission) {
+    $pkg_blocks_dir = join_path(
+      Core::getPackageRootDir('duckietown_duckiebot'),
+      'modules',
+      'renderers',
+      'blocks'
+    );
+    foreach ([
+      'Duckiebot_KeyboardController.php',
+      'Duckiebot_Twist2DStamped.php',
+      'Duckiebot_LEDController.php',
+    ] as $renderer_file) {
+      $renderer_path = join_path($pkg_blocks_dir, $renderer_file);
+      if (is_string($renderer_path) && file_exists($renderer_path)) {
+        require_once $renderer_path;
+      }
+    }
+  }
   // read mission details
   $res = $db->read($mission_name);
   if( !$res['success'] ){
     Core::throwError($res['data']);
   }
   $mission_control_grid = $res['data'];
+  if (!isset($mission_control_grid['blocks']) || !is_array($mission_control_grid['blocks'])) {
+    $mission_control_grid['blocks'] = [];
+  }
+
+  if ($is_duckiebot_mission) {
+    // Stock Twist2D gauges use undefined chartColors.white and a broken
+    // Math.sign(Math.abs(v)) path; remap to the fixed Duckiebot renderer.
+    // Fresh container volumes can also revive pre-signed defaults with
+    // allow_negative=false — force signed mode for these velocity gauges.
+    for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
+      $renderer = $mission_control_grid['blocks'][$i]['renderer'] ?? '';
+      if ($renderer === 'DuckietownMsgs_Twist2DStamped' || $renderer === 'Duckiebot_Twist2DStamped') {
+        $mission_control_grid['blocks'][$i]['renderer'] = 'Duckiebot_Twist2DStamped';
+        if (!isset($mission_control_grid['blocks'][$i]['args']) || !is_array($mission_control_grid['blocks'][$i]['args'])) {
+          $mission_control_grid['blocks'][$i]['args'] = [];
+        }
+        $mission_control_grid['blocks'][$i]['args']['allow_negative'] = true;
+      }
+    }
+    // Stale mission DBs (pre-teleop defaults) omit the on-page controller.
+    // Always surface it so teleop is available without re-running post_update.
+    $has_keyboard_controller = false;
+    $has_led_controller = false;
+    foreach ($mission_control_grid['blocks'] as $block) {
+      $renderer = $block['renderer'] ?? '';
+      if ($renderer === 'Duckiebot_KeyboardController') {
+        $has_keyboard_controller = true;
+      }
+      if ($renderer === 'Duckiebot_LEDController') {
+        $has_led_controller = true;
+      }
+    }
+    if (!$has_keyboard_controller) {
+      $kc_block = [
+        'shape' => ['rows' => 3, 'cols' => 8],
+        'renderer' => 'Duckiebot_KeyboardController',
+        'title' => 'Keyboard Controller',
+        'subtitle' => 'WASD / D-pad · IMU · ToF · wheels',
+        'args' => [
+          'ros_hostname' => '',
+          'hz' => 50,
+        ],
+      ];
+      $insert_at = count($mission_control_grid['blocks']);
+      foreach ($mission_control_grid['blocks'] as $i => $block) {
+        if (($block['renderer'] ?? '') === 'SensorMsgs_CompressedImage') {
+          $insert_at = $i + 1;
+          break;
+        }
+      }
+      array_splice($mission_control_grid['blocks'], $insert_at, 0, [$kc_block]);
+    }
+    // Always surface LED colour control without requiring post_update.
+    if (!$has_led_controller) {
+      $led_block = [
+        'shape' => ['rows' => 2, 'cols' => 8],
+        'renderer' => 'Duckiebot_LEDController',
+        'title' => 'LED Colours',
+        'subtitle' => 'Front / back · presets · live publish',
+        'args' => [
+          'ros_hostname' => '',
+        ],
+      ];
+      $insert_at = count($mission_control_grid['blocks']);
+      foreach ($mission_control_grid['blocks'] as $i => $block) {
+        if (($block['renderer'] ?? '') === 'Duckiebot_KeyboardController') {
+          $insert_at = $i + 1;
+          break;
+        }
+      }
+      array_splice($mission_control_grid['blocks'], $insert_at, 0, [$led_block]);
+    }
+  } else {
+    // Drop duckiebot-only blocks if a prior buggy inject saved them into
+    // drone / traffic-light / watchtower mission DBs.
+    $mission_control_grid['blocks'] = array_values(array_filter(
+      $mission_control_grid['blocks'],
+      function ($block) {
+        $renderer = $block['renderer'] ?? '';
+        return $renderer !== 'Duckiebot_KeyboardController'
+          && $renderer !== 'Duckiebot_LEDController'
+          && $renderer !== 'Duckiebot_Twist2DStamped';
+      }
+    ));
+  }
   // if we were able to load the mission, store it as 'last opened'
   $_SESSION['_VEHICLE_LAST_MISSION'] = $mission_name;
 }
@@ -119,40 +230,49 @@ for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
 $is_multi_robot_mission = count(array_unique($robots)) > 1;
 ?>
 
-<table style="width: 970px; margin: auto; margin-bottom: 12px">
-    <tr>
-      <?php
-      $_vehicle = ($is_multi_robot_mission)? 'Multi-robots' : $vehicle_name;
-      $_bridge_status = ($is_multi_robot_mission)?
-        '<i class="fa fa-square"></i> Multi-bridge' : '<i class="fa fa-spinner fa-pulse"></i> Connecting...';
-      ?>
-      <td class="text-left" style="width:25%; border-right: 1px solid lightgrey">
-        <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
-        <strong><?php echo $_vehicle ?></strong>
-      </td>
-      <td class="text-center" style="width:30%; border-right: 1px solid
-      lightgrey">
-        <i class="fa fa-object-ungroup" aria-hidden="true"></i> Mission:
-        <strong><?php echo is_null($mission_name)? '(none)' : $mission_name ?></strong>
-      </td>
-      <td class="text-center" style="width:30%; border-right: 1px solid
-      lightgrey">
-        <span id="vehicle_bridge_status">
-          <?php echo $_bridge_status ?>
-        </span>
-      </td>
-      <td class="text-right" style="width:15%">
-        <?php
-        new MissionControlConfiguration(
-          $grid_id,
-          $mission_db_package,
-          $mission_db,
-          $mission_name
-        );
-        ?>
-      </td>
-    </tr>
-</table>
+<?php
+$_vehicle = ($is_multi_robot_mission)? 'Multi-robots' : $vehicle_name;
+$_bridge_status = ($is_multi_robot_mission)?
+  '<i class="fa fa-square"></i> Multi-bridge' : '<i class="fa fa-spinner fa-pulse"></i> Connecting…';
+?>
+<div class="robot-status-bar">
+  <div class="robot-status-bar-item">
+    <i class="fa fa-car" aria-hidden="true"></i>
+    <strong><?php echo htmlspecialchars($_vehicle) ?></strong>
+  </div>
+  <div class="robot-status-bar-item">
+    Mission <strong><?php echo is_null($mission_name)? '(none)' : htmlspecialchars($mission_name) ?></strong>
+  </div>
+  <div class="robot-status-bar-item">
+    <span id="vehicle_bridge_status" class="robot-bridge-pill is-wait">
+      <?php echo $_bridge_status ?>
+    </span>
+  </div>
+  <div class="robot-status-bar-item robot-status-bar-tools">
+    <?php
+    $mc_menu->render_toolbar();
+    if ($is_duckiebot_mission) {
+        $keyboard_controller_url = Duckiebot::getKeyboardControllerUrl();
+    ?>
+    <a class="robot-btn robot-btn-ghost robot-btn-sm"
+       id="mission-control-keyboard-controller-btn"
+       href="<?php echo htmlspecialchars($keyboard_controller_url) ?>"
+       target="_blank"
+       rel="noopener noreferrer"
+       title="Open keyboard controller">
+      <i class="fa fa-gamepad" aria-hidden="true"></i> Keyboard
+    </a>
+    <?php
+    }
+    new MissionControlConfiguration(
+      $grid_id,
+      $mission_db_package,
+      $mission_db,
+      $mission_name
+    );
+    ?>
+  </div>
+</div>
 
 <?php
 if ($load_mission) {
@@ -174,6 +294,15 @@ if ($load_mission) {
 
     // load mission options
     $opts = MissionControlConfiguration::get_options($mission_db_package, $mission_db, $mission_name);
+    $max_cols = 1;
+    foreach ($sizes as $sz) {
+        $max_cols = max($max_cols, intval($sz[1]));
+    }
+    // Duckiebot blocks top out at 8 columns; Compose defaults to 10, which
+    // left an empty strip beside the camera (8/10 of a 970px canvas).
+    if (intval($opts['resolution']) > $max_cols) {
+        $opts['resolution'] = $max_cols;
+    }
 
     // create mission control grid
     $mission_control = new MissionControl(
@@ -183,7 +312,18 @@ if ($load_mission) {
     );
     ?>
 
-    <div style="border-top: 1px solid lightgrey; border-bottom: 1px solid lightgrey; padding: 10px 0">
+    <style type="text/css">
+      .robot-status-bar {
+        max-width: none;
+      }
+      .robot-mission-grid-frame {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        padding: 4px 0 0;
+      }
+    </style>
+    <div class="robot-mission-grid-frame">
         <?php
         // render mission control grid
         $mission_control->create($opts);
@@ -197,23 +337,35 @@ if ($load_mission) {
 <script type="text/javascript">
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
     console.log('Connected to websocket server.');
-    $('#vehicle_bridge_status').html(
-      '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
-    );
+    if (typeof robot_set_bridge_status === 'function') {
+      robot_set_bridge_status('ok', '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge connected');
+    } else {
+      $('#vehicle_bridge_status').html(
+        '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge: <strong>Connected</strong>'
+      );
+    }
   });
 
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_ERROR) ?>', function(evt, error){
     console.log('Error connecting to websocket server: ', error);
-    $('#vehicle_bridge_status').html(
-      '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
-    );
+    if (typeof robot_set_bridge_status === 'function') {
+      robot_set_bridge_status('bad', '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge error');
+    } else {
+      $('#vehicle_bridge_status').html(
+        '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge: <strong>Error</strong>'
+      );
+    }
   });
 
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CLOSED) ?>', function(evt){
     console.log('Connection to websocket server closed.');
-    $('#vehicle_bridge_status').html(
-      '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
-    );
+    if (typeof robot_set_bridge_status === 'function') {
+      robot_set_bridge_status('bad', '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge closed');
+    } else {
+      $('#vehicle_bridge_status').html(
+        '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge: <strong>Closed</strong>'
+      );
+    }
   });
 
   $(document).ready(function() {
