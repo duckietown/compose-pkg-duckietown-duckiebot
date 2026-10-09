@@ -645,7 +645,7 @@ $height_px = 560;
 
     function agraph_ros_api(callback, on_error) {
         let hostname = "<?php echo Core::getSetting(
-            'ros_api/hostname', 'duckietown_duckiebot', Duckiebot::getDuckiebotHostname()
+            'ros_api/hostname', 'duckietown_duckiebot', Duckiebot::getBrowserRobotHostname()
         ) ?>";
         let url = 'http://{0}/ros/graph'.format(hostname);
         $.ajax({

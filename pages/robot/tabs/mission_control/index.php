@@ -216,6 +216,9 @@ if ($load_mission) {
 $is_multi_robot_mission = false;
 $robots = [];
 for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
+  if (empty($mission_control_grid['blocks'][$i]['args']['ros_hostname'])) {
+    $mission_control_grid['blocks'][$i]['args']['ros_hostname'] = Duckiebot::getBrowserRobotHostname();
+  }
   $args = $mission_control_grid['blocks'][$i]['args'];
   $ros_hostname = null;
   if (array_key_exists('ros_hostname', $args)) {

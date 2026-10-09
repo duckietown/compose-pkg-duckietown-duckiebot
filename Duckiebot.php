@@ -597,6 +597,30 @@ class Duckiebot {
         // ---
         return $duckiebot_hostname;
     }//getDuckiebotHostname
+
+    public static function getBrowserRobotHostname(): string {
+        $configured_hostname = self::getDuckiebotHostname();
+        $robot_name = self::getDuckiebotName();
+        if (is_null($robot_name) || strcasecmp($configured_hostname, "$robot_name.local") !== 0) {
+            return $configured_hostname;
+        }
+
+        $browser_hostname = Core::getBrowserHostname();
+        $parsed = parse_url("http://$browser_hostname");
+        if (!is_array($parsed) || !isset($parsed['host']) ||
+            $browser_hostname !== $parsed['host'] . (isset($parsed['port']) ? ':' . $parsed['port'] : '')) {
+            return $configured_hostname;
+        }
+        $browser_hostname = $parsed['host'];
+        if (strcasecmp($browser_hostname, 'localhost') === 0 || $browser_hostname === '127.0.0.1') {
+            return $configured_hostname;
+        }
+        if (filter_var($browser_hostname, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false &&
+            filter_var($browser_hostname, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) === false) {
+            return $configured_hostname;
+        }
+        return $browser_hostname;
+    }
     
     public static function canSetDuckiebotHostname() {
         $sockets_dir = self::$FILE_WRITERS_LOCATION;

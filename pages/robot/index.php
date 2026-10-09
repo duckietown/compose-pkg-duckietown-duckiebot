@@ -840,7 +840,7 @@ $show_power = RobotUIFeatures::should_render_power_controls();
 
 <script type="text/javascript">
 
-    let api_url = "http://<?php echo $dbot_hostname ?>/{api}/{path}";
+    let api_url = window.location.origin + "/{api}/{path}";
 
     function get_api_url(api, action="", resources=[], qs=null) {
         let path = [action, ...resources];

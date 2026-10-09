@@ -6,7 +6,7 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 $robot_name = Duckiebot::getDuckiebotName();
 $robot_type = Duckiebot::getRobotType();
 // TODO: these might not be needed anymore
-$robot_hostname = Duckiebot::getDuckiebotHostname();
+$robot_hostname = Duckiebot::getBrowserRobotHostname();
 $ros_hostname = ROS::sanitize_hostname($robot_hostname);
 
 $connected_evt = ROS::get_event(ROS::$ROSBRIDGE_CONNECTED, $ros_hostname);
