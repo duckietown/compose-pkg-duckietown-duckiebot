@@ -17,8 +17,10 @@ fi
 VEHICLE_IP="${VEHICLE_IP:-172.17.0.1}"
 
 docker rm -f "$NAME" >/dev/null 2>&1 || true
+# Publish only on the docker bridge. The dashboard proxies /keyboard-controller/
+# after a login check. Do not bind 0.0.0.0, and keep Docker's default seccomp profile.
 docker run -d --name "$NAME" --restart unless-stopped \
-  -p "${PORT}:8000" \
+  -p "${VEHICLE_IP}:${PORT}:8000" \
   -v /data:/data:ro \
   -v /data/ramdisk/dtps:/dtps:rw \
   -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
@@ -28,7 +30,6 @@ docker run -d --name "$NAME" --restart unless-stopped \
   -e VEHICLE_IP="$VEHICLE_IP" \
   -e TITLE="Keyboard Controller" \
   --add-host "${VEHICLE_NAME}.local:${VEHICLE_IP}" \
-  --security-opt seccomp=unconfined \
   "$IMAGE"
 
-echo "Keyboard controller listening on http://$(hostname -s).local:${PORT}/app/"
+echo "Keyboard controller on http://${VEHICLE_IP}:${PORT}/app/ (dashboard proxy: /keyboard-controller/app/)"

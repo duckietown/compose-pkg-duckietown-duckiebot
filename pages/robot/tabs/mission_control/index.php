@@ -18,10 +18,6 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 <?php
 $robot_type = Duckiebot::getRobotType();
 $robot_type = (strlen($robot_type) < 2)? "duckiebot" : $robot_type;
-// TEMP preview for user viewing — remove when done
-if (isset($_GET['force_type']) && preg_match('/^[a-z0-9_]+$/', $_GET['force_type'])) {
-    $robot_type = $_GET['force_type'];
-}
 $mission_db = "duckietown_{$robot_type}_missions";
 $mission_db_package = "data";
 $mission_name = (isset($_GET['mission']) && strlen(trim($_GET['mission'])) > 0)? trim($_GET['mission']) : null;
@@ -84,7 +80,8 @@ $mc_menu = new MissionControlMenu(
   $mission_db_package,
   $mission_db,
   $mission_name,
-  $missions_regex
+  $missions_regex,
+  true
 );
 
 
@@ -207,7 +204,8 @@ if ($load_mission) {
       function ($block) {
         $renderer = $block['renderer'] ?? '';
         return $renderer !== 'Duckiebot_KeyboardController'
-          && $renderer !== 'Duckiebot_LEDController';
+          && $renderer !== 'Duckiebot_LEDController'
+          && $renderer !== 'Duckiebot_Twist2DStamped';
       }
     ));
   }
@@ -250,7 +248,8 @@ $_bridge_status = ($is_multi_robot_mission)?
   <div class="robot-status-bar-item robot-status-bar-tools">
     <?php
     $mc_menu->render_toolbar();
-    $keyboard_controller_url = Duckiebot::getKeyboardControllerUrl();
+    if ($is_duckiebot_mission) {
+        $keyboard_controller_url = Duckiebot::getKeyboardControllerUrl();
     ?>
     <a class="robot-btn robot-btn-ghost robot-btn-sm"
        id="mission-control-keyboard-controller-btn"
@@ -261,6 +260,7 @@ $_bridge_status = ($is_multi_robot_mission)?
       <i class="fa fa-gamepad" aria-hidden="true"></i> Keyboard
     </a>
     <?php
+    }
     new MissionControlConfiguration(
       $grid_id,
       $mission_db_package,

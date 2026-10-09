@@ -401,20 +401,14 @@ class Duckiebot {
      * Default port 8090; override with KEYBOARD_CONTROLLER_PORT.
      */
     public static function getKeyboardControllerUrl(): string {
-        $host_header = $_SERVER['HTTP_HOST'] ?? '';
-        $hostname = $host_header !== ''
-            ? preg_replace('/:\d+$/', '', $host_header)
-            : self::getDuckiebotHostname();
-        if ($hostname === '' || $hostname === null) {
-            $hostname = 'localhost';
+        // Same-origin path. Nginx proxies this to the controller, which is
+        // plain HTTP on the docker bridge only. Using the dashboard scheme
+        // and host avoids a TLS handshake against that HTTP port.
+        $base = \system\classes\Configuration::$BASE ?? '';
+        if (!is_string($base)) {
+            $base = '';
         }
-        $port = getenv('KEYBOARD_CONTROLLER_PORT');
-        if ($port === false || $port === '') {
-            $port = '8090';
-        }
-        $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-        $scheme = $https ? 'https' : 'http';
-        return sprintf('%s://%s:%s/app/', $scheme, $hostname, $port);
+        return rtrim($base, '/') . '/keyboard-controller/app/';
     }
 
     /**
