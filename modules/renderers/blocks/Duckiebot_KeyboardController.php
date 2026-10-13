@@ -658,6 +658,19 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
         </style>
 
+        <?php if (!$can_drive): ?>
+        <script type="text/javascript">
+        (function () {
+            var root = document.getElementById(<?php echo json_encode((string) $id) ?>);
+            if (!root) return;
+            var statusEl = root.querySelector('.robot-kc-status');
+            if (statusEl) {
+                statusEl.textContent = 'Sign in to drive';
+                statusEl.className = 'robot-kc-status is-wait';
+            }
+        })();
+        </script>
+        <?php else: ?>
         <script type="text/javascript">
         (function () {
             var root = document.getElementById(<?php echo json_encode((string) $id) ?>);
@@ -692,6 +705,8 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             var wheelMaxMs = 0.4;
             var sensorsBound = false;
             var trimBound = false;
+            var sensorSubs = [];
+            var boundRos = null;
             var trimTimer = null;
             var estopLatched = false;
 
@@ -844,6 +859,9 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             }
 
             function tick() {
+                if (bridgeReady && !rosSocketOpen(getRos())) {
+                    markBridgeDown();
+                }
                 if (!joyPub || !bridgeReady) return;
                 var target = targetAxes();
                 var alpha = (target.fwd === 0 && target.steer === 0) ? 0.5 : smoothAlpha;
@@ -937,6 +955,14 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 return true;
             }
 
+            function releaseTopic(topic, subscribed) {
+                if (!topic) return;
+                try {
+                    if (subscribed && typeof topic.unsubscribe === 'function') topic.unsubscribe();
+                    if (!subscribed && typeof topic.unadvertise === 'function') topic.unadvertise();
+                } catch (err) {}
+            }
+
             function bindSensors() {
                 var ros = getRos();
                 if (!ros || typeof ROSLIB === 'undefined' || sensorsBound) return false;
@@ -1005,6 +1031,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     queue_size: 1,
                     throttle_rate: 200
                 });
+                sensorSubs = [imuSub, tofSub, wheelsSub, estopSub];
                 estopSub.subscribe(function (msg) {
                     var active = !!(msg && msg.data);
                     if (active === estopLatched) return;
@@ -1024,10 +1051,39 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                 return true;
             }
 
+            function rosSocketOpen(ros) {
+                if (!ros) return false;
+                if (ros.isConnected === true) return true;
+                var sock = ros.socket;
+                return !!(sock && sock.readyState === 1);
+            }
+
+            function markBridgeDown() {
+                bridgeReady = false;
+                releaseTopic(joyPub, false);
+                releaseTopic(estopPub, false);
+                joyPub = null;
+                estopPub = null;
+                sensorSubs.forEach(function (topic) { releaseTopic(topic, true); });
+                sensorSubs = [];
+                trimParam = null;
+                trimUpdateSrv = null;
+                sensorsBound = false;
+                trimBound = false;
+                boundRos = null;
+                refreshStatus();
+            }
+
             function bindPublisher() {
                 if (!canDrive) return false;
                 var ros = getRos();
-                if (!ros || typeof ROSLIB === 'undefined') return false;
+                if (!ros || typeof ROSLIB === 'undefined' || !rosSocketOpen(ros)) {
+                    markBridgeDown();
+                    return false;
+                }
+                if (bridgeReady && joyPub && estopPub && boundRos === ros) return true;
+                markBridgeDown();
+                boundRos = ros;
                 // Single joy publisher only
                 joyPub = new ROSLIB.Topic({
                     ros: ros,
@@ -1042,6 +1098,14 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     queue_size: 1
                 });
                 bridgeReady = true;
+                if (!ros._kcBridgeHook && typeof ros.on === 'function') {
+                    ros._kcBridgeHook = true;
+                    var dropIfCurrent = function () {
+                        if (boundRos === ros) markBridgeDown();
+                    };
+                    ros.on('close', dropIfCurrent);
+                    ros.on('error', dropIfCurrent);
+                }
                 bindSensors();
                 bindTrim();
                 refreshStatus();
@@ -1051,9 +1115,8 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             function onKey(e, down) {
                 var code = e.keyCode;
                 var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-                if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
-                // Actuation (e-stop, trim, drive) requires sign-in
+                // E-stop must work while a range slider (speed / trim) has focus.
                 if (code === Keys.E) {
                     if (down) {
                         e.preventDefault();
@@ -1061,6 +1124,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     }
                     return;
                 }
+                if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
                 if (code === Keys.C && down) {
                     e.preventDefault();
                     nudgeTrim(-0.01);
@@ -1201,6 +1265,7 @@ class Duckiebot_KeyboardController extends BlockRenderer {
             timer = setInterval(tick, periodMs);
         })();
         </script>
+        <?php endif; ?>
         <?php
     }
 }

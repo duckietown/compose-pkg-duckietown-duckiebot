@@ -98,7 +98,6 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
             var maxSpeed = <?php echo json_encode($max_value) ?>;
             var allowNegative = <?php echo $allow_negative ? 'true' : 'false' ?>;
             var throttleMs = <?php echo json_encode(intval(1000 / max(1, intval($args['fps'])))) ?>;
-            var boundKey = 'twist2d_' + <?php echo json_encode($uid) ?>;
 
             function emptyColor() {
                 var styles = window.getComputedStyle(document.documentElement);
@@ -128,15 +127,35 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
                 return null;
             }
 
+            function rosSocketOpen(ros) {
+                if (!ros) return false;
+                if (ros.isConnected === true) return true;
+                var sock = ros.socket;
+                return !!(sock && sock.readyState === 1);
+            }
+
+            var chart = null;
+            var chart_config = null;
+            var subscriber = null;
+            var boundRos = null;
+
+            function clearSubscriber() {
+                if (subscriber && typeof subscriber.unsubscribe === 'function') {
+                    try { subscriber.unsubscribe(); } catch (err) {}
+                }
+                subscriber = null;
+                boundRos = null;
+            }
+
             function init() {
                 if (!window.mission_control_page_blocks_data) {
                     window.mission_control_page_blocks_data = {};
                 }
-                if (window.mission_control_page_blocks_data[boundKey]) {
+                var ros = getRos();
+                if (!ros || typeof ROSLIB === 'undefined' || typeof Chart === 'undefined' || !rosSocketOpen(ros)) {
                     return;
                 }
-                var ros = getRos();
-                if (!ros || typeof ROSLIB === 'undefined' || typeof Chart === 'undefined') {
+                if (subscriber && boundRos === ros) {
                     return;
                 }
                 var canvas = $("#" + blockId + " .block_renderer_container canvas")[0];
@@ -144,7 +163,7 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
 
                 var blank = emptyColor();
                 var fill = fillColor();
-                var chart_config = {
+                if (!chart_config) chart_config = {
                     type: 'pie',
                     data: {
                         datasets: [{
@@ -161,21 +180,29 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
                     }
                 };
 
-                var chart = new Chart(canvas.getContext('2d'), chart_config);
+                if (!chart) {
+                    chart = new Chart(canvas.getContext('2d'), chart_config);
+                }
                 window.mission_control_page_blocks_data[blockId] = {
                     chart: chart,
                     config: chart_config,
                     allow_negative: allowNegative
                 };
-                window.mission_control_page_blocks_data[boundKey] = true;
 
-                var subscriber = new ROSLIB.Topic({
+                clearSubscriber();
+                if (!ros._twist2dHook && typeof ros.on === 'function') {
+                    ros._twist2dHook = true;
+                    ros.on('close', clearSubscriber);
+                    ros.on('error', clearSubscriber);
+                }
+                subscriber = new ROSLIB.Topic({
                     ros: ros,
                     name: topicName,
                     messageType: 'duckietown_msgs/Twist2DStamped',
                     queue_size: 1,
                     throttle_rate: throttleMs
                 });
+                boundRos = ros;
 
                 subscriber.subscribe(function (message) {
                     var raw = Number(message[fieldName]);

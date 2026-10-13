@@ -351,6 +351,19 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
         </style>
 
+        <?php if (!$can_control): ?>
+        <script type="text/javascript">
+        (function () {
+            var box = document.getElementById('robot_led_<?php echo htmlspecialchars($uid) ?>');
+            if (!box) return;
+            var statusEl = box.querySelector('.robot-led-status');
+            if (statusEl) {
+                statusEl.textContent = 'Sign in to control LEDs';
+                statusEl.className = 'robot-led-status is-wait';
+            }
+        })();
+        </script>
+        <?php else: ?>
         <script type="text/javascript">
         (function () {
             var box = document.getElementById('robot_led_<?php echo htmlspecialchars($uid) ?>');
@@ -600,11 +613,28 @@ class Duckiebot_LEDController extends BlockRenderer {
                 schedulePublish();
             }
 
+            function rosSocketOpen(ros) {
+                if (!ros) return false;
+                if (ros.isConnected === true) return true;
+                var sock = ros.socket;
+                return !!(sock && sock.readyState === 1);
+            }
+
+            function markBridgeDown() {
+                bridgeReady = false;
+                ledPub = null;
+                setStatus('Waiting for bridge…', 'is-wait');
+            }
+
             function bindPublisher() {
                 if (!canControl) return false;
                 var ros = getRos();
-                if (!ros || typeof ROSLIB === 'undefined') return false;
-                if (!ledPub) {
+                if (bridgeReady && ledPub && rosSocketOpen(ros)) return true;
+                if (!ros || typeof ROSLIB === 'undefined' || !rosSocketOpen(ros)) {
+                    markBridgeDown();
+                    return false;
+                }
+                if (!ledPub || !rosSocketOpen(ros)) {
                     ledPub = new ROSLIB.Topic({
                         ros: ros,
                         name: topicName,
@@ -612,7 +642,13 @@ class Duckiebot_LEDController extends BlockRenderer {
                         queue_size: 1
                     });
                 }
-                bridgeReady = true;
+                bridgeReady = rosSocketOpen(ros);
+                if (!bridgeReady) return false;
+                if (!ros._ledBridgeHook && typeof ros.on === 'function') {
+                    ros._ledBridgeHook = true;
+                    ros.on('close', markBridgeDown);
+                    ros.on('error', markBridgeDown);
+                }
                 // Re-apply stored pattern so robot matches UI after every reload.
                 var state = readUiState();
                 var fp = fingerprintState(state);
@@ -664,6 +700,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             }
         })();
         </script>
+        <?php endif; ?>
         <?php
     }
 }

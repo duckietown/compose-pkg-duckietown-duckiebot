@@ -368,12 +368,17 @@ class Duckiebot {
         $wifi_up = ($ssid !== null && $ssid !== '') || ($wifi_ip !== '');
 
         $kind = null;
+        // Do not present the Ethernet address as the Wi-Fi IP while the radio
+        // is associated but has not been given an address yet.
         if ($wifi_up) {
             $kind = 'wifi';
+            $ip = $wifi_ip;
         } else if ($eth_up) {
             $kind = 'ethernet';
+            $ip = $eth_ip !== '' ? $eth_ip : self::getPrimaryIpv4();
+        } else {
+            $ip = self::getPrimaryIpv4();
         }
-        $ip = $wifi_ip !== '' ? $wifi_ip : ($eth_ip !== '' ? $eth_ip : self::getPrimaryIpv4());
         $connected = $wifi_up || $eth_up || ($ip !== '');
 
         // Second row entry only when both links are up at once.
