@@ -335,6 +335,26 @@ if ($load_mission) {
 
 
 <script type="text/javascript">
+  // Desktop Chrome drops ws://hostname:9001. Open rosbridge on this page's
+  // own origin. Dashboard nginx proxies /rosbridge to 127.0.0.1:9001.
+  // Runs before the block scripts' document.ready connect.
+  (function () {
+    if (!window.ROSLIB || !ROSLIB.Ros || ROSLIB.Ros.__sameOriginBridge) return;
+    var Orig = ROSLIB.Ros;
+    function SameOriginRos(options) {
+      options = options || {};
+      if (typeof options.url === 'string' && /:9001(\/|$)/.test(options.url)) {
+        var prefix = location.pathname.indexOf('/dashboard/') === 0 ? '/dashboard' : '';
+        var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        options.url = proto + '//' + location.host + prefix + '/rosbridge';
+      }
+      return new Orig(options);
+    }
+    SameOriginRos.prototype = Orig.prototype;
+    SameOriginRos.__sameOriginBridge = true;
+    ROSLIB.Ros = SameOriginRos;
+  })();
+
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
     console.log('Connected to websocket server.');
     if (typeof robot_set_bridge_status === 'function') {
