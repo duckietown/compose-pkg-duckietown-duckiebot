@@ -1,6 +1,7 @@
 <?php
 use \system\classes\Core;
 use \system\classes\Configuration;
+use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $tabs = [
     'info' => [
@@ -40,6 +41,11 @@ $tabs = [
         'icon' => 'sliders'
     ]
 ];
+
+// on DD24 the ROS 1 graph API is gone and the health API has no component list, so these tabs show nothing
+if (in_array(Duckiebot::getRobotConfiguration(), ["DD24"])) {
+    unset($tabs['architecture'], $tabs['components']);
+}
 
 $DEFAULT_TAB = 'info';
 $ACTIVE_TAB = Configuration::$ACTION ?? $DEFAULT_TAB;
