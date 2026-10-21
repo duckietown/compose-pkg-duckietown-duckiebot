@@ -334,16 +334,51 @@ if ($load_mission) {
 ?>
 
 
+<?php
+$local_bridge_hosts = [];
+foreach ([
+    Duckiebot::getBrowserRobotHostname(),
+    Duckiebot::getDuckiebotHostname(),
+    Duckiebot::getDuckiebotName(),
+] as $bridge_host) {
+    if (!is_string($bridge_host)) {
+        continue;
+    }
+    $bridge_host = strtolower(trim($bridge_host));
+    if ($bridge_host === '') {
+        continue;
+    }
+    $local_bridge_hosts[$bridge_host] = true;
+    $bare = preg_replace('/\.local$/', '', $bridge_host);
+    if ($bare !== '') {
+        $local_bridge_hosts[$bare] = true;
+        $local_bridge_hosts[$bare . '.local'] = true;
+    }
+}
+?>
 <script type="text/javascript">
-  // Desktop Chrome drops ws://hostname:9001. Open rosbridge on this page's
-  // own origin. Dashboard nginx proxies /rosbridge to 127.0.0.1:9001.
-  // Runs before the block scripts' document.ready connect.
+  // Desktop Chrome drops ws://hostname:9001 for this robot. Rewrite only
+  // local/default bridge URLs onto this page's origin. Remote ros_hostname
+  // targets stay on their own host so a multi-robot mission does not attach
+  // every client to this dashboard's /rosbridge proxy.
   (function () {
     if (!window.ROSLIB || !ROSLIB.Ros || ROSLIB.Ros.__sameOriginBridge) return;
     var Orig = ROSLIB.Ros;
+    var localHosts = <?php echo json_encode(array_keys($local_bridge_hosts)) ?>;
+    function isLocalBridge(url) {
+      var match = String(url).match(/^wss?:\/\/([^\/:?#]+):9001(?:\/|$)/i);
+      if (!match) return false;
+      var host = match[1].toLowerCase();
+      if (host === String(location.hostname || '').toLowerCase()) return true;
+      if (host === 'localhost' || host === '127.0.0.1') return true;
+      for (var i = 0; i < localHosts.length; i++) {
+        if (host === String(localHosts[i]).toLowerCase()) return true;
+      }
+      return false;
+    }
     function SameOriginRos(options) {
       options = options || {};
-      if (typeof options.url === 'string' && /:9001(\/|$)/.test(options.url)) {
+      if (typeof options.url === 'string' && isLocalBridge(options.url)) {
         var prefix = location.pathname.indexOf('/dashboard/') === 0 ? '/dashboard' : '';
         var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
         options.url = proto + '//' + location.host + prefix + '/rosbridge';

@@ -168,7 +168,8 @@ class Duckiebot {
 
     /**
      * True for a unicast IPv4 the operator would recognize as the robot on the LAN.
-     * Rejects loopback, link-local, and typical Docker/bridge pools.
+     * Rejects loopback and link-local. 172.17/172.18 are valid LAN subnets, so
+     * Docker addresses are excluded by interface name instead of these prefixes.
      */
     private static function isLanIpv4($ip): bool {
         if (!is_string($ip) || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
@@ -177,8 +178,48 @@ class Duckiebot {
         if ($ip === '0.0.0.0' || strpos($ip, '127.') === 0 || strpos($ip, '169.254.') === 0) {
             return false;
         }
-        if (strpos($ip, '172.17.') === 0 || strpos($ip, '172.18.') === 0) {
+        return true;
+    }
+
+    private static function isBridgeIface($iface): bool {
+        return is_string($iface) && preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface) === 1;
+    }
+
+    /**
+     * Global-scope IPv4 addresses with the interface that owns them.
+     *
+     * @return array<int,array{iface:string,ip:string}>
+     */
+    private static function globalIpv4Addrs(): array {
+        $rows = [];
+        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
+        if (!is_string($out) || $out === '') {
+            return $rows;
+        }
+        foreach (explode("\n", trim($out)) as $line) {
+            if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
+                continue;
+            }
+            $rows[] = [
+                'iface' => preg_replace('/@.*$/', '', $m[1]),
+                'ip' => $m[2],
+            ];
+        }
+        return $rows;
+    }
+
+    /**
+     * LAN address that is not assigned to a Docker/bridge interface.
+     * An address with no visible interface (HTTP host, route lookup) is kept.
+     */
+    private static function isShownLanIpv4($ip): bool {
+        if (!self::isLanIpv4($ip)) {
             return false;
+        }
+        foreach (self::globalIpv4Addrs() as $row) {
+            if ($row['ip'] === $ip && self::isBridgeIface($row['iface'])) {
+                return false;
+            }
         }
         return true;
     }
@@ -189,39 +230,30 @@ class Duckiebot {
      */
     private static function getPrimaryIpv4(): string {
         $http_host = isset($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : '';
-        if (self::isLanIpv4($http_host)) {
+        if (self::isShownLanIpv4($http_host)) {
             return $http_host;
         }
 
         $ranked = [];
-        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
-        if (is_string($out) && $out !== '') {
-            foreach (explode("\n", trim($out)) as $line) {
-                if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
-                    continue;
-                }
-                $iface = preg_replace('/@.*$/', '', $m[1]);
-                $ip = $m[2];
-                if (!self::isLanIpv4($ip)) {
-                    continue;
-                }
-                if (preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface)) {
-                    continue;
-                }
-                $rank = 50;
-                if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
-                    $rank = 0;
-                } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
-                    $rank = 1;
-                }
-                $ranked[] = ['rank' => $rank, 'ip' => $ip];
+        foreach (self::globalIpv4Addrs() as $row) {
+            $iface = $row['iface'];
+            $ip = $row['ip'];
+            if (!self::isLanIpv4($ip) || self::isBridgeIface($iface)) {
+                continue;
             }
-            if ($ranked) {
-                usort($ranked, function ($a, $b) {
-                    return $a['rank'] - $b['rank'];
-                });
-                return $ranked[0]['ip'];
+            $rank = 50;
+            if (preg_match('/^(wlan|wlp|wlx|wifi)/i', $iface)) {
+                $rank = 0;
+            } else if (preg_match('/^(eth|enp|ens|eno)/i', $iface)) {
+                $rank = 1;
             }
+            $ranked[] = ['rank' => $rank, 'ip' => $ip];
+        }
+        if ($ranked) {
+            usort($ranked, function ($a, $b) {
+                return $a['rank'] - $b['rank'];
+            });
+            return $ranked[0]['ip'];
         }
 
         if (function_exists('socket_create')) {
@@ -231,7 +263,7 @@ class Duckiebot {
                 $addr = null;
                 @socket_getsockname($sock, $addr);
                 @socket_close($sock);
-                if (self::isLanIpv4($addr)) {
+                if (self::isShownLanIpv4($addr)) {
                     return $addr;
                 }
             }
@@ -240,14 +272,14 @@ class Duckiebot {
         $hosts = @shell_exec('hostname -I 2>/dev/null');
         if (is_string($hosts)) {
             foreach (preg_split('/\s+/', trim($hosts)) as $ip) {
-                if (self::isLanIpv4($ip)) {
+                if (self::isShownLanIpv4($ip)) {
                     return $ip;
                 }
             }
         }
 
         $resolved = @gethostbyname(self::getDuckiebotHostname());
-        return self::isLanIpv4($resolved) ? $resolved : '';
+        return self::isShownLanIpv4($resolved) ? $resolved : '';
     }
 
     /**
@@ -257,24 +289,12 @@ class Duckiebot {
      */
     private static function getIpv4AddressesByIface(): array {
         $by_iface = [];
-        $out = @shell_exec('ip -4 -o addr show scope global 2>/dev/null');
-        if (!is_string($out) || $out === '') {
-            return $by_iface;
-        }
-        foreach (explode("\n", trim($out)) as $line) {
-            if (!preg_match('/^\d+:\s+([^\s]+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)/', $line, $m)) {
+        foreach (self::globalIpv4Addrs() as $row) {
+            if (!self::isLanIpv4($row['ip']) || self::isBridgeIface($row['iface'])) {
                 continue;
             }
-            $iface = preg_replace('/@.*$/', '', $m[1]);
-            $ip = $m[2];
-            if (!self::isLanIpv4($ip)) {
-                continue;
-            }
-            if (preg_match('/^(docker|br-|veth|cni|flannel|virbr|lo)/i', $iface)) {
-                continue;
-            }
-            if (!isset($by_iface[$iface])) {
-                $by_iface[$iface] = $ip;
+            if (!isset($by_iface[$row['iface']])) {
+                $by_iface[$row['iface']] = $row['ip'];
             }
         }
         return $by_iface;
@@ -663,14 +683,18 @@ class Duckiebot {
             }
             return $res;
         }
-        // Missing marker files: match robot_settings schema defaults
-        // (stats + config backup on; logs opt-in).
-        $defaults = [
-            'allow_push_logs_data' => false,
-            'allow_push_stats_data' => true,
-            'allow_push_config_data' => true,
-        ];
-        return ['success' => true, 'data' => $defaults[$key] ?? false];
+        // Schema defaults apply only when the marker was never written.
+        // An existing file that cannot be read must stay an error, or an
+        // unreadable config-backup opt-out would be reported as enabled.
+        if (!file_exists($fpath)) {
+            $defaults = [
+                'allow_push_logs_data' => false,
+                'allow_push_stats_data' => true,
+                'allow_push_config_data' => true,
+            ];
+            return ['success' => true, 'data' => $defaults[$key] ?? false];
+        }
+        return $res;
     }//getDuckiebotPermission
     
     public static function getDuckiebotConfiguration($key): array {

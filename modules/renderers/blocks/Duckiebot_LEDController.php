@@ -379,6 +379,7 @@ class Duckiebot_LEDController extends BlockRenderer {
             var storageKey = <?php echo json_encode($storage_key) ?>;
             var canControl = <?php echo $can_control ? 'true' : 'false'; ?>;
             var ledPub = null;
+            var ledRos = null;
             var bridgeReady = false;
             var publishTimer = null;
             var syncingUi = false;
@@ -620,35 +621,54 @@ class Duckiebot_LEDController extends BlockRenderer {
                 return !!(sock && sock.readyState === 1);
             }
 
-            function markBridgeDown() {
-                bridgeReady = false;
+            function releasePublisher() {
+                if (ledPub && typeof ledPub.unadvertise === 'function') {
+                    try { ledPub.unadvertise(); } catch (err) {}
+                }
                 ledPub = null;
+                ledRos = null;
+                bridgeReady = false;
+            }
+
+            function markBridgeDown() {
+                releasePublisher();
                 setStatus('Waiting for bridge…', 'is-wait');
+            }
+
+            function hookLedClient(client) {
+                if (!client || typeof client.on !== 'function') return;
+                if (!client._ledBridgeHooks) client._ledBridgeHooks = [];
+                var id = box.id;
+                if (client._ledBridgeHooks.indexOf(id) !== -1) return;
+                client._ledBridgeHooks.push(id);
+                client.on('close', function () {
+                    if (ledRos !== client) return;
+                    markBridgeDown();
+                });
+                client.on('error', function () {
+                    if (ledRos !== client) return;
+                    markBridgeDown();
+                });
             }
 
             function bindPublisher() {
                 if (!canControl) return false;
                 var ros = getRos();
-                if (bridgeReady && ledPub && rosSocketOpen(ros)) return true;
                 if (!ros || typeof ROSLIB === 'undefined' || !rosSocketOpen(ros)) {
-                    markBridgeDown();
+                    if (!ledRos || !rosSocketOpen(ledRos)) markBridgeDown();
                     return false;
                 }
-                if (!ledPub || !rosSocketOpen(ros)) {
-                    ledPub = new ROSLIB.Topic({
-                        ros: ros,
-                        name: topicName,
-                        messageType: 'duckietown_msgs/LEDPattern',
-                        queue_size: 1
-                    });
-                }
-                bridgeReady = rosSocketOpen(ros);
-                if (!bridgeReady) return false;
-                if (!ros._ledBridgeHook && typeof ros.on === 'function') {
-                    ros._ledBridgeHook = true;
-                    ros.on('close', markBridgeDown);
-                    ros.on('error', markBridgeDown);
-                }
+                if (ledPub && ledRos === ros && bridgeReady) return true;
+                if (ledPub) releasePublisher();
+                ledPub = new ROSLIB.Topic({
+                    ros: ros,
+                    name: topicName,
+                    messageType: 'duckietown_msgs/LEDPattern',
+                    queue_size: 1
+                });
+                ledRos = ros;
+                bridgeReady = true;
+                hookLedClient(ros);
                 // Re-apply stored pattern so robot matches UI after every reload.
                 var state = readUiState();
                 var fp = fingerprintState(state);

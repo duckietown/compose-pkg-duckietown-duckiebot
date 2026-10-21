@@ -147,6 +147,23 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
                 boundRos = null;
             }
 
+            function hookTwistClient(client) {
+                if (!client || client._twist2dHookedBlocks === undefined) {
+                    if (!client || typeof client.on !== 'function') return;
+                    client._twist2dHookedBlocks = [];
+                }
+                if (client._twist2dHookedBlocks.indexOf(blockId) !== -1) return;
+                client._twist2dHookedBlocks.push(blockId);
+                client.on('close', function () {
+                    if (boundRos !== client) return;
+                    clearSubscriber();
+                });
+                client.on('error', function () {
+                    if (boundRos !== client) return;
+                    clearSubscriber();
+                });
+            }
+
             function init() {
                 if (!window.mission_control_page_blocks_data) {
                     window.mission_control_page_blocks_data = {};
@@ -190,11 +207,6 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
                 };
 
                 clearSubscriber();
-                if (!ros._twist2dHook && typeof ros.on === 'function') {
-                    ros._twist2dHook = true;
-                    ros.on('close', clearSubscriber);
-                    ros.on('error', clearSubscriber);
-                }
                 subscriber = new ROSLIB.Topic({
                     ros: ros,
                     name: topicName,
@@ -203,6 +215,7 @@ class Duckiebot_Twist2DStamped extends BlockRenderer {
                     throttle_rate: throttleMs
                 });
                 boundRos = ros;
+                hookTwistClient(ros);
 
                 subscriber.subscribe(function (message) {
                     var raw = Number(message[fieldName]);
