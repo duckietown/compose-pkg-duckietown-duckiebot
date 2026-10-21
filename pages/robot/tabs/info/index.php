@@ -96,6 +96,12 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-overview-thumb.is-ready img {
         opacity: 1;
     }
+    .robot-overview-thumb.is-missing {
+        display: none;
+    }
+    .robot-overview-layout:has(> .robot-overview-thumb.is-missing) {
+        grid-template-columns: 1fr;
+    }
 
     .robot-overview-side {
         display: flex;
@@ -1292,21 +1298,29 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
             let $box = $('.robot-thumbnail-container');
             let $thumb = $box.find('img');
             if ($thumb.attr('src') === primary) return;
+            function showMissingThumbnail() {
+                $box.removeClass('is-ready').addClass('is-missing');
+            }
             $thumb.off('error.robot-thumb load.robot-thumb')
                 .on('load.robot-thumb', function () {
                     // image.php serves Compose's 88x100 placeholder with HTTP 200
                     // when the file is missing, so onerror never runs.
-                    if (this.naturalWidth < 200 && fallbacks.length) {
-                        this.src = fallbacks.shift();
+                    if (this.naturalWidth < 200) {
+                        if (fallbacks.length) {
+                            this.src = fallbacks.shift();
+                            return;
+                        }
+                        showMissingThumbnail();
                         return;
                     }
-                    $box.addClass('is-ready');
+                    $box.removeClass('is-missing').addClass('is-ready');
                 })
                 .on('error.robot-thumb', function () {
                     if (fallbacks.length) {
                         this.src = fallbacks.shift();
                     } else {
                         $(this).off('error.robot-thumb');
+                        showMissingThumbnail();
                     }
                 })
                 .attr('src', primary);

@@ -73,16 +73,30 @@ if ($db->size() > 0 && is_null($mission_name)) {
   }
 }
 
-// create mission tools (modals + JS); toolbar is rendered in the status bar
-$mc_menu = new MissionControlMenu(
-  $grid_id,
-  'left',
-  $mission_db_package,
-  $mission_db,
-  $mission_name,
-  $missions_regex,
-  true
-);
+// create mission tools (modals + JS). render_toolbar() exists only on the
+// compose branch that added the shared status-bar chrome. Without it, the
+// constructor still emits the toolbar and this page must not call the method.
+$defer_toolbar = method_exists('MissionControlMenu', 'render_toolbar');
+if ($defer_toolbar) {
+  $mc_menu = new MissionControlMenu(
+    $grid_id,
+    'left',
+    $mission_db_package,
+    $mission_db,
+    $mission_name,
+    $missions_regex,
+    true
+  );
+} else {
+  $mc_menu = new MissionControlMenu(
+    $grid_id,
+    'left',
+    $mission_db_package,
+    $mission_db,
+    $mission_name,
+    $missions_regex
+  );
+}
 
 
 $load_mission = true;
@@ -250,7 +264,9 @@ $_bridge_status = ($is_multi_robot_mission)?
   </div>
   <div class="robot-status-bar-item robot-status-bar-tools">
     <?php
-    $mc_menu->render_toolbar();
+    if ($defer_toolbar) {
+        $mc_menu->render_toolbar();
+    }
     if ($is_duckiebot_mission) {
         $keyboard_controller_url = Duckiebot::getKeyboardControllerUrl();
     ?>
@@ -355,12 +371,38 @@ foreach ([
         $local_bridge_hosts[$bare . '.local'] = true;
     }
 }
+// The status pill must listen on the same hostname the blocks connect with.
+// A bare event follows the browser host (localhost) and never fires when the
+// mission opens vedrone24.local.
+$bridge_pill_events = [];
+if (!$is_multi_robot_mission) {
+    $pill_hosts = array_values(array_unique(array_filter($robots, function ($host) {
+        return is_string($host) && $host !== '';
+    })));
+    if (!$pill_hosts) {
+        $pill_hosts = [null];
+    }
+    foreach ($pill_hosts as $pill_host) {
+        $bridge_pill_events[] = [
+            'connected' => is_null($pill_host)
+                ? ROS::get_event(ROS::$ROSBRIDGE_CONNECTED)
+                : ROS::get_event(ROS::$ROSBRIDGE_CONNECTED, $pill_host),
+            'error' => is_null($pill_host)
+                ? ROS::get_event(ROS::$ROSBRIDGE_ERROR)
+                : ROS::get_event(ROS::$ROSBRIDGE_ERROR, $pill_host),
+            'closed' => is_null($pill_host)
+                ? ROS::get_event(ROS::$ROSBRIDGE_CLOSED)
+                : ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $pill_host),
+        ];
+    }
+}
 ?>
 <script type="text/javascript">
-  // Desktop Chrome drops ws://hostname:9001 for this robot. Rewrite only
-  // local/default bridge URLs onto this page's origin. Remote ros_hostname
-  // targets stay on their own host so a multi-robot mission does not attach
-  // every client to this dashboard's /rosbridge proxy.
+  // Desktop Chrome drops ws://hostname:9001 when this dashboard is the page
+  // origin (for example :8081). Rewrite only those local URLs to /rosbridge.
+  // device-proxy serves /dashboard/ and does not forward the websocket
+  // upgrade, so that path keeps ws://host:9001. Remote ros_hostname targets
+  // are never rewritten.
   (function () {
     if (!window.ROSLIB || !ROSLIB.Ros || ROSLIB.Ros.__sameOriginBridge) return;
     var Orig = ROSLIB.Ros;
@@ -378,10 +420,10 @@ foreach ([
     }
     function SameOriginRos(options) {
       options = options || {};
-      if (typeof options.url === 'string' && isLocalBridge(options.url)) {
-        var prefix = location.pathname.indexOf('/dashboard/') === 0 ? '/dashboard' : '';
+      var behindDashboardProxy = location.pathname.indexOf('/dashboard/') === 0;
+      if (!behindDashboardProxy && typeof options.url === 'string' && isLocalBridge(options.url)) {
         var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        options.url = proto + '//' + location.host + prefix + '/rosbridge';
+        options.url = proto + '//' + location.host + '/rosbridge';
       }
       return new Orig(options);
     }
@@ -390,37 +432,38 @@ foreach ([
     ROSLIB.Ros = SameOriginRos;
   })();
 
-  $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
-    console.log('Connected to websocket server.');
-    if (typeof robot_set_bridge_status === 'function') {
-      robot_set_bridge_status('ok', '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge connected');
-    } else {
-      $('#vehicle_bridge_status').html(
-        '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge: <strong>Connected</strong>'
-      );
-    }
-  });
-
-  $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_ERROR) ?>', function(evt, error){
-    console.log('Error connecting to websocket server: ', error);
-    if (typeof robot_set_bridge_status === 'function') {
-      robot_set_bridge_status('bad', '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge error');
-    } else {
-      $('#vehicle_bridge_status').html(
-        '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge: <strong>Error</strong>'
-      );
-    }
-  });
-
-  $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CLOSED) ?>', function(evt){
-    console.log('Connection to websocket server closed.');
-    if (typeof robot_set_bridge_status === 'function') {
-      robot_set_bridge_status('bad', '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge closed');
-    } else {
-      $('#vehicle_bridge_status').html(
-        '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge: <strong>Closed</strong>'
-      );
-    }
+  var bridgePillEvents = <?php echo json_encode($bridge_pill_events) ?>;
+  bridgePillEvents.forEach(function (ev) {
+    $(document).on(ev.connected, function () {
+      console.log('Connected to websocket server.');
+      if (typeof robot_set_bridge_status === 'function') {
+        robot_set_bridge_status('ok', '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge connected');
+      } else {
+        $('#vehicle_bridge_status').html(
+          '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge: <strong>Connected</strong>'
+        );
+      }
+    });
+    $(document).on(ev.error, function (evt, error) {
+      console.log('Error connecting to websocket server: ', error);
+      if (typeof robot_set_bridge_status === 'function') {
+        robot_set_bridge_status('bad', '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge error');
+      } else {
+        $('#vehicle_bridge_status').html(
+          '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge: <strong>Error</strong>'
+        );
+      }
+    });
+    $(document).on(ev.closed, function () {
+      console.log('Connection to websocket server closed.');
+      if (typeof robot_set_bridge_status === 'function') {
+        robot_set_bridge_status('bad', '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge closed');
+      } else {
+        $('#vehicle_bridge_status').html(
+          '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge: <strong>Closed</strong>'
+        );
+      }
+    });
   });
 
   $(document).ready(function() {
