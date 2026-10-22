@@ -1,3 +1,7 @@
+## 1.5.6 (October 22, 2026)
+  - feat(DTSW-8240): redesign the robot dashboard behind reversible feature flags, including Mission Control, Overview, teleop, and Wi-Fi status
+  - add tools/keyboard_controller_auth.php so the dashboard can require a logged-in session for /keyboard-controller/
+
 ## 1.5.5 (September 29, 2026)
   - Merge pull request #11 from duckietown/DTSW-8395-Expand-networking-support-for-robot-address-entry
   - feat: expand networking support by introducing getBrowserRobotHostname method
