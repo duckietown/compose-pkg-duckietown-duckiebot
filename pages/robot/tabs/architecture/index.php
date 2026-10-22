@@ -391,19 +391,6 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
         window._architecture_graph.options
     );
 
-    // helper functions
-    function agraph_ros_api(callback, group, action, selector = '', arguments = {}) {
-        let hostname = "<?php echo Core::getSetting(
-            'ros_api/hostname', 'duckietown_duckiebot', Duckiebot::getBrowserRobotHostname()
-        ) ?>";
-        let url = 'http://{0}/ros/{1}/{2}/{3}{4}'.format(
-            hostname, group, action, selector, $.param(arguments)
-        );
-        // remove trailing slashes
-        url = url.replace(/\/+$/, "");
-        callExternalAPI(url, 'GET', 'json', false, false, callback, true, true);
-    }
-
     // node selection
     function _agraph_on_node_selection_change(params) {
         window._architecture_graph.inspector.current.node = null;
@@ -508,9 +495,12 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
             // perform clustering
             agraph_perform_clustering();
         }
-        // fetch ROS graph
+        // fetch the graph from the robot's DTPS switchboard
         if (force) {
-            agraph_ros_api(refresh, 'graph', '');
+            agraph_dtps_graph('<?php echo Duckiebot::getDuckiebotName() ?>').then(refresh).catch(function (error) {
+                console.log('Cannot read the DTPS switchboard: ', error);
+                openAlert('danger', 'Cannot read the robot architecture from the DTPS switchboard: ' + error.message);
+            });
         } else {
             refresh();
         }
@@ -702,3 +692,6 @@ $min_canvas_width_px = 970 - 2 * $sides_size_px;
         src="<?php echo Core::getJSscriptURL('agraph_inspector.js', 'duckietown_duckiebot') ?>"
         type="text/javascript">
 </script>
+<script src="<?php echo Core::getJSscriptURL('cbor.min.js', 'duckietown_duckiebot') ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('dtps_client.js', 'duckietown_duckiebot') ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('agraph_dtps.js', 'duckietown_duckiebot') ?>"></script>

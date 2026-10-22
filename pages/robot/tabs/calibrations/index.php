@@ -1,19 +1,9 @@
 <?php
 
-use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 
 $robot_name = Duckiebot::getDuckiebotName();
 $robot_type = Duckiebot::getRobotType();
-// TODO: these might not be needed anymore
-$robot_hostname = Duckiebot::getBrowserRobotHostname();
-$ros_hostname = ROS::sanitize_hostname($robot_hostname);
-
-$connected_evt = ROS::get_event(ROS::$ROSBRIDGE_CONNECTED, $ros_hostname);
-$error_evt = ROS::get_event(ROS::$ROSBRIDGE_ERROR, $ros_hostname);
-$closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
-
-ROS::connect($ros_hostname);
 ?>
 
 <table style="width: 970px; margin: auto; margin-bottom: 12px">
@@ -192,26 +182,18 @@ $open_calibration = "camera_intrinsic";
 
 
 <script type="text/javascript">
-    $(document).on("<?php echo $connected_evt ?>", function (evt) {
-        console.log('Connected to websocket server.');
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
-        );
-    });
-
-    $(document).on("<?php echo $error_evt ?>", function (evt, error) {
-        console.log('Error connecting to websocket server: ', error);
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
-        );
-    });
-
-    $(document).on("<?php echo $closed_evt ?>", function (evt) {
-        console.log('Connection to websocket server closed.');
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
-        );
-    });
+    // everything on this page goes through the robot's files API (no ROS needed): show its status
+    function _set_api_status(reachable) {
+        if (reachable) {
+            $('#vehicle_bridge_status').html(
+                '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Files API: <strong>Connected</strong>'
+            );
+        } else {
+            $('#vehicle_bridge_status').html(
+                '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Files API: <strong>Error</strong>'
+            );
+        }
+    }
     
     let _backup_row = `
         <tr>
@@ -241,6 +223,7 @@ $open_calibration = "camera_intrinsic";
     }
     
     function _on_info_success (calib_type, data) {
+        _set_api_status(true);
         $('#{0}_{1}'.format([calib_type, 'exists'])).html(exists_icon(data.exists));
         $('#{0}_{1}'.format([calib_type, 'status'])).html(exists_icon(data.exists));
         $('#{0}_{1}'.format([calib_type, 'date'])).html(data.time || "(none)");
@@ -252,6 +235,7 @@ $open_calibration = "camera_intrinsic";
     }
     
     function _on_info_error (calib_type, _) {
+        _set_api_status(false);
         $('#{0}_{1}'.format([calib_type, 'status'])).html("(error)");
         $('#{0}_{1}'.format([calib_type, 'exists'])).html("(error)");
         $('#{0}_{1}'.format([calib_type, 'date'])).html("(error)");

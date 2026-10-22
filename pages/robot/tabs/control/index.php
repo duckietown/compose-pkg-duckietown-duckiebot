@@ -2,7 +2,6 @@
 use \system\classes\Core;
 use \system\classes\Configuration;
 use \system\classes\Database;
-use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 ?>
 
@@ -18,7 +17,6 @@ use \system\packages\duckietown_duckiebot\Duckiebot;
 </span>
 
 <?php
-// TODO: get these from ROS param
 $v_gain = 0.5;
 $omega_gain = 8.3;
 $sensitivity = 0.5;
@@ -29,7 +27,19 @@ $vehicle_name = Duckiebot::getDuckiebotName();
 $omega_gain *= $sensitivity;
 ?>
 
+<script src="<?php echo Core::getJSscriptURL('cbor.min.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('dtps_client.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('robot_calibration.js', 'duckietown_duckiebot'); ?>"></script>
+
 <script type="text/javascript">
+
+  // The robot is driven over DTPS: wheel PWM commands go straight to the wheels driver
+  // (`actuator/wheels/base/pwm`), like the keyboard controller does; no ROS stack is needed.
+  window.mission_control_dtps = DTPS.client('<?php echo $vehicle_name ?>');
+  window.mission_control_calibration = RobotCalibration.DEFAULTS;
+  RobotCalibration.load('<?php echo $vehicle_name ?>').then(function (calibration) {
+    window.mission_control_calibration = calibration;
+  });
 
   // define the list of keys that can be used to drive the vehicle
   window.mission_control_Keys = {
@@ -52,6 +62,8 @@ $omega_gain *= $sensitivity;
       window.mission_control_keyMap[window.mission_control_Keys[item]] = false;
     }
   }
+  // whether the last command sent was a non-zero one (a stop is sent once when the keys are released)
+  window.mission_control_moving = false;
 
   // capture keyboard events (and update buffer accordingly)
   function key_cb(e){
@@ -64,46 +76,47 @@ $omega_gain *= $sensitivity;
     }
   }//key_cb
 
-  // define the callback function that turns the key_map into a ROS message
+  function send_pwm(pwm) {
+    window.mission_control_dtps.publish("actuator/wheels/base/pwm", {
+      header: DTPS.header(),
+      left: pwm.left,
+      right: pwm.right
+    }).catch(function (error) {
+      console.warn('Cannot send the wheel command: ', error);
+    });
+  }
+
+  // turn the key_map into a wheel command
   function publish_command(){
     if (window.mission_control_Mode != 'manual')
       return;
-    if (window.mission_control_cmdVel == undefined)
-      return;
-    keys = window.mission_control_Keys;
-    key_map = window.mission_control_keyMap;
+    let keys = window.mission_control_Keys;
+    let key_map = window.mission_control_keyMap;
     // compute linear/angular speeds
-    v_gain = <?php echo $v_gain ?>;
-    omega_gain = <?php echo $omega_gain ?>;
-    v_val = Math.min(key_map[keys.UP_ARROW] + key_map[keys.W], 1) - Math.min(key_map[keys.DOWN_ARROW] + key_map[keys.S], 1);
-    omega_val = Math.min(key_map[keys.LEFT_ARROW] + key_map[keys.A], 1) - Math.min(key_map[keys.RIGHT_ARROW] + key_map[keys.D], 1);
-    // create a message
-    var car_cmd = new ROSLIB.Message({
-      v : v_val * v_gain,
-      omega : omega_val * omega_gain
-    });
-    // publish message
-    window.mission_control_cmdVel.publish(car_cmd);
+    let v_val = Math.min(key_map[keys.UP_ARROW] + key_map[keys.W], 1) - Math.min(key_map[keys.DOWN_ARROW] + key_map[keys.S], 1);
+    let omega_val = Math.min(key_map[keys.LEFT_ARROW] + key_map[keys.A], 1) - Math.min(key_map[keys.RIGHT_ARROW] + key_map[keys.D], 1);
+    let v = v_val * <?php echo $v_gain ?>;
+    let omega = omega_val * <?php echo $omega_gain ?>;
+    if (v === 0 && omega === 0) {
+      // nothing pressed: send a single stop, then stay quiet (the wheels driver also stops
+      // by itself when it receives no command for a while)
+      if (window.mission_control_moving) {
+        send_pwm({left: 0, right: 0});
+        window.mission_control_moving = false;
+      }
+      return;
+    }
+    send_pwm(RobotCalibration.toPWM(window.mission_control_calibration, v, omega));
+    window.mission_control_moving = true;
   }//publish_command
-
-  // publish command at regular rate
-  $(document).on('<?php echo ROS::$ROSBRIDGE_CONNECTED ?>', function(e){
-    // define the output topic
-    window.mission_control_cmdVel = new ROSLIB.Topic({
-      ros : window.ros,
-      name : '/<?php echo $vehicle_name ?>/joy_mapper_node/car_cmd',
-      messageType : 'duckietown_msgs/Twist2DStamped',
-      queue_size : 1
-    });
-    // attach listeners to key events
-    window.addEventListener("keyup", key_cb, false);
-    window.addEventListener("keydown", key_cb, false);
-    // start publishing commands to the vehicle
-    setInterval(publish_command, <?php echo intval(1000.0 / $output_commands_hz) ?>);
-  });
 
   $(document).ready(function() {
     window.mission_control_Mode = 'autonomous';
+    // attach listeners to key events
+    window.addEventListener("keyup", key_cb, false);
+    window.addEventListener("keydown", key_cb, false);
+    // publish commands to the vehicle at regular rate
+    setInterval(publish_command, <?php echo intval(1000.0 / $output_commands_hz) ?>);
   });
 
   $('#vehicle_driving_mode_toggle').change(function(){
@@ -112,10 +125,21 @@ $omega_gain *= $sensitivity;
       $('body').css('background-image', 'linear-gradient(to top, #F7F7F6, #FFC800, #F7F7F6)');
       $('#vehicle_driving_mode_status').html('Manual');
       window.mission_control_Mode = 'manual';
+      // taking over disables the autopilot (e.g. stops lane following), as the keyboard controller does
+      window.mission_control_dtps.publish("node/control_mapper/autopilot", {
+        header: DTPS.header(),
+        data: false
+      }).catch(function (error) {
+        console.warn('Cannot disable the autopilot: ', error);
+      });
     }else{
       $('body').css('background-image', 'none');
       $('#vehicle_driving_mode_status').html('Autonomous');
       window.mission_control_Mode = 'autonomous';
+      // release the wheels
+      for (let key in window.mission_control_keyMap) window.mission_control_keyMap[key] = false;
+      send_pwm({left: 0, right: 0});
+      window.mission_control_moving = false;
     }
   });
 
