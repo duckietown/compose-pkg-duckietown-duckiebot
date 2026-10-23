@@ -1,9 +1,4 @@
 <?php
-/**
- * Modern Components tab polish (required vs optional, bridge pill, 1040px width).
- * Behavioural changes are CSS/layout only - component start/stop APIs unchanged.
- * Content width aligned with other robot tabs (robot_ui redesign consistency).
- */
 use \system\classes\Core;
 use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
@@ -29,44 +24,29 @@ ROS::connect($ros_hostname);
     #_robot_components_div {
         margin: auto;
         text-align: center;
-        max-width: var(--r-max, 1040px);
     }
     
     #_placeholder_img{
-        padding-top: 60px;
+        padding-top: 100px;
         text-align: center;
     }
     
     ._robot_component_container {
-        background-color: var(--r-surface, #f8f9fb);
-        border: 1px solid var(--r-border, #e6e8eb);
-        border-radius: var(--r-radius-md, 10px);
-        margin: var(--r-gap, 10px) 0;
-        height: auto;
-        width: 100%;
-        max-width: var(--r-max, 1040px);
-        overflow: hidden;
-        transition: border-color var(--r-ease, 160ms ease), box-shadow var(--r-ease, 160ms ease);
-    }
-    ._robot_component_container:hover {
-        border-color: var(--r-border-strong, #d1d5db);
-        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        background-color: #eaeaea;
+        border-radius: 4px;
+        margin: 30px 0;
+        height: 100px;
+        width: 1000px;
     }
     
     ._robot_component_container > i.fa-spinner {
-        color: var(--r-muted, #6b7280);
+        color: darkgrey;
         margin-top: 30px;
-        margin-bottom: 30px;
     }
     
     ._robot_component_container nav{
-        height: auto;
-        width: 100%;
-        margin: 0;
-        border: 0;
-        background: transparent;
-        box-shadow: none;
-        min-height: 0;
+        height: 100px;
+        width: 1000px;
         display: none;
     }
     
@@ -77,8 +57,6 @@ ROS::connect($ros_hostname);
     ._robot_component_container nav .collapse{
         padding: 0;
         width: 100%;
-        display: block !important;
-        height: auto !important;
     }
     
     ._robot_component_container nav table{
@@ -86,109 +64,62 @@ ROS::connect($ros_hostname);
     }
     
     ._robot_component ._robot_component_icon{
-        min-width: 72px;
-        max-width: 72px;
-        border-right: 1px solid var(--r-border, #e6e8eb);
-        padding: 12px 0;
+        min-width: 100px;
+        max-width: 100px;
+        border-right: 1px solid lightgrey;
     }
     
     ._robot_overall_status_icon{
-        min-width: 100px;
-        max-width: 100px;
-        border-right: 1px solid var(--r-border, #e6e8eb);
+        min-width: 130px;
+        max-width: 130px;
+        border-right: 1px solid lightgrey;
     }
     
     ._robot_component ._robot_component_icon i.fa{
-        font-size: var(--r-fs-icon, 24px);
-        color: var(--r-muted, #6b7280);
+        font-size: 18pt;
     }
     
     ._robot_overall_status_icon i.fa{
-        font-size: var(--r-fs-icon-lg, 40px);
+        font-size: 60pt;
     }
     
     ._robot_component ._robot_component_info{
-        min-width: 280px;
-        padding: 8px 12px;
-        width: 100%;
+        min-width: 500px;
+        max-width: 500px;
+        padding: 0 15px;
     }
     
     ._robot_component ._robot_component_info h4{
-        margin: 8px 0 4px 0;
-        font-size: var(--r-fs-xl, 15px);
-        font-weight: var(--r-fw-semibold, 600);
-        color: var(--r-text, #1a1d26);
-        letter-spacing: var(--r-tracking-tight, -0.02em);
-        line-height: var(--r-lh-tight, 1.15);
+        margin: 12px 0 6px 0;
     }
     
     ._robot_component ._robot_component_info h6{
-        margin: 0 0 6px 0;
+        margin: 0 0 8px 0;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-        color: var(--r-muted, #6b7280);
-        font-size: var(--r-fs-md, 12px);
-        font-weight: var(--r-fw-normal, 400);
-        line-height: var(--r-lh, 1.4);
-        text-transform: none;
-        letter-spacing: 0;
-    }
-
-    ._robot_component ._robot_component_actions {
-        width: 140px;
-        min-width: 140px;
-        max-width: 140px;
-        padding: 8px 12px;
-        text-align: center;
-        vertical-align: middle;
-        white-space: nowrap;
-    }
-
-    ._robot_component ._robot_component_actions .robot-btn {
-        min-width: 118px;
     }
     
     ._robot_component ._robot_component_stats{
-        padding: 10px 16px 0 0;
-        min-width: 180px;
+        padding: 4px 30px 0 0;
+        min-width: 200px;
+        max-width: 200px;
         text-align: right;
-        vertical-align: middle;
+        vertical-align: top;
     }
     
-    ._robot_component ._robot_component_stats .status-chip-row {
-        display: inline-flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        justify-content: flex-end;
-    }
-    
-    ._robot_component ._robot_component_stats .status-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 8px;
-        border-radius: var(--r-radius-pill, 999px);
-        border: 1px solid var(--r-border, #e6e8eb);
-        background: var(--r-card, #fff);
-        font-size: var(--r-fs-sm, 11px);
-        font-weight: var(--r-fw-medium, 500);
-        color: var(--r-muted, #6b7280);
-        transition: border-color var(--r-ease, 160ms ease), transform var(--r-ease, 160ms ease);
-    }
-    ._robot_component ._robot_component_stats .status-chip:hover {
-        border-color: var(--r-border-strong, #d1d5db);
+    ._robot_component ._robot_component_stats h5{
+        margin-bottom: 0;
     }
     
     ._robot_component ._robot_component_connector {
-        padding: 0 12px 10px 12px;
+        padding: 8px 15px 0 15px;
     }
     
     ._robot_component ._robot_component_bus,
     ._robot_overall_status_reason {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: var(--r-fs-sm, 11px);
-        color: var(--r-muted, #6b7280);
+        font-family: monospace;
+        font-size: 9pt;
     }
     
     ._robot_overall_status_info {
@@ -196,15 +127,21 @@ ROS::connect($ros_hostname);
     }
     
     .navbar-bad{
-        background: var(--r-bad-bg, #fef2f2);
-        border: 1px solid var(--r-bad-border, #fecaca);
-        border-radius: var(--r-radius-md, 10px);
+        background-image: -webkit-linear-gradient(top, #ff8080 0, #ff9d9d 100%);
+        background-image: -o-linear-gradient(top,#ff8080 0,#ff9d9d 100%);
+        background-image: -webkit-gradient(linear,left top,left bottom,from(#ff8080),to(#ff9d9d));
+        background-image: linear-gradient(to bottom,#ff8080 0,#ff9d9d 100%)
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffff8080', endColorstr='#ffff9d9d', GradientType=0);
+        filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
     }
     
     .navbar-good{
-        background: var(--r-ok-bg, #ecfdf3);
-        border: 1px solid var(--r-ok-border, #bbf7d0);
-        border-radius: var(--r-radius-md, 10px);
+        background-image: -webkit-linear-gradient(top, #8bc34a 0, #bdea88 100%);
+        background-image: -o-linear-gradient(top,#8bc34a 0,#bdea88 100%);
+        background-image: -webkit-gradient(linear,left top,left bottom,from(#8bc34a),to(#bdea88));
+        background-image: linear-gradient(to bottom,#8bc34a 0,#bdea88 100%)
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff8bc34a', endColorstr='#ffbdea88', GradientType=0);
+        filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
     }
 
     .cursor-pointer {
@@ -219,57 +156,25 @@ ROS::connect($ros_hostname);
     .top-view-modal {
         z-index:1060;
     }
-
-    .robot-components-section-title,
-    #_robot_components_div .robot-section-title {
-        text-align: left;
-        margin: 18px 0 8px;
-        font-size: var(--r-fs-md, 12px);
-        font-weight: var(--r-fw-semibold, 600);
-        color: var(--r-muted, #6b7280);
-        text-transform: uppercase;
-        letter-spacing: var(--r-tracking-label, 0.04em);
-    }
-
-    #_robot_components_optional_wrap {
-        margin-top: 8px;
-    }
-
-    #_robot_components_optional_toggle {
-        display: inline-flex;
-        width: 100%;
-        max-width: var(--r-max, 1040px);
-        margin: 8px auto;
-        justify-content: flex-start;
-        padding: 8px 12px;
-        border-style: dashed;
-        color: var(--r-muted, #6b7280);
-    }
-    #_robot_components_optional_toggle:hover {
-        border-style: dashed;
-        color: var(--r-text, #111827);
-    }
-
-    #_robot_components_overall_div {
-        max-width: var(--r-max, 1040px);
-        margin: 0 auto var(--r-gap-lg, 12px);
-    }
 </style>
 
-<div class="robot-status-bar">
-    <div class="robot-status-bar-item">
-        <i class="fa fa-car" aria-hidden="true"></i>
-        <span><strong><?php echo htmlspecialchars($robot_name) ?></strong></span>
-    </div>
-    <div class="robot-status-bar-item">
-        Hardware components
-    </div>
-    <div class="robot-status-bar-item">
-        <span id="vehicle_bridge_status" class="robot-bridge-pill is-wait">
-          <i class="fa fa-spinner fa-pulse"></i> Connecting…
+<table style="width: 970px; margin: auto; margin-bottom: 12px">
+    <tr>
+        <td class="text-left" style="width:33%">
+            <i class="fa fa-car" aria-hidden="true"></i> Vehicle:
+            <strong><?php echo $robot_name ?></strong>
+        </td>
+        <td class="text-center"
+            style="width:33%; border-left: 1px solid lightgrey; border-right: 1px solid lightgrey">
+            Components
+        </td>
+        <td class="text-center" style="width:33%; text-align: right">
+        <span id="vehicle_bridge_status">
+          <i class="fa fa-spinner fa-pulse"></i> Connecting...
         </span>
-    </div>
-</div>
+        </td>
+    </tr>
+</table>
 
 <?php include_once __DIR__ . "/modals/imu-game.php" ?>
 
@@ -289,35 +194,24 @@ ROS::connect($ros_hostname);
 
     $(document).on("<?php echo $connected_evt ?>", function (evt) {
         console.log('Connected to websocket server.');
-        if (typeof robot_set_bridge_status === 'function') {
-            robot_set_bridge_status('ok', '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge connected');
-        } else {
-            $('#vehicle_bridge_status').html(
-                '<i class="fa fa-check-circle" aria-hidden="true"></i> Bridge: <strong>Connected</strong>'
-            );
-        }
+        $('#vehicle_bridge_status').html(
+            '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
+        );
+
     });
 
     $(document).on("<?php echo $error_evt ?>", function (evt, error) {
         console.log('Error connecting to websocket server: ', error);
-        if (typeof robot_set_bridge_status === 'function') {
-            robot_set_bridge_status('bad', '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge error');
-        } else {
-            $('#vehicle_bridge_status').html(
-                '<i class="fa fa-times-circle" aria-hidden="true"></i> Bridge: <strong>Error</strong>'
-            );
-        }
+        $('#vehicle_bridge_status').html(
+            '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
+        );
     });
 
     $(document).on("<?php echo $closed_evt ?>", function (evt) {
         console.log('Connection to websocket server closed.');
-        if (typeof robot_set_bridge_status === 'function') {
-            robot_set_bridge_status('bad', '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge closed');
-        } else {
-            $('#vehicle_bridge_status').html(
-                '<i class="fa fa-power-off" aria-hidden="true"></i> Bridge: <strong>Closed</strong>'
-            );
-        }
+        $('#vehicle_bridge_status').html(
+            '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
+        );
     });
     
     window.ROBOT_COMPONENT_TYPE_TO_ICON = {
@@ -356,15 +250,13 @@ ROS::connect($ros_hostname);
                             <h4 class="text-left">{name}</h4>
                             <h6 class="text-left">{description}</h6>
                         </td>
-                        <td class="_robot_component_actions">
+                        <td>
                             {verification_test_button}
                         </td>
                         <td rowspan="2" class="_robot_component_stats">
-                            <div class="status-chip-row">
-                                {supported}
-                                {detected}
-                                {calibrated}
-                            </div>
+                            <h5><strong>Supported:</strong> {supported}</h5>
+                            <h5><strong>Detected:</strong> {detected}</h5>
+                            {calibrated}
                         </td>
                     </tr>
                     <tr>
@@ -415,31 +307,15 @@ ROS::connect($ros_hostname);
         not found.
     </h5>`;
 
-    function status_chip(label, value, strict, passive) {
-        let icon;
-        let css = window.getComputedStyle(document.documentElement);
-        let tone = (css.getPropertyValue('--r-muted') || '').trim() || '#555';
-        let title = passive || label;
-        if (value === true) {
-            icon = 'glyphicon-ok-sign';
-            tone = (css.getPropertyValue('--r-ok') || '').trim() || '#2e7d32';
-            title = 'Yes';
-        } else if (strict) {
-            icon = 'glyphicon-remove-sign';
-            tone = (css.getPropertyValue('--r-bad') || '').trim() || '#c62828';
-            title = 'No';
-        } else {
-            icon = 'glyphicon-minus-sign';
-            tone = (css.getPropertyValue('--r-muted') || '').trim() || '#9e9e9e';
-        }
-        return '<span class="status-chip" title="{3}"><span class="glyphicon {0}" aria-hidden="true" style="color:{1}"></span>{2}</span>'.format(
-            icon, tone, label, title
-        );
-    }
-
-    // Back-compat wrapper
     function status_icon(value, strict, passive) {
-        return status_chip('', value, strict, passive);
+        if (value === true) {
+            return '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green" data-toggle="tooltip" data-placement="right" title="Yes"></span>';
+        }
+        if (strict){
+            return '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red" data-toggle="tooltip" data-placement="right" title="No"></span>';
+        } else {
+            return '<span class="glyphicon glyphicon-minus-sign" aria-hidden="true" style="color:darkgrey" data-toggle="tooltip" data-placement="right" title="{0}"></span>'.format(passive);
+        }
     }
 
     function render_components(data) {
@@ -450,24 +326,16 @@ ROS::connect($ros_hostname);
         let container_div = $('#_robot_components_div');
         // sort by "supported"
         let components = Object.values(data).sort((a, b) => (a.supported > b.supported) ? -1 : 1);
-        container_div.append('<div class="robot-section-title">Required</div>');
-        let optional_opened = false;
+        container_div.append('<h4><span class="label label-default">Officially Supported</span></h4>');
         let missing = [];
         for (let i = 0; i < components.length; i++) {
             let component = components[i];
             if (i > 0 && component.supported !== components[i-1].supported) {
-                // Collapse optional components by default
-                container_div.append(
-                    '<button type="button" class="robot-btn robot-btn-ghost" id="_robot_components_optional_toggle" data-toggle="collapse" data-target="#_robot_components_optional_wrap" aria-expanded="false">' +
-                    '<i class="fa fa-chevron-down" aria-hidden="true"></i> Show optional components' +
-                    '</button>' +
-                    '<div id="_robot_components_optional_wrap" class="collapse"></div>'
-                );
-                optional_opened = true;
+                container_div.append("<hr/>");
+                container_div.append('<h4><span class="label label-default">Optional</span></h4>');
             }
-            let target_div = optional_opened ? $('#_robot_components_optional_wrap') : container_div;
             let name = component.name;
-            target_div.append(
+            container_div.append(
                 _pholder_nav.format({name: i})
             );
             let div = $('#_robot_component_{name}'.format({name: i}));
@@ -477,27 +345,22 @@ ROS::connect($ros_hostname);
             let bus = "Bus {0} #{1} - Channel #{2} - Address {3}".format(
                 component.bus.description, component.bus.number, component.instance, component.address
             );
-            let supported = status_chip(
-                component.supported ? 'Required' : 'Optional',
-                component.supported,
-                false,
-                component.supported ? 'Officially supported' : 'Optional'
-            );
-            let detected = status_chip(
-                'Detected',
+            let supported = status_icon(component.supported, false, "Optional");
+            let detected = status_icon(
                 component.detected,
                 (component.supported && component.detectable !== false),
-                component.detectable? "Not detected" : "Not detectable"
+                component.detectable? "No" : "Not detectable"
             );
             let calibrated = component.hasOwnProperty('calibration')? (
                 component.calibration.needed?
-                    status_chip('Calibrated', component.calibration.completed, true, null)
-                    : ''
+                    "<h5><strong>Calibrated:</strong> {0}</h5>".format(
+                        status_icon(component.calibration.completed, true, null)
+                    ) : ''
             ) : '';
             let verification_test_button = "";
             if (component.supported && component.test_service_name !== "") {
                 let id_str_name = name.replaceAll(' ', '-');
-                verification_test_button = `<button type="button" disabled="true" id="modal-btn-${id_str_name}" class="robot-btn robot-btn-accent robot-btn-sm" data-toggle="modal" data-target="#modal-${id_str_name}">Test Hardware</button>`;
+                verification_test_button = `<button type="button" disabled="true" id="modal-btn-${id_str_name}" class="btn btn-info" data-toggle="modal" data-target="#modal-${id_str_name}">Test Hardware</button>`;
 
                 let test_modal = `
                     <!-- Modal -->
@@ -518,15 +381,15 @@ ROS::connect($ros_hostname);
                                         <p>Also, you could:</p>
                                     </div>
                                     <div class="col-md-3 bg-light text-left">
-                                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-sm text-left" id="{btn_id_logs_node}">Download logs of this ROS node</button>
+                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_node}">Download logs of this ROS node</button>
                                     </div>
                                     <div class="col-md-3 bg-light text-left">
-                                        <button type="button" class="robot-btn robot-btn-ghost robot-btn-sm text-left" id="{btn_id_logs_docker_container}">Download docker container logs</button>
+                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_docker_container}">Download docker container logs</button>
                                     </div>
                                     <div class="col-md-4"></div>
                                 </div>
                                 <br><br>
-                                <button type="button" class="robot-btn robot-btn-primary text-left" id="{btn_id_run}">Run the test</button>
+                                <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
                                 <!-- div class="row">
                                     <div class="col-md-12 bg-light text-right">
                                         <button type="button" class="btn btn-primary text-left" id="{btn_id_run}">Run the test</button>
@@ -549,8 +412,8 @@ ROS::connect($ros_hostname);
                                             <p id="{record_id}" class="text-left"></p>
                                         </div>
                                         <div class="col-md-4">
-                                            <button type="button" class="robot-btn robot-btn-ok" id="{btn_id_success}">Success</button>
-                                            <button type="button" class="robot-btn robot-btn-warn" id="{btn_id_failed}">Problem</button>
+                                            <button type="button" class="btn btn-success" id="{btn_id_success}">Success</button>
+                                            <button type="button" class="btn btn-warning" id="{btn_id_failed}">Problem</button>
                                         </div>
                                     </div>
                                     <!-- button type="button" class="btn btn-default" data-dismiss="modal">Close</button -->
@@ -643,7 +506,7 @@ ROS::connect($ros_hostname);
 
                         if (!result.success) {
                             // alert("Not successful");
-                            $('#' + output_id).html("<h4 class='text-danger'>The test run was not successful!</h4>");
+                            $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>");
                             return;
                         }
 
@@ -768,18 +631,6 @@ ROS::connect($ros_hostname);
                 missing.push(component.name);
             }
         }
-
-        // Optional section toggle label
-        $('#_robot_components_optional_wrap').on('shown.bs.collapse', function () {
-            $('#_robot_components_optional_toggle').html(
-                '<i class="fa fa-chevron-up" aria-hidden="true"></i> Hide optional components'
-            );
-        }).on('hidden.bs.collapse', function () {
-            $('#_robot_components_optional_toggle').html(
-                '<i class="fa fa-chevron-down" aria-hidden="true"></i> Show optional components'
-            );
-        });
-
         // create a modal allowing the user to download logs from each running docker container
         create_view_list_docker_containers(robot_name);
 
@@ -787,7 +638,7 @@ ROS::connect($ros_hostname);
             status: (missing.length > 0)? 'Some components were not detected' : 'Healthy',
             icon: (missing.length > 0)? 'exclamation-circle' : 'check-circle-o',
             style: (missing.length > 0)? 'bad' : 'good',
-            color: (missing.length > 0)? 'var(--r-bad)' : 'var(--r-ok)',
+            color: (missing.length > 0)? 'darkred' : 'darkgreen',
             explanation: (missing.length > 0)? _overall_failure_nav.format({
                     missing: missing.join(", ")
                 }) :

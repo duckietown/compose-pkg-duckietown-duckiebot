@@ -17,10 +17,10 @@ function agraph_cluster_by_module() {
                 label: module_type,
                 shape: 'circle',
                 color: {
-                    border: agraph_ui_border(false),
+                    border: "gray",
                     background: palette.next(),
                     highlight: {
-                        border: agraph_ui_border(true),
+                        border: "darkgray",
                         background: palette.current('dark'),
                     }
                 },
@@ -51,10 +51,10 @@ function agraph_cluster_by_machine() {
                 label: machine,
                 shape: 'circle',
                 color: {
-                    border: agraph_ui_border(false),
+                    border: "gray",
                     background: palette.next(),
                     highlight: {
-                        border: agraph_ui_border(true),
+                        border: "darkgray",
                         background: palette.current('dark'),
                     }
                 },
