@@ -109,7 +109,7 @@ if ($db->size() == 0){
   echo sprintf('<p class="robot-empty-state">%s</p>', htmlspecialchars($message));
   $load_mission = false;
 }
-$mission_control_grid = [];
+$mission_control_grid = ['blocks' => []];
 $is_duckiebot_mission = ($robot_type === 'duckiebot');
 if ($load_mission) {
   // Duckiebot-only renderers (teleop / signed Twist2D / LED). Other robot

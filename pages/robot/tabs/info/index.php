@@ -1116,9 +1116,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         extra = extra || {};
         var merged = $.extend({}, NETWORK_BOOT, extra);
         if (connected) merged.connected = true;
-        if (!merged.ssid && NETWORK_BOOT && NETWORK_BOOT.ssid) {
-            merged.ssid = NETWORK_BOOT.ssid;
-        }
         // Health payloads rarely include ethernet; keep boot value unless
         // refreshNetworkSnapshot supplies an explicit ethernet field.
         if (!Object.prototype.hasOwnProperty.call(extra, 'ethernet')
@@ -1195,7 +1192,6 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 return;
             }
             if (!data || typeof data !== 'object') return;
-            applyNetworkSnapshot(mergeNetworkSnapshot(data.network || data.net || {}, true));
 
             try {
                 let temp = Number(data.temperature);
@@ -1253,10 +1249,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                         );
                     }
                 }
-                if (data.network || data.net) {
-                    applyNetworkSnapshot(mergeNetworkSnapshot(data.network || data.net, true));
-                }
-                // Refresh Wi‑Fi + optional Ethernet strip from the robot itself.
+                // Connection comes from robot_wifi status, not this health poll.
                 refreshNetworkSnapshot();
                 if (data.software && data.software.version) {
                     $('.robot-info-container #firmware_info').text(

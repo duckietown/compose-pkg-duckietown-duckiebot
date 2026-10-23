@@ -788,13 +788,6 @@ class Duckiebot_KeyboardController extends BlockRenderer {
                     if (host && window.ros[host]) return window.ros[host];
                 } catch (err) {}
                 if (window.ros['local']) return window.ros['local'];
-                if (window.ros['akshet.local']) return window.ros['akshet.local'];
-                if (window.ros.socket) return window.ros;
-                var keys = Object.keys(window.ros);
-                for (var i = 0; i < keys.length; i++) {
-                    var cand = window.ros[keys[i]];
-                    if (cand && cand.socket) return cand;
-                }
                 return null;
             }
 
