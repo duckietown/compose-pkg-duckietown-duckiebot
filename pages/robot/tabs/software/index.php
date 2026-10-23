@@ -17,7 +17,7 @@ $update_hz = 1.0;
     }
     
     ._robot_software_module_container {
-        background-color: #eaeaea;
+        background-color: var(--r-surface, #eaeaea);
         border-radius: 4px;
         margin: 30px 0;
         height: 100px;
@@ -25,7 +25,7 @@ $update_hz = 1.0;
     }
     
     ._robot_software_module_container > i.fa-spinner {
-        color: darkgrey;
+        color: var(--r-muted, darkgrey);
         margin-top: 30px;
     }
     
@@ -51,11 +51,11 @@ $update_hz = 1.0;
     ._robot_software_module ._robot_software_module_icon{
         min-width: 100px;
         max-width: 100px;
-        border-right: 1px solid lightgrey;
+        border-right: 1px solid var(--r-border, lightgrey);
     }
     
     ._robot_software_module ._robot_software_module_icon i.fa{
-        font-size: 18pt;
+        font-size: var(--r-fs-icon, 24px);
     }
     
     ._robot_software_module ._robot_software_module_info{
@@ -66,6 +66,11 @@ $update_hz = 1.0;
     
     ._robot_software_module ._robot_software_module_info h4{
         margin: 12px 0 6px 0;
+        font-size: var(--r-fs-xl, 15px);
+        font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-text, #1a1d26);
+        letter-spacing: var(--r-tracking-tight, -0.02em);
+        line-height: var(--r-lh-tight, 1.15);
     }
     
     ._robot_software_module ._robot_software_module_info h6{
@@ -73,8 +78,12 @@ $update_hz = 1.0;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        color: var(--r-muted, #6b7280);
+        font-size: var(--r-fs-md, 12px);
+        font-weight: var(--r-fw-normal, 400);
+        line-height: var(--r-lh, 1.4);
     }
-    
+
     ._robot_software_module ._robot_software_module_version{
         min-width: 200px;
         max-width: 200px;
@@ -83,6 +92,9 @@ $update_hz = 1.0;
     
     ._robot_software_module ._robot_software_module_version h5{
         margin-bottom: 0;
+        font-size: var(--r-fs-sm, 11px);
+        font-weight: var(--r-fw-semibold, 600);
+        color: var(--r-muted, #6b7280);
     }
     
     ._robot_software_module ._robot_software_module_actions{
@@ -101,8 +113,8 @@ $update_hz = 1.0;
     
     ._robot_software_module ._robot_software_module_status_desc {
         /*font-family: monospace;*/
-        margin-top: -20px;
-        font-size: 9pt;
+        margin-top: 0;
+        font-size: var(--r-fs-xs, 10px);
     }
 </style>
 
@@ -148,7 +160,7 @@ $update_hz = 1.0;
                                 <button type="button" class="btn btn-{btn_style}" {btn_html} onclick="update_module('{name}')">
                                     <i class="fa fa-{btn_icon}" aria-hidden="true"></i>&nbsp; {btn_label}
                                 </button>
-                                <button type="button" class="btn btn-{btn_style} dropdown-toggle" {btn_html} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="height: 34px">
+                                <button type="button" class="btn btn-{btn_style} dropdown-toggle" {btn_html} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="caret"></span>
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
