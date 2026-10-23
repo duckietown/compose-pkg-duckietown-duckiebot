@@ -1,23 +1,14 @@
 <?php
 use \system\classes\Core;
-use \system\packages\ros\ROS;
 use \system\packages\duckietown_duckiebot\Duckiebot;
 use \system\classes\Database;
 
-// TODO: these might not be needed anymore
-$dbot_hostname = Duckiebot::getBrowserRobotHostname();
-
 $robot_name = Duckiebot::getDuckiebotName();
 $robot_type = Duckiebot::getRobotType();
-$ros_hostname = ROS::sanitize_hostname($dbot_hostname);
-
-$connected_evt = ROS::get_event(ROS::$ROSBRIDGE_CONNECTED, $ros_hostname);
-$error_evt = ROS::get_event(ROS::$ROSBRIDGE_ERROR, $ros_hostname);
-$closed_evt = ROS::get_event(ROS::$ROSBRIDGE_CLOSED, $ros_hostname);
 
 $HW_TEST_DB_NAME = Duckiebot::$HARDWARE_TEST_RESULTS_DATABASE_NAME;
 
-ROS::connect($ros_hostname);
+// NOTE: the hardware tests run over DTPS (see js/hardware_tests_dtps.js), they do not need ROS
 ?>
 
 <style type="text/css">
@@ -179,6 +170,9 @@ ROS::connect($ros_hostname);
 <?php include_once __DIR__ . "/modals/imu-game.php" ?>
 
 <script src="<?php echo Core::getJSscriptURL('hardware_test_utils.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('cbor.min.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('dtps_client.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('hardware_tests_dtps.js', 'duckietown_duckiebot'); ?>"></script>
 
 <div id="_placeholder_img">
     <img src="<?php echo Core::getImageURL('loading_blue.gif') ?>" alt=""/>
@@ -192,25 +186,15 @@ ROS::connect($ros_hostname);
 
 <script type="text/javascript">
 
-    $(document).on("<?php echo $connected_evt ?>", function (evt) {
-        console.log('Connected to websocket server.');
+    // the hardware tests talk to the robot's DTPS switchboard: show whether it is reachable
+    DTPS.client('<?php echo $robot_name ?>').index().then(function () {
         $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Bridge: <strong>Connected</strong>'
+            '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Switchboard: <strong>Connected</strong>'
         );
-
-    });
-
-    $(document).on("<?php echo $error_evt ?>", function (evt, error) {
-        console.log('Error connecting to websocket server: ', error);
+    }).catch(function (error) {
+        console.log('Error connecting to the DTPS switchboard: ', error);
         $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Bridge: <strong>Error</strong>'
-        );
-    });
-
-    $(document).on("<?php echo $closed_evt ?>", function (evt) {
-        console.log('Connection to websocket server closed.');
-        $('#vehicle_bridge_status').html(
-            '<span class="glyphicon glyphicon-off" aria-hidden="true" style="color:red"></span> Bridge: <strong>Closed</strong>'
+            '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Switchboard: <strong>Error</strong>'
         );
     });
     
@@ -320,8 +304,8 @@ ROS::connect($ros_hostname);
 
     function render_components(data) {
         // to be passed to js functions imported
-        let ros = window.ros['<?php echo $dbot_hostname ?>'];
         let robot_name = '<?php echo $robot_name?>';
+        let dtps = DTPS.client(robot_name);
 
         let container_div = $('#_robot_components_div');
         // sort by "supported"
@@ -358,9 +342,14 @@ ROS::connect($ros_hostname);
                     ) : ''
             ) : '';
             let verification_test_button = "";
-            if (component.supported && component.test_service_name !== "") {
+            let test_spec = (component.supported && component.test_service_name !== "") ?
+                DT_HW_TESTS.get(component.test_service_name) : null;
+            if (component.supported && component.test_service_name !== "" && test_spec === null) {
+                console.warn(`No DTPS hardware test for '${component.test_service_name}' (${name}).`);
+            }
+            if (test_spec !== null) {
                 let id_str_name = name.replaceAll(' ', '-');
-                verification_test_button = `<button type="button" disabled="true" id="modal-btn-${id_str_name}" class="btn btn-info" data-toggle="modal" data-target="#modal-${id_str_name}">Test Hardware</button>`;
+                verification_test_button = `<button type="button" id="modal-btn-${id_str_name}" class="btn btn-info" data-toggle="modal" data-target="#modal-${id_str_name}">Test Hardware</button>`;
 
                 let test_modal = `
                     <!-- Modal -->
@@ -381,7 +370,7 @@ ROS::connect($ros_hostname);
                                         <p>Also, you could:</p>
                                     </div>
                                     <div class="col-md-3 bg-light text-left">
-                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_node}">Download logs of this ROS node</button>
+                                        <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_node}">Download logs of the driver</button>
                                     </div>
                                     <div class="col-md-3 bg-light text-left">
                                         <button type="button" class="btn btn-sm text-left" id="{btn_id_logs_docker_container}">Download docker container logs</button>
@@ -452,35 +441,8 @@ ROS::connect($ros_hostname);
                     record_id: record_id,
                 }));
 
-                // test ros service description
-                let _testDescriptionClient = new ROSLIB.Service({
-                    ros : window.ros['<?php echo $dbot_hostname ?>'],
-                    name : `/${robot_name}/${component.test_service_name}/description`,
-                    serviceType : 'std_srvs/Trigger'
-                });
-                var reqDescription = new ROSLIB.ServiceRequest({});
-                _testDescriptionClient.callService(reqDescription, function(result) {
-                    // enable button
-                    $('#' + modal_btn_id).prop('disabled', false);
-                    
-                    try {
-                        // --- Method v1: send json and parse blocks
-                        const response_obj = JSON.parse(result.message);
-                        // console.log(response_obj);
-                        $('#' + description_id).html(json_to_html(response_obj));
-                        // --- Method v1 End
-                    } catch (error) {
-                        $('#' + description_id).html("Error parsing the response: " + result.message);
-                    }
-                });
-
-                // test ros service
-                let _testRunClient = new ROSLIB.Service({
-                    ros : window.ros['<?php echo $dbot_hostname ?>'],
-                    name : '/' + '<?php echo $robot_name?>' + '/' + component.test_service_name + '/run',
-                    serviceType : 'std_srvs/Trigger'
-                });
-                let request = new ROSLIB.ServiceRequest({});
+                // test description
+                $('#' + description_id).html(json_to_html(DT_HW_TESTS.describe(test_spec)));
 
                 // before test finish, do not show success/problem buttons
                 $('#' + btn_id_success).hide();
@@ -495,50 +457,27 @@ ROS::connect($ros_hostname);
                     // hide button
                     $('#' + btn_id_run).hide();
 
-                    _testRunClient.callService(request, function(result) {
+                    DT_HW_TESTS.run(test_spec, dtps).then(function (result) {
                         $('#' + prog_id).hide();
                         $('#' + btn_id_run).show();
                         // show result buttons
                         $('#' + btn_id_success).show();
 
-                        // indicate the completion of the service call
-                        console.log(`[${id_str_name}] Test run service returned from:\n${_testRunClient.name}`);
+                        console.log(`[${id_str_name}] Test finished: success=${result.success}`);
 
                         if (!result.success) {
-                            // alert("Not successful");
-                            $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>");
+                            let reason = result.error ? "<p>" + result.error + "</p>" :
+                                (result.response ? json_to_html(result.response) : "");
+                            $('#' + output_id).html("<h4 style='color: red'>The test run was not successful!</h4>" + reason);
                             return;
                         }
 
-                        try {
-                            const response_obj = JSON.parse(result.message);
-
-                            if (response_obj.type == "object") {
-                                $('#' + output_id).html(json_to_html(response_obj));
-                            } else if (response_obj.type == "stream") {
-                                $('#' + output_id).html(json_to_html(response_obj));
-
-                                // setup live stream of data
-                                try {
-                                    let stream_topic = extract_stream_topic_from_json(response_obj);
-
-                                    let update_id = output_id + "-stream"
-                                    let update_div = $('<div>').attr('id', update_id);
-                                    $('#' + output_id).append(update_div);
-                                    stream_data(
-                                        ros,
-                                        robot_name,
-                                        stream_topic.test_topic_name,
-                                        stream_topic.test_topic_type,
-                                        update_id,
-                                        modal_id,
-                                    );
-                                } catch (error) {
-                                    console.log(`[${id_str_name}]Stream type response received, but an error has occurred. Error msg: ${error}`);
-                                }
-                            }
-                        } catch (error) {
-                            $('#' + output_id).html("Error parsing the response: " + result.message);
+                        $('#' + output_id).html(json_to_html(result.response));
+                        if (result.response.type === "stream") {
+                            // live stream of data
+                            let update_id = output_id + "-stream";
+                            $('#' + output_id).append($('<div>').attr('id', update_id));
+                            DT_HW_TESTS.stream(test_spec, dtps, robot_name, update_id, modal_id);
                         }
                     });
                 })
@@ -601,10 +540,9 @@ ROS::connect($ros_hostname);
                 });
 
                 // --- download logs
-                // ROS node
+                // the driver running the test
                 $('#' + btn_id_logs_node).click(function() {
-                    let node_name = component.test_service_name.split('/')[0];
-                    download_ros_node_logs(robot_name, node_name);
+                    download_docker_container_logs(robot_name, test_spec.container);
                 });
                 // docker container
                 $('#' + btn_id_logs_docker_container).click(function() {

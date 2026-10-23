@@ -17,8 +17,19 @@ $(function () {
     );
     camera.position.z = 5;
 
-    // create renderer
-    const renderer = new THREE.WebGLRenderer();
+    // create renderer; without WebGL only the game is disabled (an error here would also stop the
+    // page's other document-ready handlers, e.g., the one listing the components)
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer();
+    } catch (error) {
+        console.warn("IMU game disabled, WebGL is not available in this browser:", error);
+        duckiebot_imu_funcs.dtps_setup = function () {
+            $("#imu-game").html("<p>The IMU game needs WebGL, which is not available in this browser.</p>");
+        };
+        duckiebot_imu_funcs.cleanup = function () {};
+        return;
+    }
     renderer.setSize(
         container_w,
         container_h
@@ -31,7 +42,7 @@ $(function () {
     // should the main loop update
     var update_world = false;
 
-    // ROS topic
+    // subscription to the IMU stream (DTPS)
     var listener;
 
     // rigidbodies in the world
@@ -103,28 +114,23 @@ $(function () {
 
     var is_connected_to_robot = false;
 
-    function ros_setup(
-        ros,  // ROSLIBJS obj
-        robot_name,
-        ros_topic_name,
-    ) {
-        let _robot_hostname = robot_name;
-
+    function _start(robot_name) {
         survival_time_sec = 0;
         deinit();
         init();
-
-        listener = new ROSLIB.Topic({
-            ros: ros,
-            name: ros_topic_name,
-            messageType: 'sensor_msgs/Imu',
-        });
-
         xs = [];
         ys = [];
         sum_x = sum_y = 0.0;
+        is_connected_to_robot = false;
+        return function (message) {
+            _on_imu_message(robot_name, message);
+        };
+    }
 
-        listener.subscribe(function (message) {
+    function _on_imu_message(_robot_hostname, message) {
+            if (message.linear_acceleration === null || message.linear_acceleration === undefined) {
+                return;
+            }
             if (!is_connected_to_robot) {
                 $("#connect_to_duckiebot")
                     .prop("disabled", true)
@@ -159,18 +165,30 @@ $(function () {
                 sum_x / xs.length,
                 sum_y / ys.length
             ));
-
-        });
     }
 
-    function ros_cleanup() {
-        listener.unsubscribe();
+    // DTPS source (duckietown_messages Imu from the switchboard, e.g. "sensor/imu/base/all")
+    function dtps_setup(
+        dtps,  // DTPS client (see dtps_client.js)
+        robot_name,
+        dtps_topic_path,
+    ) {
+        let on_message = _start(robot_name);
+        listener = dtps.subscribe(dtps_topic_path, on_message, {maxHz: 30});
+    }
+
+    function cleanup() {
+        if (listener) {
+            listener.close();
+            listener = null;
+        }
+        is_connected_to_robot = false;
     }
 
     var survival_time_sec = -1;
     var best_survival_time_sec = 0;
     setInterval(() => {
-        if (ros != null) {
+        if (is_connected_to_robot) {
             if (update_world) {
                 survival_time_sec += 1;
                 $("#score").text(survival_time_sec + "s - Survival Time");
@@ -263,8 +281,8 @@ $(function () {
         }
     }
 
-    duckiebot_imu_funcs.ros_setup = ros_setup;
-    duckiebot_imu_funcs.ros_cleanup = ros_cleanup;
+    duckiebot_imu_funcs.dtps_setup = dtps_setup;
+    duckiebot_imu_funcs.cleanup = cleanup;
 
     init();
     loop();

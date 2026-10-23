@@ -40,6 +40,31 @@ $sizes = [ // allowed block sizes
 // open DB of missions
 $db = new Database($mission_db_package, $mission_db, $missions_regex);
 
+// The packaged default mission is copied into the missions database (a persistent volume) only
+// when the database is first created, so robots updated from an older release keep the old,
+// ROS-based default mission. Replace it with the current (DTPS-based) one, but only if it is
+// still identical to one of the previously packaged defaults, i.e., never touch user changes.
+if ($robot_type == "duckiebot" && $db->key_exists("default") && $db->is_writable("default")) {
+  $_pkg_dir = Core::getPackageRootDir("duckietown_duckiebot");
+  $_current_default_file = join_path($_pkg_dir, "data", "private", "default_missions", $mission_db, "default.json");
+  $_legacy_default_files = glob(join_path($_pkg_dir, "data", "private", "legacy_default_missions", "default.*.json"));
+  $_stored = $db->read("default");
+  $_current = json_decode(@file_get_contents($_current_default_file), true);
+  if ($_stored["success"] && is_array($_current) && isset($_current["_data"]["blocks"])) {
+    foreach ($_legacy_default_files as $_legacy_file) {
+      $_legacy = json_decode(@file_get_contents($_legacy_file), true);
+      // loose comparison: same keys and values, regardless of key order
+      if (isset($_legacy["_data"]["blocks"]) && $_stored["data"]["blocks"] == $_legacy["_data"]["blocks"]) {
+        $_res = $db->write("default", $_current["_data"]);
+        if (!$_res["success"]) {
+          error_log("Could not update the default mission: " . json_encode($_res["data"]));
+        }
+        break;
+      }
+    }
+  }
+}
+
 // open load modal if no mission was given
 if ($db->size() > 0 && is_null($mission_name)) {
   $mission_name = null;
@@ -117,6 +142,13 @@ for ($i = 0; $i < count($mission_control_grid['blocks']); $i++) {
   array_push($robots, $ros_hostname);
 }
 $is_multi_robot_mission = count(array_unique($robots)) > 1;
+// blocks named `Duckiebot_DTPS_*` read the robot's DTPS switchboard, all others use rosbridge
+$uses_ros = false;
+foreach ($mission_control_grid['blocks'] as $block) {
+  if (strpos($block['renderer'], 'Duckiebot_DTPS_') !== 0) {
+    $uses_ros = true;
+  }
+}
 ?>
 
 <table style="width: 970px; margin: auto; margin-bottom: 12px">
@@ -194,7 +226,24 @@ if ($load_mission) {
 ?>
 
 
+<script src="<?php echo Core::getJSscriptURL('cbor.min.js', 'duckietown_duckiebot'); ?>"></script>
+<script src="<?php echo Core::getJSscriptURL('dtps_client.js', 'duckietown_duckiebot'); ?>"></script>
+
 <script type="text/javascript">
+  <?php if (!$uses_ros && !$is_multi_robot_mission) { ?>
+  // the mission only uses DTPS blocks: show the status of the robot's DTPS switchboard
+  DTPS.client('<?php echo Duckiebot::getDuckiebotName() ?>').index().then(function () {
+    $('#vehicle_bridge_status').html(
+      '<span class="glyphicon glyphicon-ok-sign" aria-hidden="true" style="color:green"></span> Switchboard: <strong>Connected</strong>'
+    );
+  }).catch(function (error) {
+    console.log('Error connecting to the DTPS switchboard: ', error);
+    $('#vehicle_bridge_status').html(
+      '<span class="glyphicon glyphicon-remove-sign" aria-hidden="true" style="color:red"></span> Switchboard: <strong>Error</strong>'
+    );
+  });
+  <?php } ?>
+
   $(document).on('<?php echo ROS::get_event(ROS::$ROSBRIDGE_CONNECTED) ?>', function(evt){
     console.log('Connected to websocket server.');
     $('#vehicle_bridge_status').html(
@@ -216,9 +265,10 @@ if ($load_mission) {
     );
   });
 
-  $(document).ready(function() {
-    window.mission_control_page_blocks_data = {};
-  });
+  // registry of the blocks' live charts; created right away (not on document ready) because blocks
+  // that do not wait for a ROS connection (e.g., the DTPS ones) register in their own ready handlers,
+  // which run before this one
+  window.mission_control_page_blocks_data = window.mission_control_page_blocks_data || {};
 
   $(window).on('MISSION_CONTROL_MENU_SAVE', function(evt, mission_name, mission_json){
     let base_url = "<?php echo Core::getAPIurl('data', 'set', ['database' => $mission_db]) ?>";
