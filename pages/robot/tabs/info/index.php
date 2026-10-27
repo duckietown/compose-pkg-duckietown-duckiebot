@@ -11,8 +11,11 @@
  */
 use \system\classes\Core;
 use \system\packages\duckietown_duckiebot\Duckiebot;
+use \system\packages\ros\ROS;
 
 $update_hz = 0.5;
+$robot_type = strtolower(trim((string) Duckiebot::getRobotType()));
+$is_duckiedrone = ($robot_type === 'duckiedrone');
 
 $image_template_png = Core::getImageURL('robots/thumbnails/{0}_all.png');
 $image_template_png_dark = Core::getImageURL('robots/thumbnails/{0}_all_darkmode.png');
@@ -597,6 +600,17 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     .robot-batt-diag.is-missing .robot-batt-charge {
         opacity: 0.45;
     }
+    /* Duckiebot pack rows. A Duckiedrone reads /mavros/battery, which has
+       voltage, current, and charge, and does not have these pack fields. */
+    .robot-batt-mavros-only {
+        display: none;
+    }
+    .robot-batt-diag.is-mavros-battery .robot-batt-pack-only {
+        display: none;
+    }
+    .robot-batt-diag.is-mavros-battery .robot-batt-mavros-only {
+        display: block;
+    }
 
     /* —— Responsive —— */
     @media (max-width: 960px) {
@@ -873,7 +887,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                 </div>
             </div>
 
-            <div class="robot-metric robot-batt-diag" id="robot_battery_diag" aria-live="polite">
+            <div class="robot-metric robot-batt-diag<?php echo $is_duckiedrone ? ' is-mavros-battery' : '' ?>" id="robot_battery_diag" aria-live="polite">
                 <div class="robot-metric-head">
                     <h4 class="robot-metric-label">Battery</h4>
                     <div class="robot-metric-head-meta">
@@ -886,14 +900,15 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                     <span class="robot-batt-charge-fill"></span>
                 </div>
                 <div class="robot-batt-diag-grid" id="metric_batt">
-                    <div class="robot-batt-diag-item"><span>Cell</span><strong id="batt_diag_cell">-</strong></div>
-                    <div class="robot-batt-diag-item"><span>Input</span><strong id="batt_diag_input">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-mavros-only"><span>Voltage</span><strong id="batt_diag_voltage">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>Cell</span><strong id="batt_diag_cell">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>Input</span><strong id="batt_diag_input">-</strong></div>
                     <div class="robot-batt-diag-item"><span>Current</span><strong id="batt_diag_current">-</strong></div>
-                    <div class="robot-batt-diag-item"><span>Pack temp</span><strong id="batt_diag_temp">-</strong></div>
-                    <div class="robot-batt-diag-item"><span>USB 1</span><strong id="batt_diag_usb1">-</strong></div>
-                    <div class="robot-batt-diag-item"><span>USB 2</span><strong id="batt_diag_usb2">-</strong></div>
-                    <div class="robot-batt-diag-item"><span>Cycles</span><strong id="batt_diag_cycles">-</strong></div>
-                    <div class="robot-batt-diag-item"><span>Time left</span><strong id="batt_diag_tte">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>Pack temp</span><strong id="batt_diag_temp">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>USB 1</span><strong id="batt_diag_usb1">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>USB 2</span><strong id="batt_diag_usb2">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>Cycles</span><strong id="batt_diag_cycles">-</strong></div>
+                    <div class="robot-batt-diag-item robot-batt-pack-only"><span>Time left</span><strong id="batt_diag_tte">-</strong></div>
                 </div>
             </div>
         </div>
@@ -950,6 +965,7 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     ];
 
     let NETWORK_BOOT = <?php echo json_encode($network_snapshot, JSON_UNESCAPED_SLASHES); ?>;
+    const OVERVIEW_MAVROS_BATTERY = <?php echo $is_duckiedrone ? 'true' : 'false' ?>;
 
     function _meter_level(pct) {
         if (pct >= 90) return 'is-bad';
@@ -1112,6 +1128,62 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         $('#batt_diag_tte').text(formatBatteryTimeToEmpty(battery.time_to_empty, charging));
     }
 
+    function clearMavrosBattery() {
+        $('#robot_battery_diag').addClass('is-missing');
+        $('#batt_diag_present')
+            .removeClass('is-ok')
+            .addClass('is-bad')
+            .html('<i class="fa fa-times-circle" aria-hidden="true"></i> Not detected');
+        $('#batt_diag_charging').removeClass('is-ok is-warn').text('-');
+        $('#_robot_batt_value').text('-');
+        _set_batt_meter(0, false);
+        $('#batt_diag_voltage, #batt_diag_current').text('-');
+    }
+
+    // sensor_msgs/BatteryState: percentage is a fraction in [0, 1], voltage is
+    // volts, and current is amps (positive while charging). This is the same
+    // reading Mission Control shows from /mavros/battery.
+    function applyMavrosBattery(message) {
+        var voltage = Number(message && message.voltage);
+        if (!isFinite(voltage) || voltage <= 0) {
+            clearMavrosBattery();
+            return;
+        }
+        var pct = NaN;
+        if (isFinite(message.percentage) && message.percentage >= 0) {
+            pct = Math.min(message.percentage * 100, 100);
+        }
+        var current = Number(message.current);
+        var knownDraw = isFinite(current) && Math.abs(current) > 0.05;
+        var charging = knownDraw && current > 0;
+        var presentChip = $('#batt_diag_present');
+        var chargeChip = $('#batt_diag_charging');
+        $('#robot_battery_diag').removeClass('is-missing');
+        presentChip
+            .removeClass('is-bad')
+            .addClass('is-ok')
+            .html('<i class="fa fa-check-circle" aria-hidden="true"></i> Present');
+        chargeChip
+            .toggleClass('is-ok', charging)
+            .toggleClass('is-warn', knownDraw && !charging);
+        if (!knownDraw) {
+            chargeChip.text('-');
+        } else if (charging) {
+            chargeChip.html('<i class="fa fa-plug" aria-hidden="true"></i> Charging');
+        } else {
+            chargeChip.html('<i class="fa fa-battery-three-quarters" aria-hidden="true"></i> Discharging');
+        }
+        if (isFinite(pct)) {
+            $('#_robot_batt_value').text(_format_pct(pct));
+            _set_batt_meter(pct, charging);
+        } else {
+            $('#_robot_batt_value').text('-');
+            _set_batt_meter(0, false);
+        }
+        $('#batt_diag_voltage').text(formatBatteryVoltage(voltage));
+        $('#batt_diag_current').text(isFinite(current) ? (formatBatteryCurrent(current) || '-') : '-');
+    }
+
     function mergeNetworkSnapshot(extra, connected) {
         extra = extra || {};
         var merged = $.extend({}, NETWORK_BOOT, extra);
@@ -1218,20 +1290,25 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
                     _set_meter('#_robot_disk_meter', disk, false);
                 }
 
-                let batt_raw = data.battery && data.battery.percentage;
-                let battCharging = isBatteryPresent(data.battery) && isBatteryCharging(data.battery);
-                applyBatteryDiagnostics(data.battery);
-                if (batt_raw !== undefined && batt_raw !== null && batt_raw !== 'ND') {
-                    let batt = Number(batt_raw);
-                    if (isFinite(batt)) {
-                        $('#_robot_batt_value').text(_format_pct(batt));
-                        _set_batt_meter(batt, battCharging);
+                // A Duckiedrone has no Duckiebot pack monitor. That health
+                // battery is present:false and 0%, which painted "Not detected"
+                // over the live /mavros/battery charge.
+                if (!OVERVIEW_MAVROS_BATTERY) {
+                    let batt_raw = data.battery && data.battery.percentage;
+                    let battCharging = isBatteryPresent(data.battery) && isBatteryCharging(data.battery);
+                    applyBatteryDiagnostics(data.battery);
+                    if (batt_raw !== undefined && batt_raw !== null && batt_raw !== 'ND') {
+                        let batt = Number(batt_raw);
+                        if (isFinite(batt)) {
+                            $('#_robot_batt_value').text(_format_pct(batt));
+                            _set_batt_meter(batt, battCharging);
+                        }
+                    } else if (batt_raw === 'ND') {
+                        $('#_robot_batt_value').text('ND');
+                        _set_batt_meter(0, false);
+                    } else {
+                        $('#_robot_batt_meter').toggleClass('is-charging', !!battCharging);
                     }
-                } else if (batt_raw === 'ND') {
-                    $('#_robot_batt_value').text('ND');
-                    _set_batt_meter(0, false);
-                } else {
-                    $('#_robot_batt_meter').toggleClass('is-charging', !!battCharging);
                 }
 
                 if (data.hardware) {
@@ -1353,3 +1430,29 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
     });
 
 </script>
+<?php
+if ($is_duckiedrone) {
+    $ros_hostname = ROS::sanitize_hostname(Duckiebot::getBrowserRobotHostname());
+    $connected_evt = ROS::get_event(ROS::$ROSBRIDGE_CONNECTED, $ros_hostname);
+    ROS::connect($ros_hostname);
+?>
+<script src="<?php echo Core::getJSscriptURL('rosdb.js', 'ros') ?>"></script>
+<script type="text/javascript">
+    $(document).on(<?php echo json_encode($connected_evt) ?>, function () {
+        var stale_timer = null;
+        (new ROSLIB.Topic({
+            ros: window.ros[<?php echo json_encode($ros_hostname) ?>],
+            name: '/mavros/battery',
+            messageType: 'sensor_msgs/BatteryState',
+            queue_size: 1,
+            throttle_rate: 1000
+        })).subscribe(function (message) {
+            clearTimeout(stale_timer);
+            stale_timer = setTimeout(clearMavrosBattery, 10000);
+            applyMavrosBattery(message);
+        });
+    });
+</script>
+<?php
+}
+?>
