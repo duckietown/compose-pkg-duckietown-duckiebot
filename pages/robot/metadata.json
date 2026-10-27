@@ -2,7 +2,7 @@
   "name" : "Robot",
   "package" : "duckietown_duckiebot",
   "menu_entry" : {
-    "order" : 1,
+    "order" : 0,
     "icon" : {
       "class" : "fa",
       "name" : "android"

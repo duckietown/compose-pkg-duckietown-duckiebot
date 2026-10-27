@@ -84,7 +84,7 @@ function stream_data(
                     let range_cm = (range * 100.0).toFixed(1);
                     outHtml += "<p><strong>Range: </strong>" + range_cm + " &nbsp;cm</p>";
                 } else {
-                    outHtml += "<p style='color: red;'>Out of range</p>"
+                    outHtml += "<p class='text-danger'>Out of range</p>"
                 }
                 break;
             case "sensor_msgs/CompressedImage":
