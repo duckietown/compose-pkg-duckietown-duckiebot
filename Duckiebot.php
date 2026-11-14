@@ -59,9 +59,12 @@ class Duckiebot {
             $first_setup_db = new Database('core', 'first_setup');
             if (!$first_setup_db->key_exists('step1')) {
                 $first_setup_db->write('no_admin', null);
-                // Operator chrome is the default. Developers can enable
-                // developer_mode from Dashboard Settings → Dashboard.
+                // enable developer mode
+                $res = Core::setSetting('core', 'developer_mode', true);
                 // confirm step1 and step2
+                if (!$res['success']) {
+                    Core::throwError($res['data']);
+                }
                 // mark the first two steps as completed
                 $first_setup_db->write('step1', null);
                 $first_setup_db->write('step2', null);
@@ -74,6 +77,7 @@ class Duckiebot {
             }
             // Mission Control loads missions through the Data API. Guests may
             // read public mission DBs; writes require a signed-in role.
+            // One-shot migration: do not rewrite __metadata__.json on every request.
             self::ensureMissionDatabasesGuestAccess();
             //
             self::$initialized = true;
@@ -114,8 +118,15 @@ class Duckiebot {
      * operators could view the page (direct Database reads) but could not
      * load missions through the Data API. Writes stay authenticated so guests
      * cannot persist layout changes or leave teleop blocks for others.
+     *
+     * Runs once per robot (sentinel in package migrations DB). Packaged
+     * default_missions already ship the correct guest ACL via post_update.
      */
     private static function ensureMissionDatabasesGuestAccess(): void {
+        $migrations = new Database('duckietown_duckiebot', 'migrations');
+        if ($migrations->key_exists('mission_guest_acl_v1')) {
+            return;
+        }
         $mission_dbs = [
             'duckietown_duckiebot_missions',
             'duckietown_duckiebot_missions_opts',
@@ -133,6 +144,7 @@ class Duckiebot {
             Data::set_public_access($database_name);
             Data::set_guest_access($database_name, true, false);
         }
+        $migrations->write('mission_guest_acl_v1', null);
     }
     
     
@@ -487,122 +499,6 @@ class Duckiebot {
         return null;
     }
 
-    /**
-     * Path to the wpa_supplicant helper used for scan/connect.
-     */
-    private static function getWifiHelperPath(): string {
-        return dirname(__FILE__) . '/tools/wpa_wifi.py';
-    }
-
-    /**
-     * Whether the wpa_supplicant control socket is mounted/visible.
-     */
-    public static function isWifiManagementAvailable(): bool {
-        $dir = getenv('WPA_CTRL_DIR');
-        if ($dir === false || $dir === '') {
-            $dir = '/var/run/wpa_supplicant';
-        }
-        if (!is_dir($dir)) {
-            return false;
-        }
-        $entries = @scandir($dir);
-        if (!is_array($entries)) {
-            return false;
-        }
-        foreach ($entries as $name) {
-            if ($name === '.' || $name === '..') {
-                continue;
-            }
-            if (strpos($name, 'p2p-') === 0) {
-                continue;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Run tools/wpa_wifi.py with a JSON request on stdin.
-     *
-     * @param array $request
-     * @return array{success:bool,data:mixed}
-     */
-    private static function runWifiHelper(array $request): array {
-        $helper = self::getWifiHelperPath();
-        if (!is_readable($helper)) {
-            return [
-                'success' => false,
-                'data' => 'Wi-Fi helper script is missing',
-            ];
-        }
-        $payload = json_encode($request, JSON_UNESCAPED_SLASHES);
-        if ($payload === false) {
-            return ['success' => false, 'data' => 'Could not encode Wi-Fi request'];
-        }
-
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
-        $cmd = 'python3 ' . escapeshellarg($helper);
-        $proc = @proc_open($cmd, $descriptors, $pipes);
-        if (!is_resource($proc)) {
-            return ['success' => false, 'data' => 'Could not start Wi-Fi helper'];
-        }
-
-        fwrite($pipes[0], $payload);
-        fclose($pipes[0]);
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-        $code = proc_close($proc);
-
-        $decoded = json_decode((string) $stdout, true);
-        if (!is_array($decoded)) {
-            $hint = trim((string) $stderr);
-            return [
-                'success' => false,
-                'data' => $hint !== ''
-                    ? ('Wi-Fi helper error: ' . $hint)
-                    : 'Wi-Fi helper returned invalid JSON',
-            ];
-        }
-        if (empty($decoded['ok'])) {
-            return [
-                'success' => false,
-                'data' => isset($decoded['error'])
-                    ? (string) $decoded['error']
-                    : 'Wi-Fi operation failed',
-                'meta' => $decoded,
-            ];
-        }
-        return ['success' => true, 'data' => $decoded, 'code' => $code];
-    }
-
-    /**
-     * Scan nearby Wi-Fi networks (plus known profiles).
-     */
-    public static function scanWifiNetworks(): array {
-        return self::runWifiHelper(['action' => 'scan']);
-    }
-
-    /**
-     * Connect to a Wi-Fi network. Pass null/empty $psk for open or known nets.
-     */
-    public static function connectWifi(string $ssid, ?string $psk = null): array {
-        $ssid = trim($ssid);
-        if ($ssid === '') {
-            return ['success' => false, 'data' => 'SSID is required'];
-        }
-        $request = ['action' => 'connect', 'ssid' => $ssid];
-        if ($psk !== null && $psk !== '') {
-            $request['psk'] = $psk;
-        }
-        return self::runWifiHelper($request);
-    }
-    
     public static function getDuckiebotHostname(): string {
         $duckiebot_name = Core::getSetting('duckiebot_hostname', 'duckietown_duckiebot');
         if (strlen($duckiebot_name) >= 2){
@@ -689,8 +585,8 @@ class Duckiebot {
         if (!file_exists($fpath)) {
             $defaults = [
                 'allow_push_logs_data' => false,
-                'allow_push_stats_data' => true,
-                'allow_push_config_data' => true,
+                'allow_push_stats_data' => false,
+                'allow_push_config_data' => false,
             ];
             return ['success' => true, 'data' => $defaults[$key] ?? false];
         }

@@ -114,8 +114,8 @@
                 },
                 "allow_disable_anonymous_usage" : {
                     "type" : "boolean",
-                    "default" : false,
-                    "details" : "Allow turning off anonymous usage stats. Default off (locked on) until a premium subscription unlocks it."
+                    "default" : true,
+                    "details" : "Allow turning off anonymous usage stats. Default true (opt-in). Set false only when product locks stats on."
                 }
             },
             "__form__": {

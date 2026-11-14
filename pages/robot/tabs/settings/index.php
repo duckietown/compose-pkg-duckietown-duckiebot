@@ -26,6 +26,8 @@ $api_action = 'set';
 
 $developer_mode = (bool) Core::getSetting('developer_mode', 'core', false);
 $simplify_settings = RobotUIFeatures::simplify_robot_settings();
+// Opt-in by default (allow_disable_anonymous_usage=true). Only lock the
+// UI when that flag is explicitly turned off — do not force stats on save.
 $lock_anonymous_usage = !RobotUIFeatures::allow_disable_anonymous_usage();
 
 // load API
@@ -42,12 +44,6 @@ if ($simplify_settings && !$developer_mode) {
     foreach (['system', 'robot', 'autolab'] as $hidden_group) {
         unset($action_params[$hidden_group]);
     }
-}
-
-if ($lock_anonymous_usage
-    && isset($action_params['permissions']['_data']['allow_push_stats_data'])) {
-    $action_params['permissions']['_data']['allow_push_stats_data']['__form__']['disabled'] = true;
-    $action_params['permissions']['_data']['allow_push_stats_data']['default'] = true;
 }
 
 $form_schema = [
@@ -284,12 +280,6 @@ $form_schema = [
         $data[$key] = $res['success']? $res['data'] : [];
     }
     unset($res);
-    if ($lock_anonymous_usage) {
-        if (!isset($data['permissions']) || !is_array($data['permissions'])) {
-            $data['permissions'] = [];
-        }
-        $data['permissions']['allow_push_stats_data'] = true;
-    }
     // create form
     $form = new SmartForm($form_schema, $data);
     // render form

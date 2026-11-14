@@ -964,7 +964,10 @@ $dbot_hostname = Duckiebot::getDuckiebotHostname();
         'throttling-occurred'
     ];
 
-    let NETWORK_BOOT = <?php echo json_encode($network_snapshot, JSON_UNESCAPED_SLASHES); ?>;
+    let NETWORK_BOOT = <?php echo json_encode(
+        $network_snapshot,
+        JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
+    ); ?>;
     const OVERVIEW_MAVROS_BATTERY = <?php echo $is_duckiedrone ? 'true' : 'false' ?>;
 
     function _meter_level(pct) {

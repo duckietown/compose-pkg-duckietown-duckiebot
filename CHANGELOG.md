@@ -1,6 +1,11 @@
 ## 1.5.7 (October 23, 2026)
   - feat(DTSW-8240): redesign the robot dashboard behind reversible feature flags, including Mission Control, Overview, teleop, and Wi-Fi status
   - add tools/keyboard_controller_auth.php so the dashboard can require a logged-in session for /keyboard-controller/
+  - fix(DTSW-8240): gate mission guest ACL migration behind a one-shot sentinel (no per-request metadata rewrites)
+  - fix(DTSW-8240): restore developer_mode on first setup; keep stats/config backup opt-in (off by default)
+  - fix(DTSW-8240): remove unused Wi-Fi scan/connect helpers (wpa_wifi.py); status-only robot_wifi API
+  - fix(DTSW-8240): harden NETWORK_BOOT json_encode against script-breaking SSIDs
+  - release note: merge/tag this package as v1.5.7 before bumping dt-device-dashboard dependencies-compose.txt (and duckiedrone to v2.2.9); dashboard nginx auth_request needs keyboard_controller_auth.php
 
 ## 1.5.6 (October 23, 2026)
   - fix(robot): hide Architecture and Components tabs on DD24

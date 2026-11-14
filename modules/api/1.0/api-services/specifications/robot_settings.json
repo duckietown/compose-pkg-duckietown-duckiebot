@@ -43,15 +43,15 @@
                             },
                             "allow_push_stats_data": {
                                 "type": "boolean",
-                                "default": true,
-                                "details": "Automatically send usage statistics and crash reports to Duckietown. Required except on a premium subscription.",
+                                "default": false,
+                                "details": "Automatically send usage statistics and crash reports to Duckietown.",
                                 "__form__": {
                                     "title": "Share anonymous usage data with Duckietown"
                                 }
                             },
                             "allow_push_config_data": {
                                 "type": "boolean",
-                                "default": true,
+                                "default": false,
                                 "details": "Automatically backup robot's configuration to the Duckietown Cloud Storage Service (DCSS).",
                                 "__form__": {
                                     "title": "Backup robot configuration to the cloud"
