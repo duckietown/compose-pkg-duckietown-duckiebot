@@ -1,0 +1,21 @@
+{
+    "details": "Read-only Wi-Fi / Ethernet connection status for the Overview strip",
+    "actions": {
+        "status": {
+            "details": "Current connection snapshot (Wi-Fi / Ethernet)",
+            "access_level": [
+                "guest",
+                "user",
+                "supervisor",
+                "administrator"
+            ],
+            "authentication": [
+                "web"
+            ],
+            "parameters": {
+                "mandatory": {},
+                "optional": {}
+            }
+        }
+    }
+}
