@@ -1,3 +1,7 @@
+## 1.5.8 (November 24, 2026)
+  - fix(DTSW-8240): address PR #15 review blockers for the robot UI redesign
+  - fix(DTSW-8240): Read the Duckiedrone Overview battery from MAVROS.
+
 ## 1.5.7 (October 23, 2026)
   - feat(DTSW-8240): redesign the robot dashboard behind reversible feature flags, including Mission Control, Overview, teleop, and Wi-Fi status
   - add tools/keyboard_controller_auth.php so the dashboard can require a logged-in session for /keyboard-controller/
